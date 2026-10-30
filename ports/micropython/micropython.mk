@@ -89,9 +89,10 @@ USERMOD_DIRS += $(BINDINGS_DIR)
 # the root (a prefix of this directory) names every object here, this
 # module's own src/ included. A MicroPython that strips only this directory
 # names src/ by it, hence the second spelling. A spelling a pattern didn't
-# match is still the absolute path, so every spelling that holds a colon is
-# dropped, not only the third.
-LVMP_OBJ = $(foreach o,$(BUILD)/$(patsubst $(BINDINGS_DIR)/%,$(notdir $(BINDINGS_DIR))/%,$(1)) $(BUILD)/$(patsubst $(LVMP_DIR)/%,$(notdir $(LVMP_DIR))/%,$(1)) $(BUILD)/$(1),$(if $(findstring :,$(o)),,$(o)))
+# match is still the absolute path, so every spelling whose part under
+# $(BUILD) holds a colon is dropped, not only the third. $(BUILD) itself may
+# hold a drive colon (an absolute build directory on Windows); that is fine.
+LVMP_OBJ = $(addprefix $(BUILD)/,$(foreach o,$(patsubst $(BINDINGS_DIR)/%,$(notdir $(BINDINGS_DIR))/%,$(1)) $(patsubst $(LVMP_DIR)/%,$(notdir $(LVMP_DIR))/%,$(1)) $(1),$(if $(findstring :,$(o)),,$(o))))
 $(foreach s,$(SOURCES),\
 	$(eval $(call LVMP_OBJ,$(s:.c=.o)): CFLAGS += $(LVMP_FLOAT_CFLAGS)))
 $(eval $(call LVMP_OBJ,$(LVMP_C:.c=.o)): CFLAGS += $(LVMP_FLOAT_CFLAGS))
