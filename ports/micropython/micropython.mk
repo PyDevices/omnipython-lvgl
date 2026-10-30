@@ -82,10 +82,14 @@ LVMP_FLOAT_CFLAGS := -Wno-double-promotion -Wno-float-conversion -Wno-unused-but
 # objects become $(BUILD)/<root dir basename>/.... Each object is named both
 # ways below, since a flag rule on a target that doesn't exist never applies
 # and upstream LVGL then fails the port's -Werror=double-promotion with no hint.
-# The second spelling can't be a target on Windows: a path with a drive (C:/...)
+# The absolute spelling can't be a target on Windows: a path with a drive (C:/...)
 # under $(BUILD) holds a second colon, which make reads as a static pattern rule.
 USERMOD_DIRS += $(BINDINGS_DIR)
-LVMP_OBJ = $(BUILD)/$(patsubst $(BINDINGS_DIR)/%,$(notdir $(BINDINGS_DIR))/%,$(patsubst $(LVMP_DIR)/%,$(notdir $(LVMP_DIR))/%,$(1))) $(if $(findstring :,$(1)),,$(BUILD)/$(1))
+# py.mk sorts the module directories and strips the first that matches, so
+# the root (a prefix of this directory) names every object here, this
+# module's own src/ included. A MicroPython that strips only this directory
+# names src/ by it, hence the second spelling.
+LVMP_OBJ = $(BUILD)/$(patsubst $(BINDINGS_DIR)/%,$(notdir $(BINDINGS_DIR))/%,$(1)) $(BUILD)/$(patsubst $(LVMP_DIR)/%,$(notdir $(LVMP_DIR))/%,$(1)) $(if $(findstring :,$(1)),,$(BUILD)/$(1))
 $(foreach s,$(SOURCES),\
 	$(eval $(call LVMP_OBJ,$(s:.c=.o)): CFLAGS += $(LVMP_FLOAT_CFLAGS)))
 $(eval $(call LVMP_OBJ,$(LVMP_C:.c=.o)): CFLAGS += $(LVMP_FLOAT_CFLAGS))
