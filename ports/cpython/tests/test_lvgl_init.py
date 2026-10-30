@@ -75,7 +75,7 @@ class LvglInitTests(unittest.TestCase):
         import lvgl
 
         extension = Path(lvgl.__file__).resolve()
-        self.assertTrue(extension.with_suffix(".pyi").is_file())
+        self.assertTrue((extension.parent / "lvgl.pyi").is_file())
 
     def test_import_and_init_deinit(self):
         import lvgl as lv
