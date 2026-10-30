@@ -1,9 +1,11 @@
-# Build lvgl-python from source
+# Build the CPython extension from source
 
 Use the [wheel](../get-started/install.md) when there is one for your platform.
 Build from source to change the CPython runtime layer, or to run on a platform
-without a wheel. You need only the lvgl-python clone and its `lvgl` submodule:
-no MicroPython, CircuitPython or generator.
+without a wheel. You need only an omnipython-lvgl clone and its `lvgl`
+submodule: no MicroPython, CircuitPython or generator. The wheel builds from
+the repository root, from the generated binding committed in `generated/` and
+the runtime in `ports/cpython/src/`.
 
 ## What you need
 
@@ -29,10 +31,9 @@ sources into one extension module. Use an editable install while you work, so
 the built module beside the checkout stays in step with your rebuilds.
 
 ```bash
-git clone --recurse-submodules https://github.com/PyDevices/lvgl-python.git
-cd lvgl-python
+git clone --recurse-submodules --shallow-submodules https://github.com/PyDevices/omnipython-lvgl.git
+cd omnipython-lvgl
 python3 -m venv .venv
-.venv/bin/pip install -r requirements-dev.txt
 .venv/bin/pip install -e .
 .venv/bin/python -c "import lvgl as lv; lv.init(); lv.deinit(); print('ok')"
 ```
@@ -58,7 +59,7 @@ C source changes, an editable install does not recompile on import: run
 Run the unit tests with:
 
 ```bash
-.venv/bin/python -m unittest discover -s tests
+.venv/bin/python -m unittest discover -s ports/cpython/tests
 ```
 
 ## Windows Python from WSL
@@ -67,7 +68,7 @@ Keep the repository on the WSL filesystem and install into Windows Python with
 `pip.exe`, with no copy to `C:\`:
 
 ```bash
-cd /path/to/lvgl-python
+cd /path/to/omnipython-lvgl
 pip.exe install -e "$(wslpath -w "$PWD")"
 python.exe -c "import lvgl as lv; lv.init(); lv.deinit(); print('ok')"
 ```
@@ -81,7 +82,7 @@ installs a matching wheel when `--extra-index-url` points at TestPyPI, and
 cross-compiles from your checkout otherwise. To use your own tree:
 
 ```bash
-export P4A_pydeviceslvgl_DIR=/path/to/lvgl-python
+export P4A_pydeviceslvgl_DIR=/path/to/omnipython-lvgl
 ```
 
 ## Pyodide

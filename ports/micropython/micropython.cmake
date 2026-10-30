@@ -38,7 +38,7 @@ endif()
 # at all for a JPEG -- silently, at run time. Say so at build time instead (#11).
 if(NOT "${USER_C_MODULES}" MATCHES "jpegio")
     message(NOTICE
-        "lvgl-micropython: no jpegio in this build -- lv.image will not draw "
+        "omnipython-lvgl: no jpegio in this build -- lv.image will not draw "
         "a JPEG. jpegio owns the TJpgDec decoder; PNG and LVGL BIN still "
         "decode. Name jpegio's module as well for JPEG.")
 endif()

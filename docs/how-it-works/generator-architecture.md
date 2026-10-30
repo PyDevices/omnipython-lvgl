@@ -70,8 +70,8 @@ There are no target exceptions. The last ones, `lv_tjpgd_init` and
 `lv_tjpgd_deinit`, are private on every target: `lv_conf.h` sets
 `LV_USE_TJPGD 0` for every real compile, because the JPEG decoder is jpegio's,
 registered through LVGL's public `lv_image_decoder_create` API by jpegio
-(MicroPython), lvgl-circuitpython (CircuitPython) and lvgl-python (CPython,
-which compiles jpegio's decoder at a pinned commit and registers it from
+(MicroPython), the CircuitPython port and the CPython port (which
+compiles jpegio's decoder at a pinned commit and registers it from
 the `LVPY_AFTER_LV_INIT` hook). Each build carries one TJpgDec. Target exceptions, when there
 are any, are declared in `binding/api_policy.json` and have policy, namespace,
 and runtime coverage. The compatibility report must contain zero unexplained
@@ -99,4 +99,4 @@ appearance. [`tests/test_nesting_export.py`](../../tests/test_nesting_export.py)
 the freshly generated MicroPython/CircuitPython C exports; pydevices'
 `tests/test_lvgl_display_driver.py` holds the reader's side.
 
-How to run the generator and its checks is in [CONTRIBUTING](https://github.com/PyDevices/lvgl-bindings/blob/main/CONTRIBUTING.md). The consumer builds are part of integration validation: the `linux-integration.yml` workflow builds the MicroPython and CircuitPython unix ports with lvgl-micropython and lvgl-circuitpython pinned at the commit under test, and runs [`tools/test_lvgl_smoke.py`](../../tools/test_lvgl_smoke.py) on each. CPython rebuilds its extension and wheel from the synced source.
+How to run the generator and its checks is in [CONTRIBUTING](https://github.com/PyDevices/omnipython-lvgl/blob/main/CONTRIBUTING.md). The ports are part of integration validation: the `linux-integration.yml` workflow builds the MicroPython and CircuitPython unix ports with `ports/micropython` and `ports/circuitpython` from the commit under test, builds the CPython extension, and runs [`tools/test_lvgl_smoke.py`](../../tools/test_lvgl_smoke.py) on all three.

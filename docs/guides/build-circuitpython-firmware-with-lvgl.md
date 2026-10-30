@@ -1,9 +1,9 @@
 # Build CircuitPython firmware with LVGL
 
-lvgl-circuitpython is a user C module for CircuitPython. CircuitPython 11 builds
-user C modules the way MicroPython does, so you hand the repository to any
-port's `make` as `USER_C_MODULES` and nothing in the CircuitPython tree is
-patched.
+`ports/circuitpython` in omnipython-lvgl is a user C module for CircuitPython.
+CircuitPython 11 builds user C modules the way MicroPython does, so you hand
+that directory to any port's `make` as `USER_C_MODULES` and nothing in the
+CircuitPython tree is patched.
 
 ## Get the sources
 
@@ -16,14 +16,13 @@ git clone --branch 11.0.0-alpha.1 https://github.com/adafruit/circuitpython.git 
 cd circuitpython
 make fetch-all-submodules
 cd ..
-git clone https://github.com/PyDevices/lvgl-circuitpython.git
+git clone --recurse-submodules --shallow-submodules https://github.com/PyDevices/omnipython-lvgl.git
 ```
 
-The bindings come from `LV_BINDINGS_DIR` if you set it, else an `lvgl-bindings`
-checkout beside lvgl-circuitpython, else the commit in `LVGL_BINDINGS_COMMIT`,
-which the build fetches into `.deps/`. A checkout you supply is built as it is:
-if its generated binding, `lvgl` or `lv_conf.h` differ from the pin, the build
-prints a note naming the commit and carries on. There is nothing to generate.
+The port reads the generated binding, `lv_conf.h` and `lvgl/` from the same
+checkout, two directories up from itself, so there is nothing to generate or
+fetch. A clone without the `lvgl` submodule stops the build at once and names
+the command that fetches it.
 
 ## Install the toolchain
 
@@ -48,10 +47,14 @@ export PATH="$(pwd)/.venv/bin:$PATH"
 ## Build for the unix port or a board
 
 ```bash
-make -C circuitpython/ports/unix USER_C_MODULES=/path/to/lvgl-circuitpython
+make -C circuitpython/ports/unix VARIANT=coverage \
+    USER_C_MODULES=/path/to/omnipython-lvgl/ports/circuitpython
 make -C circuitpython/ports/raspberrypi BOARD=<board> CIRCUITPY_GIFIO=0 \
-    USER_C_MODULES=/path/to/lvgl-circuitpython
+    USER_C_MODULES=/path/to/omnipython-lvgl/ports/circuitpython
 ```
+
+Add `FROZEN_MANIFEST=/path/to/omnipython-lvgl/ports/circuitpython/manifest.py`
+to freeze the `fs_driver` helper as well.
 
 `CIRCUITPY_GIFIO=0` is for boards: LVGL links its own AnimatedGIF decoder, which
 collides with `gifio`'s. The build stops with a message if you forget it.
@@ -67,33 +70,36 @@ them. For a worked example with a partition table, see
 
 [micropython-pydevices](https://github.com/PyDevices/micropython-pydevices)'
 `build_mp.py` fetches CircuitPython, passes the modules you name to its make as
-`USER_C_MODULES`, and finds lvgl-bindings the way lvgl-circuitpython does:
+`USER_C_MODULES`:
 
 ```bash
 ./build_mp.py --interpreter circuitpython --port unix \
-    --modules /path/to/lvgl-circuitpython,pygraphics
+    --modules /path/to/omnipython-lvgl/ports/circuitpython,pygraphics
 ```
 
 `--modules` takes a short name for each module that lives in
-micropython-pydevices and a full path for one that doesn't, such as
-lvgl-circuitpython. The binary lands in `builds/circuitpython/unix/coverage/`.
+micropython-pydevices and a full path for one that doesn't, such as this
+port. The binary lands in `builds/circuitpython/unix/coverage/`.
 
 For a board, name CircuitPython's port and board, and put `CIRCUITPY_GIFIO=0`
 at the end:
 
 ```bash
 ./build_mp.py --interpreter circuitpython --port espressif \
-    --board <board> --modules /path/to/lvgl-circuitpython CIRCUITPY_GIFIO=0
+    --board <board> --modules /path/to/omnipython-lvgl/ports/circuitpython CIRCUITPY_GIFIO=0
 ```
 
 ## Check the build
 
-Run the binding's smoke test, from a checkout of lvgl-bindings at the pinned
-commit, with the interpreter you built (`build-coverage/micropython` for the
-unix `make` line above):
+Run the smoke test from your omnipython-lvgl checkout with the interpreter you
+built (`build-coverage/micropython` for the unix `make` line above):
 
 ```bash
-./circuitpython/ports/unix/build-coverage/micropython ./lvgl-bindings/tools/test_lvgl_smoke.py
+./circuitpython/ports/unix/build-coverage/micropython ./omnipython-lvgl/tools/test_lvgl_smoke.py
+```
+
+```text
+All LVGL smoke tests passed.
 ```
 
 ## Driving the screen

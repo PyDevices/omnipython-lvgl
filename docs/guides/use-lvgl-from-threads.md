@@ -34,6 +34,6 @@ rather than leaving them to the collector.
 
 ## Checking it
 
-lvgl-python's `tests/test_free_threading.py` runs on free-threaded builds. It
+The CPython port's `ports/cpython/tests/test_free_threading.py` runs on free-threaded builds. It
 checks that importing `lvgl` leaves the GIL off, and that frames drawn on one
 thread while other threads run Python are byte for byte the frames drawn alone.

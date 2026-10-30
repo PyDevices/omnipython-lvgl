@@ -20,7 +20,7 @@ SOURCES = $(shell find $(LVGL_DIR)/src -type f -name "*.c")
 # displayif's before), this module decodes PNG and LVGL's BIN and draws nothing
 # at all for a JPEG -- silently, at run time. Say so at build time instead (#11).
 ifeq ($(findstring jpegio,$(USER_C_MODULES)),)
-$(info lvgl-micropython: no jpegio in this build -- lv.image will not draw a JPEG.)
+$(info omnipython-lvgl: no jpegio in this build -- lv.image will not draw a JPEG.)
 $(info   jpegio owns the TJpgDec decoder; PNG and LVGL BIN still decode.)
 $(info   Name jpegio's module as well for JPEG.)
 endif

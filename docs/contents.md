@@ -17,7 +17,7 @@ get-started/first-program
 
 guides/use-lvgl-from-threads
 guides/show-jpeg-images
-guides/build-lvgl-python-from-source
+guides/build-the-cpython-extension-from-source
 guides/build-micropython-firmware-with-lvgl
 guides/build-circuitpython-firmware-with-lvgl
 guides/flash-lvgl-circuitpython-on-a-qualia
@@ -37,9 +37,9 @@ reference/fonts
 
 how-it-works/index
 how-it-works/generator-architecture
-how-it-works/lvgl-python
-how-it-works/lvgl-micropython
-how-it-works/lvgl-circuitpython
+how-it-works/cpython-port
+how-it-works/micropython-port
+how-it-works/circuitpython-port
 ```
 
 ```{toctree}

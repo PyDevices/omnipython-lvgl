@@ -6,12 +6,9 @@
 """
 fs_driver.py - register a Python-backed LVGL filesystem driver.
 
-Canonical copy lives in PyDevices/lvgl-bindings (``python/fs_driver.py``).
-Consumer repos (lvgl-micropython, lvgl-circuitpython, lvgl-python)
-vendor a synced copy; do not edit those copies directly.
-
-Changes here are released only through the explicit bindings release workflow.
-Consumers sync an exact bindings commit or immutable release tag.
+This is the one copy, in PyDevices/omnipython-lvgl (``python/fs_driver.py``).
+The MicroPython and CircuitPython ports freeze it and the CPython wheel
+installs it.
 
 Bridges LVGL's ``lv_fs`` API to the host's ``open()``, so LVGL features that
 stream from files work against the platform filesystem (MicroPython VFS,

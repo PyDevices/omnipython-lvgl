@@ -1,19 +1,26 @@
 ![A blue button reading Hello from LVGL on a light gray background](docs/images/hello.png)
 
-# lvgl-bindings
+# omnipython-lvgl
 
-lvgl-bindings generates the LVGL bindings that give MicroPython-compatible,
-CircuitPython-compatible and CPython programs the same `import lvgl as lv`,
-and its docs are the home for all of them: lvgl-python, lvgl-micropython and
-lvgl-circuitpython.
+omnipython-lvgl is the part of OmniPython that gives CPython,
+MicroPython-compatible and CircuitPython-compatible programs the same
+`import lvgl as lv`, from one set of bindings generated from LVGL's headers.
+
+On a desktop, install the wheel:
 
 ```bash
 python -m pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ pydevices-lvgl
 ```
 
-On a board, LVGL comes with your firmware build:
-[lvgl-micropython](https://github.com/PyDevices/lvgl-micropython) and
-[lvgl-circuitpython](https://github.com/PyDevices/lvgl-circuitpython).
+On a board, LVGL comes with your firmware build. Clone this repository with
+its `lvgl` submodule, then hand `ports/micropython` or `ports/circuitpython` to
+the interpreter's own build:
+
+```bash
+git clone --recurse-submodules --shallow-submodules https://github.com/PyDevices/omnipython-lvgl
+make -C micropython/ports/unix FROZEN_MANIFEST=$PWD/omnipython-lvgl/ports/micropython/manifest.py
+make -C circuitpython/ports/unix USER_C_MODULES=$PWD/omnipython-lvgl/ports/circuitpython
+```
 
 ```python
 import lvgl as lv
@@ -45,6 +52,6 @@ Hello from LVGL - drew 240 px wide
 
 The picture at the top is the frame that program drew.
 
-[Docs](https://github.com/PyDevices/lvgl-bindings/blob/main/docs/index.md) · [Examples](https://pydevices.github.io/gallery/pyscript/) · [Roadmap](ROADMAP.md)
+[Docs](docs/index.md) · [Examples](https://pydevices.github.io/gallery/pyscript/) · [Roadmap](ROADMAP.md)
 
 OmniPython is made by [PyDevices](https://pydevices.com).

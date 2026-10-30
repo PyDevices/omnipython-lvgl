@@ -1,7 +1,7 @@
 # Hand-written Python helpers
 
 Pure-Python modules that ship with the LVGL bindings. These are **not**
-generator output — edit them here, then sync into consumer repos.
+generator output: edit them here, and every build picks up the change.
 
 | File | Import | Notes |
 |------|--------|-------|
@@ -13,21 +13,18 @@ generator output — edit them here, then sync into consumer repos.
 and ships with `pydevices`, beside the `appdev`, `events`, `keys` and `multimer`
 it needs.
 
-## Sync into consumers
+## How it ships
 
-| Repo | Destination | How it ships |
-|------|-------------|--------------|
-| [lvgl-micropython](https://github.com/PyDevices/lvgl-micropython) | `lib/fs_driver.py` | Frozen via `manifest.py` |
-| [lvgl-circuitpython](https://github.com/PyDevices/lvgl-circuitpython) | `lib/fs_driver.py` | Frozen via `manifest.py` (unix builds) |
-| [lvgl-python](https://github.com/PyDevices/lvgl-python) | repo root | `py_modules` in the `pydevices-lvgl` wheel |
-
-Each consumer has `scripts/sync_from_lvgl_bindings.sh` (or extends the CPython
-one) that copies this file from **PyDevices/lvgl-bindings on GitHub**.
+| Build | How it ships |
+|------|--------------|
+| MicroPython | Frozen by [`ports/micropython/manifest.py`](../ports/micropython/manifest.py) |
+| CircuitPython | Frozen by [`ports/circuitpython/manifest.py`](../ports/circuitpython/manifest.py), when the build passes it as `FROZEN_MANIFEST` |
+| CPython | `py_modules` in the `pydevices-lvgl` wheel |
 
 ## MIP (optional)
 
 ```text
-mip.install("github:PyDevices/lvgl-bindings/packages/fs_driver.json")
+mip.install("github:PyDevices/omnipython-lvgl/packages/fs_driver.json")
 ```
 
 `display_driver` comes with `mip.install("pydevices", index="https://PyDevices.github.io/mip")`.

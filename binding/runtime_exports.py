@@ -4,8 +4,8 @@ from __future__ import print_function
 
 # C function names (parser names, not simplified Python names)
 # LV_USE_TJPGD is 0 on every target (lv_conf.h): the JPEG decoder is jpegio's,
-# registered through lv_image_decoder_create by displayif, lvgl-circuitpython
-# and lvgl-python.
+# registered through lv_image_decoder_create by displayif, the CircuitPython
+# port and the CPython port.
 RUNTIME_SKIP_MODULE_FUNCS = {
     "micropython": frozenset(
         {

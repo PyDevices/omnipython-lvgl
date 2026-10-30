@@ -1,55 +1,52 @@
-# How the LVGL packages fit together
+# How the LVGL builds fit together
 
 One generator turns LVGL's headers into bindings for three Pythons. Each
-interpreter has its own package that builds those bindings into something you
-install or flash.
+interpreter has its own port, in the same repository, that builds those
+bindings into something you install or flash.
 
 ```text
 LVGL headers + lv_conf.h
         |
         v
-lvgl-bindings: generator, API model, generated C and lvgl.pyi
+binding/: generator, API model -> generated/ C sources and lvgl.pyi
         |
-        +--> lvgl-python        CPython extension, pydevices-lvgl wheels
-        +--> lvgl-micropython   MicroPython user C module
-        +--> lvgl-circuitpython CircuitPython user C module
+        +--> setup.py, ports/cpython/   CPython extension, pydevices-lvgl wheels
+        +--> ports/micropython/         MicroPython user C module
+        +--> ports/circuitpython/       CircuitPython user C module
 ```
 
-## The repositories
+## The pieces
 
-- **lvgl-bindings** generates the C bindings (`generated/lvgl_*.c`) and the
-  type stub (`lvgl.pyi`) for all three targets, and owns the binding release
-  tags.
-- **lvgl-python** compiles the CPython binding and publishes the versioned
-  `pydevices-lvgl` wheels. It is the one package here that is published.
-- **lvgl-micropython** and **lvgl-circuitpython** are build repositories. They
-  consume the generated bindings and compile them into MicroPython and
-  CircuitPython firmware, and publish no package of their own.
+- **The generator** in `binding/` writes the C bindings (`generated/lvgl_*.c`)
+  and the type stub (`lvgl.pyi`) for all three targets. They are committed, so
+  a build compiles them and generates nothing.
+- **The CPython port** compiles the CPython binding with its runtime layer
+  into the `pydevices-lvgl` wheels, the one thing here that is published as a
+  package.
+- **The MicroPython and CircuitPython ports** compile the generated bindings
+  into firmware, as user C modules, and publish no package of their own.
 
-lvgl-bindings is the only place the generated bindings, `lv_conf.h` and the
-`python/` helpers are edited. The other three hold synced copies, each pinned to
-one exact bindings commit recorded in its `LVGL_BINDINGS_COMMIT` file, and a
-sync overwrites any edit made there. Nothing moves to another bindings commit
-until that repository's own sync is run against a specific commit or release
-tag.
+All three read the same `generated/`, `lv_conf.h`, `lvgl/` submodule and
+`python/` helpers, so any one commit of the repository builds every
+interpreter from the same binding. A release covers all of it at once.
 
 ## Why one binding
 
-The packages share the same parsed declarations, the same API model, the same
+The ports share the same parsed declarations, the same API model, the same
 inheritance order and the same diagnostics policy. MicroPython and
 CircuitPython share the `mp_obj_t` lowering because CircuitPython embeds the
 same object API, and keep their own registration and VM or garbage collector
 glue. CPython gets native `PyObject *` code with its own GIL, lock and module
 initialization. The runtimes differ in mechanism and not in what you can call:
 an API difference has to be a recorded exception, not a side effect of one
-package's build system. [Generator architecture](generator-architecture.md) has
+port's build system. [Generator architecture](generator-architecture.md) has
 the pipeline.
 
-## The pages for each package
+## The pages for each port
 
-- [lvgl-python](lvgl-python.md): the CPython runtime layer, ownership and callbacks.
-- [lvgl-micropython](lvgl-micropython.md): the MicroPython user module and its allocator.
-- [lvgl-circuitpython](lvgl-circuitpython.md): the CircuitPython user module and its JPEG decoder.
+- [The CPython port](cpython-port.md): the runtime layer, ownership and callbacks.
+- [The MicroPython port](micropython-port.md): the user module and its allocator.
+- [The CircuitPython port](circuitpython-port.md): the user module and its JPEG decoder.
 
 ## Driving the display
 

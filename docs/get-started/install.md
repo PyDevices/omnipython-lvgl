@@ -1,15 +1,17 @@
 # Install
 
-LVGL reaches Python three ways, one per interpreter. Pick the section for the
-one you use. All three give you `import lvgl as lv` with the same API.
+LVGL reaches Python three ways, one per interpreter, all from
+[omnipython-lvgl](https://github.com/PyDevices/omnipython-lvgl). Pick the
+section for the one you use. All three give you `import lvgl as lv` with the
+same API.
 
-| You use | Package | You get it by |
-|---|---|---|
-| CPython on a desktop | lvgl-python | `pip install` |
-| MicroPython-compatible firmware | lvgl-micropython | building firmware |
-| CircuitPython-compatible firmware | lvgl-circuitpython | building firmware |
+| You use | You get it by |
+|---|---|
+| CPython on a desktop | `pip install pydevices-lvgl` |
+| MicroPython-compatible firmware | building firmware with `ports/micropython` |
+| CircuitPython-compatible firmware | building firmware with `ports/circuitpython` |
 
-## CPython, with lvgl-python
+## CPython
 
 The wheel is `pydevices-lvgl` on TestPyPI. `--extra-index-url` lets pip fetch
 setuptools and other dependencies from PyPI.
@@ -62,22 +64,22 @@ Upgraded on its own after a `pydevices` that already has the file, pip's
 uninstall of the old `pydevices-lvgl` deletes the `display_driver.py` both
 wheels wrote; `pip install --force-reinstall --no-deps pydevices` puts it back.
 
-No wheel for your platform? [Build it from source](../guides/build-lvgl-python-from-source.md).
+No wheel for your platform? [Build it from source](../guides/build-the-cpython-extension-from-source.md).
 
-## MicroPython-compatible firmware, with lvgl-micropython
+## MicroPython-compatible firmware
 
 LVGL is a user C module, so it comes with a firmware build. Clone
-lvgl-micropython next to your MicroPython checkout:
+omnipython-lvgl, with its `lvgl` submodule, next to your MicroPython checkout:
 
 ```bash
-git clone https://github.com/PyDevices/lvgl-micropython
+git clone --recurse-submodules --shallow-submodules https://github.com/PyDevices/omnipython-lvgl
 ```
 
 On MicroPython 1.29 or later, add one line to the manifest your build already
 uses. For the unix port that is `ports/unix/variants/standard/manifest.py`:
 
 ```python
-include("/path/to/lvgl-micropython/manifest.py")
+include("/path/to/omnipython-lvgl/ports/micropython/manifest.py")
 ```
 
 Then build as usual, and `import lvgl` works on the result:
@@ -88,19 +90,17 @@ make
 ```
 
 [Build MicroPython firmware with LVGL](../guides/build-micropython-firmware-with-lvgl.md)
-has the other ports, older MicroPython, and the one-command route through
-`build_mp.py`. The build fetches the matching LVGL bindings itself; you need
-only `git`.
+has the other ports, older MicroPython, and building with other modules.
 
-## CircuitPython-compatible firmware, with lvgl-circuitpython
+## CircuitPython-compatible firmware
 
 CircuitPython 11 builds user C modules the way MicroPython does, so you hand
-lvgl-circuitpython to CircuitPython's own `make` and nothing in the
+`ports/circuitpython` to CircuitPython's own `make` and nothing in the
 CircuitPython tree changes:
 
 ```bash
-git clone https://github.com/PyDevices/lvgl-circuitpython
-make -C circuitpython/ports/unix USER_C_MODULES=/path/to/lvgl-circuitpython
+git clone --recurse-submodules --shallow-submodules https://github.com/PyDevices/omnipython-lvgl
+make -C circuitpython/ports/unix VARIANT=coverage USER_C_MODULES=/path/to/omnipython-lvgl/ports/circuitpython
 ```
 
 For a board, `CIRCUITPY_GIFIO=0` goes on the same line, and LVGL adds about
@@ -110,7 +110,7 @@ has the details.
 
 ## What each install gives you
 
-The three packages share one binding, so everything after `import lvgl as lv`
+The three builds share one binding, so everything after `import lvgl as lv`
 is the same. What differs is how the screen is driven. On a board, or on a
 desktop with PyDevices, the `display_driver` helper from
 [pydevices](https://github.com/PyDevices/pydevices) wires LVGL to the display

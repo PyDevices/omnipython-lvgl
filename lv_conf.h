@@ -46,7 +46,7 @@
 #if defined(LV_CPYTHON_BUILD)
 #define LV_USE_STDLIB_MALLOC    LV_STDLIB_CLIB
 /* ext_data gives timers and animations a free_cb that LVGL calls on every
- * path that frees them; lvgl-python's runtime releases a Python callback
+ * path that frees them; the CPython port's runtime releases a Python callback
  * dict there. CPython only: the GC-heap allocators on the other two targets
  * reclaim the dict by reachability, and the generator never sees this
  * (PYCPARSER leaves it off), so the API model is unchanged. */
@@ -294,7 +294,7 @@
      * come back. On CircuitPython an assertion (most often an allocation that
      * failed: the heap is full) reboots into safe mode instead, which says
      * "Third-party firmware fatal error." and leaves CIRCUITPY reachable.
-     * lvgl-circuitpython provides the function; it is weak here, so a
+     * The CircuitPython port provides the function; it is weak here, so a
      * consumer without it still links and halts as before. */
     #define LV_ASSERT_HANDLER_INCLUDE <stdint.h>
     __attribute__((weak)) void lv_circuitpython_assert_failed(void);
@@ -756,7 +756,7 @@ extern void mp_lv_deinit_gc(void);
 #else
 /* The JPEG decoder on every target is jpegio's, registered through
  * lv_image_decoder_create: by displayif on MicroPython, by
- * lvgl-circuitpython on CircuitPython, and by lvgl-python on CPython, which
+ * the CircuitPython port on CircuitPython, and by the CPython port, which
  * compiles displayif's decoder at a pinned commit. One TJpgDec per build, and
  * it decodes the whole image at open, so scaled and transformed JPEG images
  * draw (LVGL's TJPGD decodes tiles and can't) -- see displayif#23,

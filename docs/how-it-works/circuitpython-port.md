@@ -1,11 +1,10 @@
-# lvgl-circuitpython
+# The CircuitPython port
 
-lvgl-circuitpython integrates the generated LVGL bindings into a CircuitPython
-firmware build. It supplies the user C module glue, a GC-aware LVGL allocator,
-synced Python helpers and a CircuitPython-specific JPEG decoder. It is not a pip
-package and it does not generate the bindings. The bindings revision it is
-tested with is recorded in `LVGL_BINDINGS_COMMIT`, and a checkout at another
-commit builds with a note saying so.
+`ports/circuitpython` integrates the generated LVGL bindings into a
+CircuitPython firmware build. It supplies the user C module glue, a GC-aware
+LVGL allocator and a CircuitPython-specific JPEG decoder. It is not a pip
+package and generates nothing: it reads the generated source and header,
+`lv_conf.h` and `lvgl/` from the checkout it sits in, two directories up.
 
 [Build CircuitPython firmware with LVGL](../guides/build-circuitpython-firmware-with-lvgl.md)
 shows how to use it.
@@ -13,10 +12,10 @@ shows how to use it.
 ## The pieces
 
 ```text
-lvgl-bindings at the pinned generated revision
+generated/lvgl_circuitpython.c and .h, lv_conf.h, lvgl/
                   |
                   v
-lvgl-circuitpython user C module glue
+ports/circuitpython user C module glue
                   |
                   +--> CircuitPython shared-bindings and shared-module for lvgl
                   +--> generated C source and header, and the allocator
@@ -26,10 +25,6 @@ lvgl-circuitpython user C module glue
                   v
 CircuitPython firmware + pydevices: import display_driver, then import lvgl
 ```
-
-The generated source, header, LVGL pin and configuration must all match the
-recorded bindings commit. Generator-owned code and the synced helper are never
-edited here: they change in lvgl-bindings, then sync.
 
 ## Why the application pumps LVGL
 

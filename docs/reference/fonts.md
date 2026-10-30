@@ -1,14 +1,14 @@
 # Fonts
 
 How to use fonts that are **not** compiled into your build, with
-[`fonts/*.bin`](https://github.com/PyDevices/lvgl-bindings/tree/main/fonts) and [`python/fs_driver.py`](https://github.com/PyDevices/lvgl-bindings/blob/main/python/fs_driver.py).
-Works identically on lvgl-micropython, lvgl-circuitpython and lvgl-python.
+[`fonts/*.bin`](https://github.com/PyDevices/omnipython-lvgl/tree/main/fonts) and [`python/fs_driver.py`](https://github.com/PyDevices/omnipython-lvgl/blob/main/python/fs_driver.py).
+Works identically on MicroPython, CircuitPython and CPython.
 
 ## Why runtime fonts
 
 Space-constrained builds enable only a few `LV_FONT_MONTSERRAT_*` entries in
-`lv_conf.h`. Every other built-in font is available in the lvgl-bindings
-[`fonts/`](https://github.com/PyDevices/lvgl-bindings/tree/main/fonts) directory in LVGL's binary font format — same glyph
+`lv_conf.h`. Every other built-in font is available in the
+[`fonts/`](https://github.com/PyDevices/omnipython-lvgl/tree/main/fonts) directory in LVGL's binary font format — same glyph
 ranges, same merged FontAwesome symbols (`lv.SYMBOL.*`), same bpp as its
 compiled-in counterpart. Copy a `.bin` to the board and load it; no firmware
 rebuild, no `lv_conf.h` change, no binding regeneration.
@@ -22,11 +22,11 @@ you only sometimes need, at runtime.
 ## Getting a font onto the board
 
 ```bash
-curl -LO https://raw.githubusercontent.com/PyDevices/lvgl-bindings/main/fonts/montserrat_20.bin
+curl -LO https://raw.githubusercontent.com/PyDevices/omnipython-lvgl/main/fonts/montserrat_20.bin
 mpremote cp montserrat_20.bin :
 ```
 
-On desktop (lvgl-python), just keep the `.bin` next to your script.
+On a desktop with CPython, just keep the `.bin` next to your script.
 
 ## Loading with fs_driver
 
@@ -65,14 +65,14 @@ image sources like `lv.image.set_src("S:logo.png")` work through it too.
 
 ### Where fs_driver comes from
 
-The canonical copy is [`python/fs_driver.py`](../../python/fs_driver.py) in lvgl-bindings. Each package
-ships a synced copy: frozen into
-lvgl-micropython and lvgl-circuitpython builds, `py_modules` in the
-lvgl-python wheel — so `import fs_driver` just works. For a stock MicroPython
+It is [`python/fs_driver.py`](../../python/fs_driver.py), and every build ships it: frozen into
+MicroPython and CircuitPython firmware by the ports' manifests, and a
+`py_modules` entry in the `pydevices-lvgl` wheel, so `import fs_driver` just
+works. For a stock MicroPython
 board it is also mip-installable:
 
 ```python
-mip.install("github:PyDevices/lvgl-bindings/packages/fs_driver.json")
+mip.install("github:PyDevices/omnipython-lvgl/packages/fs_driver.json")
 ```
 
 ## Loading from a buffer (no driver)
@@ -104,7 +104,7 @@ Keep `--no-compress` unless your build enables `LV_USE_FONT_COMPRESSED`.
 
 ## Regenerating the fonts
 
-[`scripts/generate_font_bins.py`](https://github.com/PyDevices/lvgl-bindings/blob/main/scripts/generate_font_bins.py) rebuilds
+[`scripts/generate_font_bins.py`](https://github.com/PyDevices/omnipython-lvgl/blob/main/scripts/generate_font_bins.py) rebuilds
 every `.bin` by replaying the recipes from the LVGL submodule's own
 `lvgl/scripts/built_in_font/generate_all.py`, so ranges and symbol sets track
 the pinned LVGL version. Rerun it after bumping the `lvgl` pin:

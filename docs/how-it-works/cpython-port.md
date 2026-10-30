@@ -1,30 +1,28 @@
-# lvgl-python
+# The CPython port
 
-lvgl-python packages LVGL for CPython as the native `lvgl` extension,
+The CPython port packages LVGL for CPython as the native `lvgl` extension,
 distributed under the `pydevices-lvgl` project name. It exposes the same
 Python-shaped API as the MicroPython and CircuitPython targets, and it does not
 embed or run a MicroPython interpreter.
 
 Most people install a prebuilt wheel and `import lvgl as lv`: they never clone
-the repository, initialize its submodule, or compile LVGL.
+the repository or compile LVGL.
 [Install](../get-started/install.md) shows how.
 
-## Who owns what
+## What is generated and what is written by hand
 
-lvgl-python owns the CPython runtime layer, the packaging and the tests. The
-generator and the canonical API decisions belong to lvgl-bindings. The
-generated binding files and the `fs_driver.py` helper are synced into
-lvgl-python at one exact bindings commit: they are inputs to the project, not
-hand-edited source.
+The port's own code is the CPython runtime layer in `ports/cpython/src/`, and
+its tests. The binding itself is generated, from the same API model as the
+MicroPython and CircuitPython builds, and is not edited by hand.
 
 ```text
-lvgl-bindings (generator and API policy)
+binding/ (generator and API policy)
         |
-        | explicit sync at a recorded 40-character commit
+        | ./regenerate_all.sh --target cpython
         v
-lvgl-python
+omnipython-lvgl
   |-- generated/lvgl_python.c and lvgl.pyi   generated binding surface
-  |-- src/lvpy_runtime.c                     CPython ownership, callbacks, locking
+  |-- ports/cpython/src/lvpy_runtime.c       CPython ownership, callbacks, locking
   |-- lvgl/                                  pinned upstream C submodule
   `-- setup.py                               compiles one CPython extension
         |
@@ -36,7 +34,7 @@ import lvgl as lv
 ```
 
 The public API is generated. The lifecycle, ownership and concurrency behavior
-behind it is CPython runtime work, in `src/lvpy_runtime.*`.
+behind it is CPython runtime work, in `ports/cpython/src/lvpy_runtime.*`.
 
 ## A call from Python into LVGL
 

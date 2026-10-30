@@ -8,7 +8,7 @@ partition is too small for LVGL.
 ## Build
 
 [micropython-pydevices](https://github.com/PyDevices/micropython-pydevices)'
-`build_mp.py` fetches CircuitPython, hands lvgl-circuitpython to its make as a
+`build_mp.py` fetches CircuitPython, hands omnipython-lvgl's CircuitPython port to its make as a
 user C module, and runs the build. Two things go on the end of the command for
 this board. `CIRCUITPY_GIFIO=0` stops CircuitPython's AnimatedGIF decoder
 colliding with LVGL's. A partition table with a 4 MB app slot goes in through
@@ -17,9 +17,9 @@ LVGL firmware is about 2.9 MB.
 
 ```bash
 git clone https://github.com/PyDevices/micropython-pydevices
-git clone https://github.com/PyDevices/lvgl-circuitpython
+git clone --recurse-submodules --shallow-submodules https://github.com/PyDevices/omnipython-lvgl
 cd micropython-pydevices
-LVCP="$(realpath ../lvgl-circuitpython)"
+LVCP="$(realpath ../omnipython-lvgl/ports/circuitpython)"
 PARTS="$(pwd)/qualia-lvgl-partitions.defaults"
 printf 'CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="%s"\nCONFIG_PARTITION_TABLE_FILENAME="%s"\n' \
     "$LVCP/scripts/partitions-16MB-lvgl.csv" "$LVCP/scripts/partitions-16MB-lvgl.csv" \
@@ -47,7 +47,7 @@ It should name `partitions-16MB-lvgl.csv`. A good link reports about 2.9 MB used
 (`2942608 bytes used` on CircuitPython 11.0.0-alpha.2) out of `4194304 bytes`. Without the right table the build ends
 in `Too little flash!!!`.
 
-`scripts/partitions-16MB-lvgl.csv` has `ota_0 = 4096K`; it moves `uf2` to
+`ports/circuitpython/scripts/partitions-16MB-lvgl.csv` has `ota_0 = 4096K`; it moves `uf2` to
 `0x610000` and shrinks `user_fs`.
 
 ### Build files

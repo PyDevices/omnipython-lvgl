@@ -1,99 +1,89 @@
 # Build MicroPython firmware with LVGL
 
-lvgl-micropython is a MicroPython user C module: it turns the generated LVGL
-binding into a module you build into any MicroPython port. You need `git`, and
-whatever MicroPython needs to build for your port. Nothing is generated at
+`ports/micropython` in omnipython-lvgl is a MicroPython user C module: it
+builds the generated LVGL binding into any MicroPython port. You need `git`,
+and whatever MicroPython needs to build for your port. Nothing is generated at
 build time.
 
-## Where the bindings come from
+## Get the source
 
-The build finds [lvgl-bindings](https://github.com/PyDevices/lvgl-bindings) in
-the first of three places that exists:
-
-1. `BINDINGS_DIR`, on `make`'s command line or in the environment. CMake ports
-   read it from the environment or `-DBINDINGS_DIR=`.
-2. An `lvgl-bindings` checkout beside the lvgl-micropython repository, with its
-   `lvgl` submodule.
-3. Neither: the build fetches the commit named in `LVGL_BINDINGS_COMMIT` into
-   `.deps/lvgl-bindings`, with only what it compiles.
-
-The generated binding is committed, so there is nothing to generate. A
-checkout you name or put beside the repository is built as it is: if its
-generated binding, `lvgl` or `lv_conf.h` differ from the pinned commit, the
-build prints a note saying which commit it is building and carries on. To build
-exactly the pinned bindings from a checkout of your own:
+Clone omnipython-lvgl with its `lvgl` submodule, next to your MicroPython
+checkout:
 
 ```bash
-git clone https://github.com/PyDevices/lvgl-micropython
-git clone https://github.com/PyDevices/lvgl-bindings
-git -C lvgl-bindings checkout "$(cat lvgl-micropython/LVGL_BINDINGS_COMMIT)"
-git -C lvgl-bindings submodule update --init lvgl
+git clone --recurse-submodules --shallow-submodules https://github.com/PyDevices/omnipython-lvgl
 ```
+
+The port reads the generated binding, `lv_conf.h` and `lvgl/` from the same
+checkout, two directories up from itself. A clone without the submodule stops
+the build at once and names the command that fetches it.
 
 ## MicroPython 1.29 or later
 
 Add one line to the manifest your build already uses:
 
 ```python
-include("/path/to/lvgl-micropython/manifest.py")
+include("/path/to/omnipython-lvgl/ports/micropython/manifest.py")
 ```
 
 On unix that manifest is `ports/unix/variants/standard/manifest.py`. On esp32
 and rp2 it is usually `ports/<port>/boards/manifest.py`, unless your board
 brings its own. Then build as usual. The include brings in the `lvgl` C module
-and freezes `fs_driver`. On the unix port against MicroPython 1.30
-preview, `lvgl.version_major()` and `lvgl.version_minor()` report 9 and 5.
+and freezes `fs_driver`. On the unix port of MicroPython v1.29.0,
+`lvgl.version_major()` and `lvgl.version_minor()` report 9 and 5.
 
 To leave the MicroPython tree alone, write a manifest of your own and pass it
 as `FROZEN_MANIFEST=`. That replaces the port's default, so include the default
 too (`include("$(PORT_DIR)/variants/standard/manifest.py")` on unix,
 `include("$(PORT_DIR)/boards/manifest.py")` on esp32), or you lose `asyncio`
-and the port's other frozen modules.
+and the port's other frozen modules. Passing the port's manifest on its own
+works for a quick unix build:
+
+```bash
+make -C micropython/ports/unix FROZEN_MANIFEST=/path/to/omnipython-lvgl/ports/micropython/manifest.py
+```
 
 ## Older than 1.29
 
-Manifests there have no `c_module()`, so use `USER_C_MODULES` and freeze the
-helpers in `lib/` yourself if you want them. On esp32 and rp2, point it at the
-lvgl-micropython repository:
+Manifests there have no `c_module()`, so use `USER_C_MODULES`, and freeze
+`python/fs_driver.py` yourself if you want it. On CMake ports such as esp32 and
+rp2, point it at the port's CMake file:
 
 ```bash
-make BOARD=ESP32_GENERIC_S3 USER_C_MODULES=/abs/path/to/lvgl-micropython
+make BOARD=ESP32_GENERIC_S3 USER_C_MODULES=/path/to/omnipython-lvgl/ports/micropython/micropython.cmake
 ```
 
-On Make ports such as unix, point it at the directory that contains the
-repository. That builds every module in the directory:
-
-```bash
-cd micropython/ports/unix && make USER_C_MODULES=../../..
-```
+On Make ports such as unix, `USER_C_MODULES` builds every module one directory
+below the one you name, and `ports/` also holds the CircuitPython port, so use
+MicroPython 1.29 or later there.
 
 ## With other user C modules
 
 To build several modules together on any port, name them in one manifest: the
-lvgl-micropython `manifest.py` carries `c_module(".")`, and a manifest that
-`include()`s several such files builds them all.
+port's `manifest.py` carries `c_module(".")`, and a manifest that `include()`s
+several such files builds them all.
 [micropython-pydevices](https://github.com/PyDevices/micropython-pydevices)'
-`build_mp.py` does that for you. Name the modules and it builds them on a port,
-with upstream's own boards:
-
-```bash
-micropython-pydevices/build_mp.py --port unix --variant pydevices --modules displayif,jpegio,lvgl-micropython
-```
+`build_mp.py` does that for you: name the modules and it builds them on a
+port, with upstream's own boards.
 
 Add `jpegio` when you want JPEG images:
 [Show JPEG images](show-jpeg-images.md) says why.
 
 ## Check the build
 
-The binding's smoke test is part of lvgl-bindings. Run it with the interpreter
-you built, from a checkout of lvgl-bindings at the pinned commit:
+Run the smoke test from your omnipython-lvgl checkout with the interpreter you
+built:
 
 ```bash
-./micropython/ports/unix/build-standard/micropython ./lvgl-bindings/tools/test_lvgl_smoke.py
+./micropython/ports/unix/build-standard/micropython ./omnipython-lvgl/tools/test_lvgl_smoke.py
+```
+
+```text
+All LVGL smoke tests passed.
 ```
 
 `import lvgl_micropython; print(lvgl_micropython.__revision__)` tells you which
-lvgl-micropython revision a firmware was built from.
+omnipython-lvgl commit a firmware was built from.
 
 ## Driving the screen
 

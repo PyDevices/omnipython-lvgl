@@ -2,15 +2,15 @@
 
 Everything shared by the PyDevices documentation projects (theme, top bar,
 Markdown and docstring setup, the reference map) comes from pydevices-docs.
-The site covers lvgl-bindings and the three packages built from it:
-lvgl-python, lvgl-micropython and lvgl-circuitpython.
+The site covers omnipython-lvgl: the generator and the CPython, MicroPython
+and CircuitPython ports built from it.
 """
 
 from pydevices_docs import configure
 
 globals().update(configure(
     "lvgl", __file__,
-    repo="PyDevices/lvgl-bindings", edit_path="docs",
+    repo="PyDevices/omnipython-lvgl", edit_path="docs",
     version_file=None,
 ))
 

@@ -1,9 +1,8 @@
 # Runtime-loadable fonts
 
 Every LVGL built-in font, pre-converted to LVGL's binary font format
-(`lv_font_conv --format bin`). These load at runtime on any of the three
-consumers (lvgl-micropython, lvgl-circuitpython, lvgl-python) — no firmware
-rebuild, no `lv_conf.h` change. Each font mirrors its built-in counterpart
+(`lv_font_conv --format bin`). These load at runtime on MicroPython,
+CircuitPython and CPython alike — no firmware rebuild, no `lv_conf.h` change. Each font mirrors its built-in counterpart
 exactly: same glyph ranges, same merged FontAwesome symbol set (`lv.SYMBOL.*`),
 same bpp. The subpixel and compressed Montserrat variants are omitted because
 our builds disable `LV_USE_FONT_SUBPX` and `LV_USE_FONT_COMPRESSED`.
@@ -17,7 +16,7 @@ load the occasional size or script from here.
 Copy a font to the board (or keep it next to your desktop script):
 
 ```bash
-curl -LO https://raw.githubusercontent.com/PyDevices/lvgl-bindings/main/fonts/montserrat_20.bin
+curl -LO https://raw.githubusercontent.com/PyDevices/omnipython-lvgl/main/fonts/montserrat_20.bin
 mpremote cp montserrat_20.bin :
 ```
 
@@ -43,7 +42,7 @@ font = lv.binfont_create_from_buffer(data, len(data))
 `lv.binfont_destroy(font)` frees a font you no longer need.
 
 Full guide — drive letters, RAM trade-offs, converting your own fonts:
-[the fonts reference](https://github.com/PyDevices/lvgl-bindings/blob/main/docs/reference/fonts.md).
+[the fonts reference](https://github.com/PyDevices/omnipython-lvgl/blob/main/docs/reference/fonts.md).
 
 ## Regenerating
 

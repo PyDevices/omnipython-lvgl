@@ -1,11 +1,10 @@
-# lvgl-micropython
+# The MicroPython port
 
-lvgl-micropython is the MicroPython build glue for LVGL. It combines the
+`ports/micropython` is the MicroPython build glue for LVGL. It combines the
 generated LVGL binding with MicroPython user-module build files and a GC-aware
-allocator. It publishes no package of its own and it does not generate
-bindings: it consumes [lvgl-bindings](https://github.com/PyDevices/lvgl-bindings),
-from a checkout you name with `BINDINGS_DIR`, one beside the repository, or the
-commit in `LVGL_BINDINGS_COMMIT`, which the build fetches.
+allocator. It publishes no package of its own and generates nothing: it reads
+the generated binding, `lv_conf.h` and `lvgl/` from the checkout it sits in,
+two directories up.
 
 [Build MicroPython firmware with LVGL](../guides/build-micropython-firmware-with-lvgl.md)
 shows how to use it.
@@ -13,10 +12,10 @@ shows how to use it.
 ## The pieces
 
 ```text
-lvgl-bindings generator and pinned generated artifacts
+generated/lvgl_micropython.c, lv_conf.h, lvgl/
                          |
                          v
-lvgl-micropython build glue + GC-aware allocator
+ports/micropython build glue + GC-aware allocator
                          |
                          v
 MicroPython firmware module: import lvgl
@@ -30,13 +29,8 @@ CMake ports. The allocator, `lv_mem_core_micropython.c`, gives LVGL its memory
 from the MicroPython garbage-collected heap. A small `lvgl_micropython` module
 carries the `__revision__` of the build.
 
-## The pin
-
-A checkout you supply is built as it is. When its generated binding, LVGL or
-`lv_conf.h` differ from `LVGL_BINDINGS_COMMIT`, the build prints a note naming
-the commit it is building. Only the copy the build fetches for itself has to
-match the pin. The generated binding inputs and the synced `fs_driver.py` are
-never hand-edited here: they change in lvgl-bindings, then sync.
+Because the port and the binding share one checkout, a firmware is always
+built from one commit of both, and `lvgl_micropython.__revision__` names it.
 
 ## Where JPEG fits
 

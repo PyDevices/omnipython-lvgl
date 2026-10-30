@@ -28,7 +28,7 @@ LVGL's built-in JPEG decoder is off in the bindings (`LV_USE_TJPGD` is 0), so
 the decoder comes from the
 [jpegio](https://github.com/PyDevices/micropython-pydevices/tree/main/modules/jpegio)
 module, which registers its own decoder with LVGL when the two are built into
-the same firmware. A firmware with lvgl-micropython alone has no JPEG decoder.
+the same firmware. A firmware with LVGL alone has no JPEG decoder.
 The build prints a note when jpegio is missing, so you hear about it then and
 not from a blank image.
 
@@ -44,7 +44,7 @@ On a build that has both, `jpegio.register_lvgl_decoder()` and
 
 ## CircuitPython-compatible firmware
 
-lvgl-circuitpython registers CircuitPython's own `lib/tjpgd` as LVGL's JPEG
+The CircuitPython port registers CircuitPython's own `lib/tjpgd` as LVGL's JPEG
 decoder, so a firmware that has `CIRCUITPY_JPEGIO` on decodes JPEGs. With
 `CIRCUITPY_JPEGIO` off the firmware still builds and has no JPEG decoder; PNG
 and BIN images still work.
