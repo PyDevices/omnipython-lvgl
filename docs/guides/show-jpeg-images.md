@@ -36,7 +36,7 @@ Name jpegio when you build with
 [micropython-pydevices](https://github.com/PyDevices/micropython-pydevices):
 
 ```bash
-./build_mp.py --port unix --variant pydevices --modules jpegio,lvgl-micropython
+./build_mp.py --port unix --variant pydevices --modules jpegio,lvgl
 ```
 
 On a build that has both, `jpegio.register_lvgl_decoder()` and
