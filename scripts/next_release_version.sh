@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# Compute the next lvgl-bindings release version.
+# Compute the next release version.
 #
-# lvgl-bindings versions mirror the LVGL major.minor of the lvgl submodule, with
-# an lvgl-bindings patch counter. The patch resets to 0 when the LVGL major or
-# minor changes.
-#   e.g. LVGL 9.5.x with last tag v9.5.5 -> 9.5.6 ; a new LVGL 9.6.x line -> 9.6.0
+# Versions mirror the LVGL major.minor of the lvgl submodule, with a patch
+# counter of our own. The patch resets to 0 when the LVGL major or minor
+# changes. The last release is the higher of the newest vX.Y.N tag and the
+# VERSION file, which holds the version last released.
+#   e.g. LVGL 9.5.x, last release 9.5.52 -> 9.5.53 ; a new LVGL 9.6.x line -> 9.6.0
 #
 # Usage:
 #   ./scripts/next_release_version.sh
@@ -66,6 +67,11 @@ next_version() {
         latest=$remote_tag
     else
         latest=$(git tag -l "${prefix}*" | sort -V | tail -n 1)
+    fi
+    local committed
+    committed=$(tr -d '[:space:]' < "$SOURCE_REPO/VERSION" 2>/dev/null || true)
+    if [[ "$committed" == "${LVGL_MAJOR}.${LVGL_MINOR}."* ]]; then
+        latest=$(printf '%s\n' "$latest" "v$committed" | grep -v '^$' | sort -V | tail -n 1)
     fi
     if [[ -z "$latest" ]]; then
         echo "${LVGL_MAJOR}.${LVGL_MINOR}.0"

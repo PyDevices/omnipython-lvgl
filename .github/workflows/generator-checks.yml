@@ -35,6 +35,9 @@ jobs:
       - name: Run generator unit tests
         run: PYTHONPATH=. python -m pytest -q tests
 
+      - name: Run the MicroPython and CircuitPython ports' source checks
+        run: python -m pytest -q ports/micropython/tests ports/circuitpython/tests
+
       - name: Verify reproducible generated artifacts
         run: ./scripts/verify_bindings.sh
 

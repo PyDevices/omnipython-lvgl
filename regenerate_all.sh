@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Generate LVGL binding artifacts. This command never commits, tags, pushes, or
-# dispatches a release; release mutation lives in scripts/publish_release_tag.sh
-# and the explicitly dispatched release workflow.
+# dispatches a release; releases are made only by the explicitly dispatched
+# release workflow (.github/workflows/release.yml).
 
 set -euo pipefail
 
@@ -28,7 +28,7 @@ Generate binding artifacts without changing git history or release state.
   --check          Generate in a temporary directory and compare (read-only)
   --hash           Print the generated artifact manifest
 
-Release tags are created separately with scripts/publish_release_tag.sh.
+Releases are made separately, by dispatching .github/workflows/release.yml.
 EOF
 }
 

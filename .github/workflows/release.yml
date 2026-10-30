@@ -1,17 +1,24 @@
-name: Release bindings
+name: Release
 
+# One release covers the generator, the three ports and the wheel. Dry-run
+# runs every gate and changes nothing. Release also writes the next version
+# to VERSION on main and publishes a GitHub release for it, which starts
+# publish-release-packages.yml (the wheels).
 on:
   workflow_dispatch:
     inputs:
-      bindings-ref:
-        description: Exact lvgl-bindings commit SHA or v9.5.N tag
+      ref:
+        description: Exact commit SHA or vX.Y.Z tag to validate
         required: true
         type: string
-      publish:
-        description: Dispatch the pinned commit to lvgl-python for publication
+      mode:
+        description: dry-run validates only; release commits VERSION and publishes a GitHub release
         required: true
-        default: false
-        type: boolean
+        default: dry-run
+        type: choice
+        options:
+          - dry-run
+          - release
 
 permissions:
   contents: read
@@ -20,7 +27,7 @@ jobs:
   matrix:
     uses: ./.github/workflows/linux-integration.yml
     with:
-      bindings-ref: ${{ inputs['bindings-ref'] }}
+      ref: ${{ inputs.ref }}
 
   validate:
     runs-on: ubuntu-latest
@@ -28,24 +35,24 @@ jobs:
       sha: ${{ steps.ref.outputs.sha }}
       version: ${{ steps.version.outputs.version }}
     steps:
+      - name: Require an immutable source reference
+        env:
+          REF: ${{ inputs.ref }}
+        run: |
+          if [[ ! "$REF" =~ ^[0-9a-fA-F]{40}$ && ! "$REF" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "ref must be a full commit SHA or vX.Y.Z tag" >&2
+            exit 1
+          fi
+
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          ref: ${{ inputs['bindings-ref'] }}
+          ref: ${{ inputs.ref }}
           submodules: recursive
 
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-
-      - name: Require an immutable source reference
-        env:
-          BINDINGS_REF: ${{ inputs['bindings-ref'] }}
-        run: |
-          if [[ ! "$BINDINGS_REF" =~ ^[0-9a-fA-F]{40}$ && ! "$BINDINGS_REF" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "bindings-ref must be a full commit SHA or vX.Y.Z tag" >&2
-            exit 1
-          fi
 
       - run: python -m pip install -r requirements-dev.txt
 
@@ -60,11 +67,45 @@ jobs:
         id: version
         run: echo "version=$(./scripts/next_release_version.sh)" >> "$GITHUB_OUTPUT"
 
-  dispatch:
-    if: inputs.publish == true
+      - name: Dry-run result
+        if: inputs.mode == 'dry-run'
+        run: echo "Validation passed; no commit, tag, push, release, or publication was made."
+
+  release:
+    if: inputs.mode == 'release'
     needs: [validate, matrix]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Require the validated commit to be main
+        env:
+          SHA: ${{ needs.validate.outputs.sha }}
+        run: |
+          if [[ "$(git rev-parse HEAD)" != "$SHA" ]]; then
+            echo "Validated $SHA, but main is at $(git rev-parse HEAD); release from main's head." >&2
+            exit 1
+          fi
+
+      - name: Commit the release version
+        env:
+          VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          printf '%s\n' "$VERSION" > VERSION
+          git add VERSION
+          git commit -m "Release ${VERSION}"
+          git push origin HEAD:main
+
+      # A release made with GITHUB_TOKEN starts no workflow, so the wheels
+      # would never build; an App installation token does.
       - name: Mint a repository-scoped installation token
         id: app-token
         uses: actions/create-github-app-token@v3
@@ -72,14 +113,15 @@ jobs:
           app-id: ${{ secrets.PYDEVICES_APP_ID }}
           private-key: ${{ secrets.PYDEVICES_APP_PRIVATE_KEY }}
           owner: PyDevices
-          repositories: lvgl-python
+          repositories: omnipython-lvgl
 
-      - name: Dispatch exact bindings commit
+      - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          BINDINGS_SHA: ${{ needs.validate.outputs.sha }}
+          VERSION: ${{ needs.validate.outputs.version }}
         run: |
-          gh workflow run sync-and-release.yml \
-            --repo PyDevices/lvgl-python \
-            -f "lvgl_bindings_ref=${BINDINGS_SHA}" \
-            -f "mode=release"
+          gh release create "v${VERSION}" \
+            --repo "${{ github.repository }}" \
+            --target "$(git rev-parse HEAD)" \
+            --title "v${VERSION}" \
+            --generate-notes
