@@ -73,20 +73,21 @@ them. For a worked example with a partition table, see
 `USER_C_MODULES`:
 
 ```bash
-./build_mp.py --interpreter circuitpython --port unix \
-    --modules /path/to/omnipython-lvgl/ports/circuitpython,pygraphics
+./build_mp.py --interpreter circuitpython --port unix --modules lvgl,pygraphics
 ```
 
-`--modules` takes a short name for each module that lives in
-micropython-pydevices and a full path for one that doesn't, such as this
-port. The binary lands in `builds/circuitpython/unix/coverage/`.
+`lvgl` is this port: `build_mp.py` fetches omnipython-lvgl at the commit its
+`modules.lock` pins, or uses an `omnipython-lvgl` checkout beside it. To build
+another checkout, name its port by path instead
+(`--modules /path/to/omnipython-lvgl/ports/circuitpython,pygraphics`). The
+binary lands in `builds/circuitpython/unix/coverage/`.
 
 For a board, name CircuitPython's port and board, and put `CIRCUITPY_GIFIO=0`
 at the end:
 
 ```bash
 ./build_mp.py --interpreter circuitpython --port espressif \
-    --board <board> --modules /path/to/omnipython-lvgl/ports/circuitpython CIRCUITPY_GIFIO=0
+    --board <board> --modules lvgl CIRCUITPY_GIFIO=0
 ```
 
 ## Check the build
