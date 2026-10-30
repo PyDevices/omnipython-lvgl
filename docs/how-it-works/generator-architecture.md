@@ -1,0 +1,102 @@
+# Generator architecture
+
+The generator has one target-neutral public contract and three equal-status
+native backends. Its pipeline is:
+
+```text
+LVGL headers + lv_conf.h
+  -> deterministic preprocessing
+  -> immutable C declaration IR
+  -> canonical Python API model + policy
+  -> MicroPython | CircuitPython | CPython lowering
+  -> generated C/header + shared stub
+```
+
+## Sources of truth
+
+- `lvgl/` and `lv_conf.h` define the C declarations and configured features.
+- `requirements.txt` pins `pycparser==3.0`; `fake_libc_include/` is vendored
+  from the matching parser release. Parser or fake-libc changes require full
+  regeneration and all-target validation.
+- [`binding/ir.py`](../../binding/ir.py) is the target-neutral declaration representation.
+- [`binding/api_model.py`](../../binding/api_model.py) defines the public Python model. The generated,
+  schema-versioned [`generated/api.json`](../../generated/api.json) includes a deterministic content hash.
+- [`binding/api_policy.json`](../../binding/api_policy.json) is the reviewed exception manifest. Unsupported
+  public declarations are fatal unless an exact policy entry records the
+  declaration, affected targets, reason, and test coverage.
+- [`binding/emit_pyi_canonical.py`](../../binding/emit_pyi_canonical.py) emits [`generated/lvgl.pyi`](../../generated/lvgl.pyi) only from
+  `generated/api.json`.
+
+Generated C is never edited by hand. The committed outputs are
+`lvgl_micropython.c`, `lvgl_circuitpython.c`, `lvgl_circuitpython.h`, and
+`lvgl_python.c`. `lvgl.pp` is the deterministic preprocessed translation unit
+used for diagnostics and baseline reproduction.
+
+## Shared analysis and backend boundary
+
+`binding.generate` preprocesses and parses once. `binding.generator` snapshots
+one immutable declaration IR and canonical API model, then gives the same
+snapshot to every selected backend. Parsing, declaration ownership,
+inheritance, visibility, naming, target availability, and diagnostics policy
+are decided before target lowering.
+
+MicroPython and CircuitPython lower to their shared `mp_obj_t` object API while
+retaining separate registration and VM/GC glue. CPython lowers to native
+`PyObject *` wrappers and owns GIL, lock, extension initialization, and wheel
+integration. Those runtime differences cannot silently change the public API.
+Namespace verification compares every generated module to `api.json`.
+
+Internal AST metadata still used while rendering C is per-run implementation
+state, not a public IR or a cross-target alignment mechanism. Synthesized
+callback declarations that are created after declaration indexing use a narrow
+AST fallback solely for receiver classification.
+
+Native emitters read their inputs directly from one `BindingContext` and
+publish an explicit `EmitterResult`; they never mirror a run into module
+globals. Runtime and CPython-native helper bindings are scoped `ContextVar`
+state, so a repeated or nested in-process backend invocation restores its
+enclosing context on exit. Isolation tests cover module namespaces, distinct
+per-run results, deterministic repeated output, and nested CPython emission.
+
+## Public API policy
+
+All targets use the established upstream-compatible names. There is no
+target-specific or alternate naming profile. Generic `Blob` and `Struct`
+helpers remain private; concrete reachable LVGL structs, `C_Pointer`,
+`LvReferenceError`, lifecycle names, widgets, enums, callbacks, constants, and
+variables follow the canonical model.
+
+There are no target exceptions. The last ones, `lv_tjpgd_init` and
+`lv_tjpgd_deinit`, are private on every target: `lv_conf.h` sets
+`LV_USE_TJPGD 0` for every real compile, because the JPEG decoder is jpegio's,
+registered through LVGL's public `lv_image_decoder_create` API by jpegio
+(MicroPython), lvgl-circuitpython (CircuitPython) and lvgl-python (CPython,
+which compiles jpegio's decoder at a pinned commit and registers it from
+the `LVPY_AFTER_LV_INIT` hook). Each build carries one TJpgDec. Target exceptions, when there
+are any, are declared in `binding/api_policy.json` and have policy, namespace,
+and runtime coverage. The compatibility report must contain zero unexplained
+differences. Because the generator preprocesses once, target-neutrally,
+`lv_conf.h` keeps `LV_USE_TJPGD 1` under the generator's `PYCPARSER` define so
+the canonical translation unit still declares both functions; only real
+compiles see the per-target value.
+
+`_nesting` is a separate, narrower kind of exception: it is not an LVGL
+declaration at all, so it cannot go in `api_policy.json` (whose entries are
+validated against the parsed translation unit). It is a binding-internal
+callback re-entrancy counter, synthesized directly in `analyze.py` and
+carried through `api_model.build_api_model` as a synthetic `ApiVariable`
+with `visibility="private"`. Despite being private, it is deliberately still
+emitted as a real MicroPython/CircuitPython module global (see
+`emit_backend.module_registration_plan` and the blob-table loop in
+`emit_c_micropython_style.py`) and stubbed as `_nesting: _Nesting` (see
+`CanonicalPyiEmitter`), because `display_driver.py` — PyDevices' LVGL
+coordinator, in PyDevices/pydevices `lib/` — reads
+`lv._nesting.value` at runtime to detect reentrant `lv.task_handler()`
+calls from inside an LVGL callback. From inside this translation unit the
+counter looks unused (nothing here reads it back), but its only reader is
+Python code outside the generated C; do not remove it on that "dead code"
+appearance. [`tests/test_nesting_export.py`](../../tests/test_nesting_export.py) guards this by reading the names
+the freshly generated MicroPython/CircuitPython C exports; pydevices'
+`tests/test_lvgl_display_driver.py` holds the reader's side.
+
+How to run the generator and its checks is in [CONTRIBUTING](https://github.com/PyDevices/lvgl-bindings/blob/main/CONTRIBUTING.md). The consumer builds are part of integration validation: the `linux-integration.yml` workflow builds the MicroPython and CircuitPython unix ports with lvgl-micropython and lvgl-circuitpython pinned at the commit under test, and runs [`tools/test_lvgl_smoke.py`](../../tools/test_lvgl_smoke.py) on each. CPython rebuilds its extension and wheel from the synced source.

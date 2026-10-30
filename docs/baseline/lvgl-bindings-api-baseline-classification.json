@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "rules": [
+    {
+      "id": "canonical-enum-normalization-missing",
+      "side": "missing",
+      "patterns": ["enum.*"],
+      "classification": "deliberate_fix",
+      "reason": "The canonical model preserves current LVGL enum ownership and names instead of upstream metadata aliases."
+    },
+    {
+      "id": "canonical-enum-normalization-extra",
+      "side": "extra",
+      "patterns": ["enum.*"],
+      "classification": "deliberate_fix",
+      "reason": "The canonical model exposes current LVGL enum ownership and names, including the OBJ_FLAG namespace omitted upstream."
+    },
+    {
+      "id": "private-runtime-helper-removal",
+      "side": "missing",
+      "patterns": ["blob._nesting", "module.function.mp_lv_*", "struct.*"],
+      "classification": "private_symbol_removal",
+      "reason": "These are binding-internal runtime helpers or implementation structs, not part of the target-neutral public API."
+    },
+    {
+      "id": "richer-struct-api",
+      "side": "extra",
+      "patterns": ["struct.*"],
+      "classification": "deliberate_fix",
+      "reason": "The canonical declaration model retains public LVGL structs and struct methods that the upstream metadata did not represent."
+    },
+    {
+      "id": "tjpgd-owned-by-jpegio",
+      "side": "missing",
+      "patterns": ["module.function.tjpgd_init", "module.function.tjpgd_deinit"],
+      "classification": "target_exception",
+      "reason": "LV_USE_TJPGD is 0 on MicroPython (the compared view) and CircuitPython: the JPEG decoder there is jpegio's, registered through lv_image_decoder_create by displayif / lvgl-circuitpython, one TJpgDec per firmware (displayif#23, lvgl-bindings#14). CPython registers the same decoder from lvgl-python (lvgl-python#23), so both names remain in the canonical model with a target exception on every target in binding/api_policy.json."
+    }
+  ]
+}

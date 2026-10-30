@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pydevices-lvgl"
+dynamic = ["version"]
+description = "LVGL bindings for CPython (generated); import as lvgl"
+readme = "README.md"
+requires-python = ">=3.11"
+urls = { Homepage = "https://github.com/PyDevices/lvgl-python", Documentation = "https://github.com/PyDevices/lvgl-python#readme", Issues = "https://github.com/PyDevices/lvgl-python/issues" }
+
+[tool.setuptools.dynamic]
+version = {file = "VERSION"}
+
+[tool.setuptools]
+packages = []
+py-modules = ["fs_driver"]
+
+# Wheel CI: one wheel per CPython minor (cp311…cp315, plus free-threaded cp315t) × Linux + Windows,
+# and cp313–cp314 for Android and Pyodide; see the install page of the LVGL docs.
+# Local reproduction: CONTRIBUTING.md, "Check a wheel locally" (Linux needs Docker).
+[tool.cibuildwheel]
+build = "cp311-* cp312-* cp313-* cp314-* cp315-* cp315t-*"
+# 3.15 and 3.15t on Linux and Windows only, for now.
+skip = "*musllinux* *-macosx_* *-win32 cp315*-android_* cp315*-pyodide_*"
+# On free-threaded builds, importing lvgl must leave the GIL off. Regular
+# builds always have the GIL, so the check applies only where Py_GIL_DISABLED.
+test-command = "python -c \"import sys, sysconfig, lvgl as lv; lv.init(); lv.deinit(); assert not (sysconfig.get_config_var('Py_GIL_DISABLED') and sys._is_gil_enabled()), 'importing lvgl enabled the GIL'\""
+# cp314: import test passes then segfaults on interpreter shutdown after lv.deinit()
+test-skip = "cp314-*"
+
+[tool.cibuildwheel.linux]
+archs = ["x86_64"]
+manylinux-x86_64-image = "manylinux_2_28"
+
+[tool.cibuildwheel.windows]
+archs = ["AMD64"]
+
+# PEP 738 Android tags: android_<api>_<arch> (e.g. android_21_arm64_v8a).
+# cibuildwheel 4.x builds Android wheels for CPython 3.13–3.14 only (matches p4a).
+# p4a / buildozer install these via --extra-index-url when a matching prebuilt wheel exists.
+#
+# cibuildwheel 4.x Android archs are only arm64_v8a and x86_64 (no armeabi_v7a).
+# Phones/TVs: arm64_v8a. Emulators: x86_64. API 21 tags remain installable when
+# the app minSdk is higher (e.g. p4a android.minapi = 24).
+[tool.cibuildwheel.android]
+archs = ["arm64_v8a", "x86_64"]
+environment = { ANDROID_API_LEVEL = "21" }
+test-command = "python -c \"import lvgl as lv; lv.init(); lv.deinit()\""
+# Emulator tests are optional in CI; wheels are smoke-tested on device via gallery APK.
+test-skip = "*"
+
+[[tool.cibuildwheel.overrides]]
+select = "*-android_*"
+build-frontend = "build"

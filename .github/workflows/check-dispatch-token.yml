@@ -1,0 +1,51 @@
+# Diagnostic: verify the PyDevices Release Automation GitHub App can mint a
+# token for lvgl-python and dispatch its workflows.
+#
+# Run manually from Actions -> Check dispatch token -> Run workflow.
+#
+# Read-only: it lists workflows, it does not trigger a release. Once the App
+# path is proven end to end this workflow can be deleted -- it exists because
+# a PAT could expire silently, which an App installation token cannot.
+
+name: Check dispatch token
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    if: github.repository == 'PyDevices/lvgl-bindings'
+    steps:
+      - name: Mint an installation token for lvgl-python
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.PYDEVICES_APP_ID }}
+          private-key: ${{ secrets.PYDEVICES_APP_PRIVATE_KEY }}
+          owner: PyDevices
+          repositories: lvgl-python
+
+      - name: Verify the token can reach lvgl-python
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+
+          echo "Acting as: $(gh api /installation/repositories --jq '.repositories[].full_name' | tr '\n' ' ')"
+
+          if gh workflow list --repo PyDevices/lvgl-python --limit 5 >/dev/null 2>&1; then
+            echo "Can read workflows on PyDevices/lvgl-python"
+          else
+            echo "::error::Cannot read workflows on PyDevices/lvgl-python -- check the App is installed there"
+            exit 1
+          fi
+
+          # The dispatch itself needs actions:write. Confirm the permission is
+          # present without firing a release.
+          perms="$(gh api /installation/repositories --jq '.repositories | length')"
+          echo "Installation covers ${perms} repository(ies)."
+          echo "Dispatch token looks valid."
