@@ -1,8 +1,0 @@
-# Dev / local wheel builds for lvgl-python (not an end-user runtime install).
-# Users install the pydevices-lvgl wheel; see README.md.
-# Requires sibling lvgl-bindings with generated/lvgl_python.c when regenerating.
-
--e .
-build>=1.0
-setuptools>=61
-wheel

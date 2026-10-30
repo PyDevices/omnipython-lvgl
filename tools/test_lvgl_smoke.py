@@ -5,14 +5,14 @@ Run with the target interpreter after building that port, for example:
 
   # MicroPython unix
   ./micropython/ports/unix/build-standard/micropython \\
-    ./lvgl-bindings/tools/test_lvgl_smoke.py
+    ./omnipython-lvgl/tools/test_lvgl_smoke.py
 
   # CircuitPython unix
   ./circuitpython/ports/unix/build-coverage/micropython \\
-    ./lvgl-bindings/tools/test_lvgl_smoke.py
+    ./omnipython-lvgl/tools/test_lvgl_smoke.py
 
-  # CPython (WSL venv)
-  ./lvgl-python/.venv/bin/python ./lvgl-bindings/tools/test_lvgl_smoke.py
+  # CPython, after pip install -e . in this repository
+  .venv/bin/python tools/test_lvgl_smoke.py
 
 Exercises init/deinit, headless display, widgets, event callbacks, GC visibility,
 and CPython-specific struct/Blob helpers where applicable.
@@ -66,7 +66,7 @@ def _runtime_target():
 
 
 def _prepare_import_path():
-    """Avoid lvgl-bindings/lvgl submodule shadowing the compiled CPython extension."""
+    """Avoid the lvgl submodule shadowing the compiled CPython extension."""
     if not _is_cpython():
         return
     import os.path as ospath
@@ -76,7 +76,8 @@ def _prepare_import_path():
     if ospath.isdir(lvgl_sub):
         norm = ospath.normpath
         sys.path[:] = [p for p in sys.path if norm(p) != norm(here)]
-    cpy_mod = ospath.join(ospath.dirname(here), "lvgl-python")
+    # An in-place build (setup.py build_ext --inplace) lands in python/.
+    cpy_mod = ospath.join(ospath.dirname(here), "python")
     if ospath.isdir(cpy_mod) and cpy_mod not in sys.path:
         sys.path.insert(0, cpy_mod)
 
@@ -736,8 +737,8 @@ def test_object_lifetime_and_pointer_validation(lv):
 
 def test_target_exceptions(lv):
     # LV_USE_TJPGD is 0 on every target: the JPEG decoder is jpegio's,
-    # registered via lv_image_decoder_create by displayif, lvgl-circuitpython
-    # and lvgl-python, so tjpgd_init/deinit exist nowhere.
+    # registered via lv_image_decoder_create by displayif, the CircuitPython
+    # port and the CPython runtime, so tjpgd_init/deinit exist nowhere.
     has_init = hasattr(lv, "tjpgd_init")
     has_deinit = hasattr(lv, "tjpgd_deinit")
     if has_init or has_deinit:

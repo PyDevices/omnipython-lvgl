@@ -1,4 +1,11 @@
-"""Build the lvgl CPython extension (generated/lvgl_python.c + LVGL sources)."""
+"""Build the lvgl CPython extension (generated/lvgl_python.c + LVGL sources).
+
+It sits at the repository root, not in ports/cpython/, because the wheel
+build (cibuildwheel, for Linux, Windows, Android and Pyodide) runs from the
+root, and every source it compiles -- the generated binding, lv_conf.h and
+the lvgl submodule -- lives here. The CPython runtime's own C files, the
+vendored jpegio decoder and the extension's tests are in ports/cpython/.
+"""
 
 from __future__ import annotations
 
@@ -10,27 +17,24 @@ from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
 
 ROOT = Path(__file__).resolve().parent
+PORT = "ports/cpython"
 LVGL_DIR = ROOT / "lvgl"
 GENERATED = ROOT / "generated" / "lvgl_python.c"
 GENERATED_PYI = ROOT / "generated" / "lvgl.pyi"
-BINDINGS_PIN = ROOT / "LVGL_BINDINGS_COMMIT"
-JPEGIO_PIN = ROOT / "JPEGIO_COMMIT"
-JPEGIO_DIR = ROOT / "src" / "jpegio"
+JPEGIO_PIN = ROOT / PORT / "JPEGIO_COMMIT"
+JPEGIO_DIR = ROOT / PORT / "src" / "jpegio"
 
 if not GENERATED.is_file():
     raise SystemExit(
-        f"{GENERATED} not found. Run: {ROOT / 'scripts/sync_from_lvgl_bindings.sh'}"
+        f"{GENERATED} not found. Run: {ROOT / 'regenerate_all.sh'} --target cpython"
     )
 
-if not BINDINGS_PIN.is_file() or len(BINDINGS_PIN.read_text().strip()) != 40:
-    raise SystemExit("LVGL_BINDINGS_COMMIT must contain the exact source commit")
-
 if not JPEGIO_PIN.is_file() or len(JPEGIO_PIN.read_text().strip()) != 40:
-    raise SystemExit("JPEGIO_COMMIT must contain the exact source commit")
+    raise SystemExit(f"{JPEGIO_PIN} must contain the exact source commit")
 
 if not (JPEGIO_DIR / "lvgl_decoder.c").is_file():
     raise SystemExit(
-        f"{JPEGIO_DIR} not found. Run: {ROOT / 'scripts/sync_from_jpegio.sh'}"
+        f"{JPEGIO_DIR} not found. Run: {ROOT / PORT / 'scripts/sync_from_jpegio.sh'}"
     )
 
 if not (LVGL_DIR / "lvgl.h").is_file():
@@ -41,22 +45,23 @@ if not (LVGL_DIR / "lvgl.h").is_file():
 # LVGL's own TJPGD is off (lv_conf.h: LV_USE_TJPGD 0), so its tjpgd.c compiles
 # to nothing. The JPEG decoder is jpegio's, from src/jpegio/ (JPEGIO_COMMIT),
 # registered by lv.init() through the LVPY_AFTER_LV_INIT hook.
+# Paths are relative to the root, where the build runs.
 lvgl_sources = [
     os.path.relpath(p, ROOT)
     for p in (LVGL_DIR / "src").rglob("*.c")
 ]
 
 runtime_sources = [
-    "src/lvpy_runtime.c",
-    "src/lvpy_jpegio.c",
-    "src/jpegio/lvgl_decoder.c",
-    "src/jpegio/tjpgd/tjpgd.c",
+    f"{PORT}/src/lvpy_runtime.c",
+    f"{PORT}/src/lvpy_jpegio.c",
+    f"{PORT}/src/jpegio/lvgl_decoder.c",
+    f"{PORT}/src/jpegio/tjpgd/tjpgd.c",
     "generated/lvgl_python.c",
 ]
 
 include_dirs = [
     str(ROOT),
-    str(ROOT / "src"),
+    str(ROOT / PORT / "src"),
     str(JPEGIO_DIR / "tjpgd"),
     str(LVGL_DIR),
 ]
@@ -186,6 +191,8 @@ setup(
     name="pydevices-lvgl",
     description="LVGL bindings for CPython (generated)",
     ext_modules=[ext],
+    # fs_driver.py is kept once, in python/, for all three ports.
+    package_dir={"": "python"},
     py_modules=["fs_driver"],
     python_requires=">=3.11",
     cmdclass={"build_ext": Win32LinkRspBuildExt},

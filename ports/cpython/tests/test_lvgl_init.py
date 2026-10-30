@@ -65,11 +65,11 @@ atexit.register(_deinit_at_exit)
 
 
 class LvglInitTests(unittest.TestCase):
-    def test_exact_bindings_source_is_recorded(self):
-        root = Path(__file__).resolve().parents[1]
-        pin = (root / "LVGL_BINDINGS_COMMIT").read_text().strip()
-        self.assertEqual(len(pin), 40)
-        self.assertTrue(all(character in "0123456789abcdef" for character in pin))
+    def test_the_binding_is_built_from_this_tree(self):
+        root = Path(__file__).resolve().parents[3]
+        self.assertTrue((root / "generated" / "lvgl_python.c").is_file())
+        self.assertIn('"generated/lvgl_python.c"', (root / "setup.py").read_text())
+        self.assertFalse((root / "ports" / "cpython" / "LVGL_BINDINGS_COMMIT").exists())
 
     def test_stub_is_installed_beside_extension(self):
         import lvgl
