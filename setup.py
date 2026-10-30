@@ -106,7 +106,9 @@ class Win32LinkRspBuildExt(build_ext):
             if ext.name != "lvgl":
                 continue
             ext_path = Path(self.get_ext_fullpath(self.get_ext_fullname(ext.name)))
-            dest = ext_path.with_suffix(".pyi")
+            # Type checkers look for lvgl.pyi, not the extension's full
+            # platform-tagged name.
+            dest = ext_path.parent / "lvgl.pyi"
             dest.write_bytes(pyi_src.read_bytes())
 
     def build_extensions(self):
