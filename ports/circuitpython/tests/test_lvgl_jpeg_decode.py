@@ -38,20 +38,20 @@ Checks, all plain asserts:
      decodes: the shim sniffs SOI only; LVGL's is_jpg() would have refused it.
   6. lv.deinit(); lv.init() re-registers the decoder (the frame decodes again),
      and a second lv.init() without deinit does not break it.
-  7. File sources through lib/fs_driver.py (this repo's synced copy, put on
-     sys.path): the C920e frame by its .jpg path, the same bytes copied to a
+  7. File sources through python/fs_driver.py (at the repository root, put
+     on sys.path): the C920e frame by its .jpg path, the same bytes copied to a
      temporary file WITHOUT an extension (the sniff is SOI-only for files too,
      the rule jpegio's MicroPython shim applies), both hashing to the
      golden digest; a non-JPEG file (the corpus README) stays 0x0.
 
 Run with the unix CircuitPython built with CIRCUITPY_LVGL=1 and
-CIRCUITPY_JPEGIO=1 (the coverage variant has both) against lvgl-bindings at the
-commit in LVGL_BINDINGS_COMMIT, from this repo's root or the aggregator:
+CIRCUITPY_JPEGIO=1 (the coverage variant has both) and this directory as a
+user C module:
 
-    circuitpython tests/test_lvgl_jpeg_decode.py
+    circuitpython ports/circuitpython/tests/test_lvgl_jpeg_decode.py
 
-Needs the micropython-pydevices checkout as a sibling of this repo (frames at
-../micropython-pydevices/modules/jpegio/tests/frames, resolved from this file's location) or
+Needs the micropython-pydevices checkout as a sibling of this repository (frames
+at ../micropython-pydevices/modules/jpegio/tests/frames, resolved from this file's location) or
 JPEGIO_FRAMES=/path/to/frames in the environment. Uses hashlib, binascii,
 json, os, jpegio and displayio from the CircuitPython build. Pure-CPython
 pytest collection skips this file: everything runs from main().
@@ -65,7 +65,7 @@ def _frames_dir():
     if env:
         return env
     here = __file__.rsplit("/", 1)[0] if "/" in __file__ else "."
-    return here + "/../../micropython-pydevices/modules/jpegio/tests/frames"
+    return here + "/../../../../micropython-pydevices/modules/jpegio/tests/frames"
 
 
 def _now():
@@ -266,7 +266,7 @@ def main():
     import os
     import sys
 
-    lib = (__file__.rsplit("/", 1)[0] if "/" in __file__ else ".") + "/../lib"
+    lib = (__file__.rsplit("/", 1)[0] if "/" in __file__ else ".") + "/../../../python"
     if lib not in sys.path:
         sys.path.append(lib)
     import fs_driver

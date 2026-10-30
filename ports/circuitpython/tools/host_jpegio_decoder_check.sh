@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Host proof of src/lv_jpegio_decoder_circuitpython.c without a CircuitPython build.
 #
-# Links LVGL (the sibling lvgl-bindings checkout at the pin in
-# LVGL_BINDINGS_COMMIT, with its CircuitPython lv_conf.h) + CircuitPython's
+# Links LVGL (the lvgl submodule at the repository root, with its CircuitPython
+# lv_conf.h) + CircuitPython's
 # lib/tjpgd/src/tjpgd.c + the shim + a malloc twin of the CP allocator and GC
 # roots, then renders every jpegio corpus frame through lv_image onto a
 # 320x240 native-RGB565 display (variable source with a zeroed header, and file
@@ -17,7 +17,7 @@
 #
 #   ./tools/host_jpegio_decoder_check.sh
 #
-# Environment: LV_BINDINGS_DIR (default ../lvgl-bindings), CP_DIR (default
+# Environment, with paths beside the repository by default: CP_DIR (default
 # ../circuitpython, else ../micropython-pydevices/deps/circuitpython), JPEGIO_FRAMES (default
 # ../micropython-pydevices/modules/jpegio/tests/frames). The CP tree is only read (headers and one
 # .c compiled into tools/host_jpegio_decoder_check/build/). Needs gcc, python3.
@@ -25,8 +25,8 @@ set -euo pipefail
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/.." && pwd)
-WS=$(cd "$ROOT/.." && pwd)
-B=${LV_BINDINGS_DIR:-$WS/lvgl-bindings}
+B=$(cd "$ROOT/../.." && pwd)
+WS=$(cd "$B/.." && pwd)
 CP=${CP_DIR:-}
 if [[ -z "$CP" ]]; then
     for c in "$WS/circuitpython" "$WS/micropython-pydevices/deps/circuitpython"; do
@@ -38,17 +38,11 @@ SRC=$HERE/host_jpegio_decoder_check
 BUILD=$SRC/build
 SHIM=${SHIM:-$ROOT/src/lv_jpegio_decoder_circuitpython.c}
 
-[[ -f "$B/lvgl/lvgl.h" ]] || { echo "error: lvgl-bindings not at $B (set LV_BINDINGS_DIR)" >&2; exit 1; }
+[[ -f "$B/lvgl/lvgl.h" ]] || { echo "error: $B/lvgl is empty (git submodule update --init lvgl)" >&2; exit 1; }
 [[ -n "$CP" && -f "$CP/lib/tjpgd/src/tjpgd.c" ]] || { echo "error: CircuitPython tree with lib/tjpgd not found (set CP_DIR)" >&2; exit 1; }
 [[ -f "$FRAMES/golden_tjpgd.json" ]] || { echo "error: jpegio corpus not at $FRAMES (set JPEGIO_FRAMES)" >&2; exit 1; }
 
-PIN=$(tr -d '[:space:]' < "$ROOT/LVGL_BINDINGS_COMMIT")
-if ! git -C "$B" cat-file -e "$PIN^{commit}" 2>/dev/null || ! git -C "$B" diff --quiet "$PIN" -- lvgl lv_conf.h || ! git -C "$B" diff --quiet -- lvgl lv_conf.h; then
-    echo "error: $B does not match pinned binding inputs $PIN (lvgl, lv_conf.h)" >&2
-    exit 1
-fi
-
-echo "lvgl-bindings: $B @ $(git -C "$B" rev-parse --short HEAD) (pin $PIN)"
+echo "bindings:      $B @ $(git -C "$B" describe --always --dirty --abbrev=12)"
 echo "circuitpython: $CP (lib/tjpgd)"
 echo "corpus:        $FRAMES"
 echo "shim:          $SHIM"
@@ -59,7 +53,7 @@ COMMON="-std=gnu99 -O1 -g -DLV_CIRCUITPYTHON_BUILD=1 -DMICROPY_LV_USE_LOG=1 -I$B
 STAMP="$BUILD/lvgl/.stamp"
 WANT="$(git -C "$B" rev-parse HEAD) $(sha256sum "$B/lv_conf.h" | cut -c1-16)"
 if [[ ! -f "$STAMP" || "$(cat "$STAMP")" != "$WANT" ]]; then
-    echo "== compiling LVGL src/*.c (bindings pin, CircuitPython lv_conf.h)"
+    echo "== compiling LVGL src/*.c (CircuitPython lv_conf.h)"
     rm -rf "$BUILD/lvgl"; mkdir -p "$BUILD/lvgl"
     find "$B/lvgl/src" -name '*.c' | sort > "$BUILD/lvgl.list"
     export B BUILD COMMON

@@ -2,20 +2,24 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-
-
-def test_bindings_pin_is_an_exact_commit():
-    pin = (ROOT / "LVGL_BINDINGS_COMMIT").read_text().strip()
-    assert len(pin) == 40
-    assert all(character in "0123456789abcdef" for character in pin)
+REPO = ROOT.parents[1]
 
 
 def test_generated_source_and_header_are_both_required():
     make = (ROOT / "micropython.mk").read_text()
     assert "generated/lvgl_circuitpython.c" in make
     assert "generated/lvgl_circuitpython.h" in make
-    assert "LVGL_BINDINGS_COMMIT" in make
+    assert "LVGL_BINDINGS_COMMIT" not in make
+    assert "fetch_bindings.sh" not in make
     assert "regenerate_lvcp.sh" not in make
+    assert (REPO / "generated" / "lvgl_circuitpython.c").is_file()
+    assert (REPO / "generated" / "lvgl_circuitpython.h").is_file()
+
+
+def test_fs_driver_is_frozen_from_the_one_copy():
+    manifest = (ROOT / "manifest.py").read_text()
+    assert 'module("fs_driver.py", base_path="../../python"' in manifest
+    assert not (ROOT / "lib" / "fs_driver.py").exists()
 
 
 def test_lifecycle_and_registration_have_single_owners():
@@ -72,7 +76,6 @@ def test_user_c_module_keeps_lvgl_out_of_the_qstr_scan():
     assert "SRC_USERMOD_LIB_C += $(LVCP_LVGL_SOURCES)" in make
     assert "SRC_USERMOD_C += $(LVCP_SOURCES)" in make
     assert "generated/lvgl_circuitpython.c" in make
-    assert "LVGL_BINDINGS_COMMIT" in make
     # gifio's AnimatedGIF collides with LVGL's at link time: stop early.
     assert "ifeq ($(CIRCUITPY_GIFIO),1)" in make
     # The board ports' late -Werror flags lose to per-object flags only.
@@ -101,17 +104,10 @@ def test_an_lvgl_failure_never_spins_a_board_off_usb():
     assert "src/lv_assert_circuitpython.c" in (ROOT / "micropython.mk").read_text()
 
 
-def test_a_supplied_checkout_builds_as_it_is():
-    # Only the copy fetched at the pin must match it; LV_BINDINGS_DIR or a
-    # sibling checkout that has moved on gets a note, not an error.
-    text = (ROOT / "micropython.mk").read_text()
-    assert "Building it as it is" in text
-
-
-def test_the_sibling_lookup_follows_a_symlinked_module_path():
-    # build_mp.py hands modules to make through links in its build directory,
-    # where $(abspath) would look beside the link, not beside this repo.
+def test_the_tree_lookup_follows_a_symlinked_module_path():
+    # A firmware build may hand modules to make through links in its build
+    # directory, where $(abspath) would look beside the link, not in this repo.
     make = (ROOT / "micropython.mk").read_text()
     assert "LVCP_REAL := $(realpath $(LVCP_DIR))" in make
-    assert "$(LVCP_REAL)/../lvgl-bindings" in make
-    assert "$(LVCP_DIR)/../lvgl-bindings" not in make
+    assert "LV_BINDINGS_DIR := $(abspath $(LVCP_REAL)/../..)" in make
+    assert "$(LVCP_DIR)/../.." not in make

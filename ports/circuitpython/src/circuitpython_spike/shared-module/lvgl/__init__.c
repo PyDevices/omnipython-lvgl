@@ -5,7 +5,7 @@
 #include "lvgl.h"
 #include "shared-module/lvgl/__init__.h"
 
-// lvgl-circuitpython/src/lv_jpegio_decoder_circuitpython.c: LVGL's JPEG
+// ports/circuitpython/src/lv_jpegio_decoder_circuitpython.c: LVGL's JPEG
 // decoder on CircuitPython is jpegio's TJpgDec (lib/tjpgd), registered through
 // lv_image_decoder_create after each LVGL init, because lvgl-bindings'
 // lv_conf.h has LV_USE_TJPGD 0 here. No-ops in a build without CIRCUITPY_JPEGIO.

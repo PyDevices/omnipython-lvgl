@@ -4,12 +4,12 @@
 # directory can be handed to any CircuitPython port's make as is, with no
 # patches to CircuitPython's own tree:
 #
-#   make -C ports/unix USER_C_MODULES=/path/to/lvgl-circuitpython
+#   make -C ports/unix USER_C_MODULES=<repo>/ports/circuitpython
 #   make -C ports/raspberrypi BOARD=adafruit_feather_rp2040 CIRCUITPY_GIFIO=0 \
-#       USER_C_MODULES=/path/to/lvgl-circuitpython
+#       USER_C_MODULES=<repo>/ports/circuitpython
 #
 # On a board, CIRCUITPY_GIFIO=0 goes on the make line: LVGL links its own
-# copy of the AnimatedGIF decoder (LV_USE_GIF in lvgl-bindings' lv_conf.h),
+# copy of the AnimatedGIF decoder (LV_USE_GIF in this repository's lv_conf.h),
 # and CircuitPython's gifio links another, so the two collide at link time.
 # The unix port compiles no gifio and needs nothing.
 
@@ -19,61 +19,21 @@ LVCP_DIR := $(USERMOD_DIR)
 LVCP_REAL := $(realpath $(LVCP_DIR))
 
 ifeq ($(wildcard $(TOP)/py/circuitpy_mpconfig.h),)
-$(error lvgl-circuitpython is for CircuitPython builds; MicroPython builds use lvgl-micropython)
+$(error ports/circuitpython is for CircuitPython builds; MicroPython builds use ports/micropython)
 endif
 
 ifeq ($(CIRCUITPY_GIFIO),1)
-$(error lvgl-circuitpython: add CIRCUITPY_GIFIO=0 to the make line. LVGL links its own AnimatedGIF decoder, which collides with gifio's)
+$(error lvgl: add CIRCUITPY_GIFIO=0 to the make line. LVGL links its own AnimatedGIF decoder, which collides with gifio's)
 endif
 
-# Where lvgl-bindings comes from, first match wins:
-#   1. LV_BINDINGS_DIR, from make's command line or the environment;
-#   2. an lvgl-bindings checkout beside this one (beside the directory this
-#      one really is: a build that hands the module over through a symlink
-#      still finds it);
-#   3. the commit in LVGL_BINDINGS_COMMIT, fetched into .deps/ with only what
-#      this module compiles (a clone on its own).
-# The first two build the checkout as it is: if it isn't at the pinned commit,
-# the build says so and carries on. Only the fetched copy must match the pin.
-ifneq ($(strip $(LV_BINDINGS_DIR)),)
-LV_BINDINGS_DIR := $(abspath $(LV_BINDINGS_DIR))
-LVCP_BINDINGS_FROM := LV_BINDINGS_DIR
-ifeq ($(wildcard $(LV_BINDINGS_DIR)/lv_conf.h),)
-$(error lvgl-circuitpython: LV_BINDINGS_DIR=$(LV_BINDINGS_DIR) is not an lvgl-bindings checkout (no lv_conf.h))
-endif
-else ifneq ($(wildcard $(LVCP_REAL)/../lvgl-bindings/lv_conf.h),)
-LV_BINDINGS_DIR := $(abspath $(LVCP_REAL)/../lvgl-bindings)
-LVCP_BINDINGS_FROM := the lvgl-bindings beside lvgl-circuitpython
-else
-LV_BINDINGS_DIR := $(abspath $(LVCP_DIR)/.deps/lvgl-bindings)
-LVCP_BINDINGS_FROM := pin
-LVCP_FETCH := $(shell bash $(LVCP_DIR)/scripts/fetch_bindings.sh 1>&2; echo $$?)
-ifeq ($(wildcard $(LV_BINDINGS_DIR)/lv_conf.h),)
-$(error lvgl-circuitpython: fetching lvgl-bindings failed (scripts/fetch_bindings.sh exit $(LVCP_FETCH)); set LV_BINDINGS_DIR to an lvgl-bindings checkout)
-endif
-endif
-
+# The generated binding, lv_conf.h and the lvgl submodule sit at the root of
+# this repository, two levels up from the directory this one really is (a
+# build that hands the module over through a symlink still finds them).
+LV_BINDINGS_DIR := $(abspath $(LVCP_REAL)/../..)
 LVGL_DIR := $(LV_BINDINGS_DIR)/lvgl
 LVCP_C := $(LV_BINDINGS_DIR)/generated/lvgl_circuitpython.c
 LVCP_H := $(LV_BINDINGS_DIR)/generated/lvgl_circuitpython.h
-LV_BINDINGS_PIN := $(strip $(shell cat $(LVCP_DIR)/LVGL_BINDINGS_COMMIT 2>/dev/null))
-ifeq ($(LV_BINDINGS_PIN),)
-$(error Missing $(LVCP_DIR)/LVGL_BINDINGS_COMMIT)
-endif
-# 1 when the binding inputs are exactly the pinned commit's, with nothing
-# uncommitted on top.
-LV_BINDINGS_AT_PIN := $(shell \
-	git -C $(LV_BINDINGS_DIR) cat-file -e $(LV_BINDINGS_PIN)^{commit} 2>/dev/null && \
-	git -C $(LV_BINDINGS_DIR) diff --quiet $(LV_BINDINGS_PIN) -- generated/lvgl_circuitpython.c generated/lvgl_circuitpython.h lvgl lv_conf.h && \
-	git -C $(LV_BINDINGS_DIR) diff --quiet -- generated/lvgl_circuitpython.c generated/lvgl_circuitpython.h lvgl lv_conf.h && echo 1)
-ifeq ($(LV_BINDINGS_AT_PIN),)
-ifeq ($(LVCP_BINDINGS_FROM),pin)
-$(error $(LV_BINDINGS_DIR) does not match pinned binding inputs $(LV_BINDINGS_PIN); delete it and build again to refetch)
-endif
-LV_BINDINGS_HEAD := $(shell git -C $(LV_BINDINGS_DIR) describe --always --dirty --abbrev=12 2>/dev/null || echo "not a git checkout")
-$(info lvgl-circuitpython: note: building lvgl-bindings from $(LV_BINDINGS_DIR) ($(LVCP_BINDINGS_FROM)) at $(LV_BINDINGS_HEAD),)
-$(info whose generated binding, lvgl or lv_conf.h differ from LVGL_BINDINGS_COMMIT $(LV_BINDINGS_PIN). Building it as it is.)
-endif
+$(if $(wildcard $(LVGL_DIR)/lvgl.h),,$(error $(LVGL_DIR) is empty. Run: git -C $(LV_BINDINGS_DIR) submodule update --init lvgl))
 $(if $(wildcard $(LVCP_C)),,$(error $(LVCP_C) not found. Run $(LV_BINDINGS_DIR)/regenerate_all.sh --target circuitpython))
 $(if $(wildcard $(LVCP_H)),,$(error $(LVCP_H) not found. Run $(LV_BINDINGS_DIR)/regenerate_all.sh --target circuitpython))
 
@@ -145,8 +105,8 @@ LVCP_OBJ_CFLAGS := -Wno-cast-align -Wno-nested-externs -Wno-unused-parameter \
 	-Wno-unused-but-set-variable -Wno-unused-function -Wno-undef
 
 # py.mk names a user module's object $(BUILD)/<module dir name>/<path inside
-# it>.o, and a source outside the module (lvgl-bindings beside it)
-# $(BUILD)/<absolute path>.o. Both spellings are declared.
+# it>.o, and a source outside the module (LVGL and the generated binding, two
+# levels up) $(BUILD)/<absolute path>.o. Both spellings are declared.
 LVCP_OBJ = $(BUILD)/$(patsubst $(LVCP_DIR)/%,$(notdir $(LVCP_DIR))/%,$(1)) $(BUILD)/$(1)
 $(foreach _s,$(LVCP_LVGL_SOURCES) $(LVCP_SOURCES),\
 	$(eval $(call LVCP_OBJ,$(_s:.c=.o)): CFLAGS += $(LVCP_OBJ_CFLAGS)))

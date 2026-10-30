@@ -1,4 +1,4 @@
-/* Host twin of lvgl-circuitpython/src/lv_mem_core_circuitpython.c: the same
+/* Host twin of ports/circuitpython/src/lv_mem_core_circuitpython.c: the same
  * LV_STDLIB_CIRCUITPYTHON_OVERRIDE entry points over plain malloc, so LVGL can
  * be linked on the host with the CircuitPython lv_conf.h and no CP tree. */
 #include "lvgl/src/stdlib/lv_mem.h"

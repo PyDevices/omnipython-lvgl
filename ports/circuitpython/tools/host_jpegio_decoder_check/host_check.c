@@ -1,4 +1,4 @@
-/* Host proof of lvgl-circuitpython's jpegio decoder shim without a CircuitPython
+/* Host proof of the CircuitPython port's jpegio decoder shim without a CircuitPython
  * build: LVGL v9.5.0 (lvgl-bindings pin, CircuitPython lv_conf.h) + CircuitPython's
  * lib/tjpgd/src/tjpgd.c + src/lv_jpegio_decoder_circuitpython.c, linked on the
  * host with a malloc allocator twin.
