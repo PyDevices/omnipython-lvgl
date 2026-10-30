@@ -18,3 +18,6 @@ lextab.py
 yacctab.py
 # Scratch logs from workspace build runs
 .cursor/build-all*
+
+# Interpreter builds and venvs made beside the tree
+.deps/

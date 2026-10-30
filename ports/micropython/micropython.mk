@@ -5,52 +5,13 @@
 #     make USER_C_MODULES=<path to workspace root>
 
 LVMP_DIR := $(USERMOD_DIR)
-# Where lvgl-bindings comes from, first match wins:
-#   1. BINDINGS_DIR, from make's command line or the environment (a firmware
-#      build that pins lvgl-bindings itself sets it);
-#   2. an lvgl-bindings checkout beside this one;
-#   3. the commit in LVGL_BINDINGS_COMMIT, fetched into .deps/ with only what
-#      this module compiles (a clone on its own).
-# The first two build the checkout as it is: if it isn't at the pinned commit,
-# the build says so and carries on. Only the fetched copy must match the pin.
-ifneq ($(strip $(BINDINGS_DIR)),)
-BINDINGS_DIR := $(abspath $(BINDINGS_DIR))
-LVMP_BINDINGS_FROM := BINDINGS_DIR
-ifeq ($(wildcard $(BINDINGS_DIR)/lv_conf.h),)
-$(error lvgl-micropython: BINDINGS_DIR=$(BINDINGS_DIR) is not an lvgl-bindings checkout (no lv_conf.h))
-endif
-else ifneq ($(wildcard $(LVMP_DIR)/../lvgl-bindings/lv_conf.h),)
-BINDINGS_DIR := $(abspath $(LVMP_DIR)/../lvgl-bindings)
-LVMP_BINDINGS_FROM := the lvgl-bindings beside lvgl-micropython
-else
-BINDINGS_DIR := $(abspath $(LVMP_DIR)/.deps/lvgl-bindings)
-LVMP_BINDINGS_FROM := pin
-LVMP_FETCH := $(shell bash $(LVMP_DIR)/scripts/fetch_bindings.sh 1>&2; echo $$?)
-ifeq ($(wildcard $(BINDINGS_DIR)/lv_conf.h),)
-$(error lvgl-micropython: fetching lvgl-bindings failed (scripts/fetch_bindings.sh exit $(LVMP_FETCH)); set BINDINGS_DIR to an lvgl-bindings checkout)
-endif
-endif
+# The generated binding, lv_conf.h and the lvgl submodule sit at the root of
+# this repository, two levels up.
+BINDINGS_DIR := $(abspath $(LVMP_DIR)/../..)
 LVMP_C := $(BINDINGS_DIR)/generated/lvgl_micropython.c
 LVGL_DIR := $(BINDINGS_DIR)/lvgl
+$(if $(wildcard $(LVGL_DIR)/lvgl.h),,$(error $(LVGL_DIR) is empty. Run: git -C $(BINDINGS_DIR) submodule update --init lvgl))
 SOURCES = $(shell find $(LVGL_DIR)/src -type f -name "*.c")
-LV_BINDINGS_PIN := $(strip $(shell cat $(LVMP_DIR)/LVGL_BINDINGS_COMMIT 2>/dev/null))
-ifeq ($(LV_BINDINGS_PIN),)
-$(error Missing $(LVMP_DIR)/LVGL_BINDINGS_COMMIT)
-endif
-# 1 when the binding inputs are exactly the pinned commit's, with nothing
-# uncommitted on top.
-LV_BINDINGS_AT_PIN := $(shell \
-	git -C $(BINDINGS_DIR) cat-file -e $(LV_BINDINGS_PIN)^{commit} 2>/dev/null && \
-	git -C $(BINDINGS_DIR) diff --quiet $(LV_BINDINGS_PIN) -- generated/lvgl_micropython.c lvgl lv_conf.h && \
-	git -C $(BINDINGS_DIR) diff --quiet -- generated/lvgl_micropython.c lvgl lv_conf.h && echo 1)
-ifeq ($(LV_BINDINGS_AT_PIN),)
-ifeq ($(LVMP_BINDINGS_FROM),pin)
-$(error $(BINDINGS_DIR) does not match pinned binding inputs $(LV_BINDINGS_PIN); delete it and build again to refetch)
-endif
-LV_BINDINGS_HEAD := $(shell git -C $(BINDINGS_DIR) describe --always --dirty --abbrev=12 2>/dev/null || echo "not a git checkout")
-$(info lvgl-micropython: note: building lvgl-bindings from $(BINDINGS_DIR) ($(LVMP_BINDINGS_FROM)) at $(LV_BINDINGS_HEAD),)
-$(info   whose generated binding, lvgl or lv_conf.h differ from LVGL_BINDINGS_COMMIT $(LV_BINDINGS_PIN). Building it as it is.)
-endif
 
 # jpegio Phase 2 moved the JPEG decoder out of LVGL: LV_USE_TJPGD is 0 in the
 # bindings (lvgl-bindings aa6c6bc), and the jpegio module registers its own
@@ -61,7 +22,7 @@ endif
 ifeq ($(findstring jpegio,$(USER_C_MODULES)),)
 $(info lvgl-micropython: no jpegio in this build -- lv.image will not draw a JPEG.)
 $(info   jpegio owns the TJpgDec decoder; PNG and LVGL BIN still decode.)
-$(info   Name jpegio as well for JPEG (build_mp.py --modules jpegio,lvgl-micropython).)
+$(info   Name jpegio's module as well for JPEG.)
 endif
 
 # LVGL is available on every port, but its desktop/host-GUI and OS-specific
@@ -92,7 +53,7 @@ endif
 
 SOURCES += $(LVMP_DIR)/src/lv_mem_core_micropython.c
 
-$(if $(wildcard $(LVMP_C)),,$(error $(LVMP_C) not found. Sync an exact lvgl-bindings commit or release tag))
+$(if $(wildcard $(LVMP_C)),,$(error $(LVMP_C) not found. Run $(BINDINGS_DIR)/regenerate_all.sh --target micropython))
 
 # -Wno-unused-function here is not enough on ports that append -Werror after py.mk
 # (e.g. webassembly); those ports add -Wno-unused-function after -Werror too.
@@ -101,8 +62,8 @@ SRC_USERMOD_LIB_C += $(SOURCES)
 SRC_USERMOD_C += $(LVMP_C)
 SRC_USERMOD_C += $(LVMP_DIR)/src/lvgl_micropython_build.c
 
-# --- which lvmp this firmware was built from ----------------------
-# Computed at build time from this repo's own git, never stored; "unknown" when
+# --- which commit this firmware was built from ---------------------
+# Computed at build time from this repository's git, never stored; "unknown" when
 # there is no git (a tarball). Read on a target as <module>.__revision__.
 LVMP_REVISION := $(shell git -C $(LVMP_DIR) describe --always --dirty --abbrev=7 2>/dev/null || echo unknown)
 CFLAGS_USERMOD += -DLVMP_REVISION='"$(LVMP_REVISION)"'
@@ -113,27 +74,17 @@ CFLAGS_USERMOD += -DLVMP_REVISION='"$(LVMP_REVISION)"'
 # GCC 16 also counts a variable only ever incremented as set-but-unused
 # (lv_buttonmatrix.c's txt_tot_i), which older GCC did not.
 LVMP_FLOAT_CFLAGS := -Wno-double-promotion -Wno-float-conversion -Wno-unused-but-set-variable
-# The object name a user-module source lands under is not the same on every
-# MicroPython. Up to v1.28.0 the USER_C_MODULES prefix was stripped, so the
-# object was $(BUILD)/lvgl-bindings/lvgl/src/....o; v1.29.0 keeps the absolute
-# source path, giving $(BUILD)//home/.../lvgl-bindings/lvgl/src/....o. A rule
-# written for one names a target that does not exist on the other, the flags
-# never apply, and upstream LVGL then fails the port's -Werror=double-promotion
-# with no hint that a suppression was even attempted. Declare both spellings.
 # py.mk names a user-module object $(BUILD)/<module dir basename>/<path inside
-# the module>, whatever USER_C_MODULES was (a parent directory, or the module
-# directories themselves from c_module()); derive it from this module's own
-# directory rather than from USER_C_MODULES.
-# The second spelling can't be a target on Windows: a path with a drive (C:/...) under
-# $(BUILD) holds a second colon, which make reads as a static pattern rule.
-# lvgl-bindings is often not inside this module (a sibling checkout, or the one
-# a firmware build hands over in BINDINGS_DIR), and py.mk only shortens paths
-# under a module directory, so its objects kept the absolute path and, on
-# Windows, the drive's colon. Register it as a module directory too: its
-# objects become $(BUILD)/<bindings dir basename>/..., like a module's.
-ifeq ($(filter $(LVMP_DIR)/%,$(BINDINGS_DIR)),)
+# the module>, and how it spells a source outside every module directory
+# changed in v1.29.0 (the absolute path is kept). This module is
+# ports/micropython; LVGL and the generated binding sit two levels up, outside
+# it, so the repository root is registered as a module directory too and its
+# objects become $(BUILD)/<root dir basename>/.... Each object is named both
+# ways below, since a flag rule on a target that doesn't exist never applies
+# and upstream LVGL then fails the port's -Werror=double-promotion with no hint.
+# The second spelling can't be a target on Windows: a path with a drive (C:/...)
+# under $(BUILD) holds a second colon, which make reads as a static pattern rule.
 USERMOD_DIRS += $(BINDINGS_DIR)
-endif
 LVMP_OBJ = $(BUILD)/$(patsubst $(BINDINGS_DIR)/%,$(notdir $(BINDINGS_DIR))/%,$(patsubst $(LVMP_DIR)/%,$(notdir $(LVMP_DIR))/%,$(1))) $(if $(findstring :,$(1)),,$(BUILD)/$(1))
 $(foreach s,$(SOURCES),\
 	$(eval $(call LVMP_OBJ,$(s:.c=.o)): CFLAGS += $(LVMP_FLOAT_CFLAGS)))
