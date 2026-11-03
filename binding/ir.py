@@ -176,7 +176,7 @@ class DeclarationIR:
 
 @dataclass(frozen=True)
 class DeclarationIndex:
-    """Read-only indexes and relationship queries over :class:`DeclarationIR`."""
+    """Read-only indexes and relationship queries over `DeclarationIR`."""
 
     ir: DeclarationIR
     functions_by_name: Mapping[str, CFunction]
