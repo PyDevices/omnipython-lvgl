@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Report canonical API inventory, target parity, and baseline compatibility.
 
 The report is deliberately observational.  It validates the canonical model,

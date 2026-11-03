@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Low-level pycparser AST helpers used by analyze and emit."""
 from __future__ import print_function
 

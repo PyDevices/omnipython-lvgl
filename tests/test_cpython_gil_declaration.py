@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """The generated CPython module declares that it doesn't need the GIL.
 
 On a free-threaded build (3.13t and later) importing an extension that

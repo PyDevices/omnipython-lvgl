@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Validate a generated pyi against the canonical API manifest."""
 
 from __future__ import annotations

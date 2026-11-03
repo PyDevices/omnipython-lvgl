@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Shared identifier sanitization, LVGL patterns, and export_name helpers."""
 from __future__ import print_function
 

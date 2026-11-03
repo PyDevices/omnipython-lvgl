@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Target-neutral C declaration intermediate representation.
 
 The IR deliberately contains declarations only.  Target runtime policy,

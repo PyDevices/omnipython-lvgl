@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Print or validate a manifest of generated LVGL binding artifacts."""
 
 from __future__ import annotations

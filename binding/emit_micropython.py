@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """MicroPython target entry: analyze → emit_c_micropython_style."""
 from __future__ import print_function
 

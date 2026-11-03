@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Auditable visibility and target-availability policy for the API model."""
 
 from __future__ import annotations

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Small utilities: memoize and stderr logging for analyze/emit."""
 from __future__ import print_function
 

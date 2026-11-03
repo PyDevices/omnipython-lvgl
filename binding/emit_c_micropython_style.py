@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Main MP-style C emitter (mp_obj_t API); used by MicroPython and CircuitPython."""
 from __future__ import print_function
 

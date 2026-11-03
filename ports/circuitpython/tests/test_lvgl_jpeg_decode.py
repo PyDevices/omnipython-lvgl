@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """lv.image decodes jpegio's corpus on CircuitPython through the jpegio decoder shim.
 
 The CircuitPython half of jpegio's LVGL decoder: LVGL's

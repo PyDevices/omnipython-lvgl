@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Emit the shared ``lvgl.pyi`` from the canonical API model."""
 
 from __future__ import annotations

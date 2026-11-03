@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """CPython body codegen (phases 3–7): funcs, objects, structs, and callbacks."""
 
 from __future__ import print_function

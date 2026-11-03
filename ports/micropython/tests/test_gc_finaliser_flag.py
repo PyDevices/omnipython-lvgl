@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """LVGL's allocations must not be flagged as having MicroPython finalisers.
 
 ``gc_alloc()``'s second argument is ``alloc_flags``, and 1 is
