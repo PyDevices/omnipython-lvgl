@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Shared setup for target C-lowering runs.
 
 The individual emitters own VM-specific C output.  This module owns only the

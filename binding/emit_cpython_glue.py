@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """CPython bookends: phase-2 enum types and PyInit_lvgl / module registration."""
 from __future__ import print_function
 

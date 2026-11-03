@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Walk preprocessed C AST; build func/object/enum/struct metadata for emit."""
 from __future__ import print_function
 

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 from binding.api_model import api_hash_for_dict
 from binding.verify_api import validate_api_data
 

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """The generated MicroPython and CircuitPython modules export ``lv._nesting``.
 
 ``_nesting`` is not an LVGL declaration: it is a binding-internal callback

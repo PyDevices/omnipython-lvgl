@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 # Frozen Python helpers that ship with the LVGL MicroPython usermod: fs_driver.py,
 # kept once at the root of this repository in python/. LVGL's PyDevices
 # coordinator, display_driver.py, ships with pydevices (lib/).

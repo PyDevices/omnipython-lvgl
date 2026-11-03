@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Unified LVGL binding smoke tests for MicroPython, CircuitPython, and CPython.
 
 Run with the target interpreter after building that port, for example:

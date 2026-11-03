@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Every CPython callback trampoline owns what it touches during the call.
 
 A trampoline looks the Python callback up in a callback dict, which gives a

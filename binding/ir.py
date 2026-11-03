@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Target-neutral C declaration intermediate representation.
 
 The IR deliberately contains declarations only.  Target runtime policy,
@@ -176,7 +180,7 @@ class DeclarationIR:
 
 @dataclass(frozen=True)
 class DeclarationIndex:
-    """Read-only indexes and relationship queries over :class:`DeclarationIR`."""
+    """Read-only indexes and relationship queries over `DeclarationIR`."""
 
     ir: DeclarationIR
     functions_by_name: Mapping[str, CFunction]

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """CPython target entry: analyze → emit_c_cpython."""
 
 from __future__ import print_function

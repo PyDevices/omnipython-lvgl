@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """CircuitPython bookends: phase-2 enums and LVCP_MODULE_GLOBALS module table."""
 from __future__ import print_function
 

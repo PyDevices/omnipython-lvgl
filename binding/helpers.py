@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Shared identifier sanitization, LVGL patterns, and export_name helpers."""
 from __future__ import print_function
 
@@ -11,7 +15,7 @@ from .util import memoize
 
 # Prevent identifier names which are Python reserved words (add underscore in such case)
 def export_name(name, kind):
-    """Delegate to :mod:`binding.naming` for Python export identifiers."""
+    """Delegate to `binding.naming` for Python export identifiers."""
     from .naming import export_name as _export_name
 
     return _export_name(name, kind)

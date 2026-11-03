@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Target-neutral public API model built from the declaration IR.
 
 This module describes the API independently of any C runtime or binding

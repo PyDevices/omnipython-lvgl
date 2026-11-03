@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Per-generation BindingContext; synced into runtime for analyze/emit."""
 from __future__ import print_function
 

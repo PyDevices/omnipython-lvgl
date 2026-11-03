@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Build the lvgl CPython extension (generated/lvgl_python.c + LVGL sources).
 
 It sits at the repository root, not in ports/cpython/, because the wheel

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Main CPython emit loop (PyObject* API); calls cpython_glue and cpython_native."""
 from __future__ import print_function
 

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """End-to-end regression tests for canonical stub generation."""
 
 from __future__ import annotations

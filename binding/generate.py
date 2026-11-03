@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """Unified command for generating all LVGL binding artifacts."""
 
 from __future__ import annotations

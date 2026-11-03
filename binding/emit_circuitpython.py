@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Brad Barnett
+#
+# SPDX-License-Identifier: MIT
+
 """CircuitPython target entry: analyze → emit_c_micropython_style (target=circuitpython)."""
 
 from __future__ import print_function
