@@ -25,6 +25,7 @@ file(GLOB_RECURSE SOURCES ${LVGL_DIR}/src/*.c)
 list(FILTER SOURCES EXCLUDE REGEX "/src/drivers/(opengles|sdl|glfw|x11|wayland|evdev|libinput|qnx|uefi|nuttx|windows)/")
 list(FILTER SOURCES EXCLUDE REGEX "/src/draw/opengles/")
 list(APPEND SOURCES ${LVMP_DIR}/src/lv_mem_core_micropython.c)
+list(APPEND SOURCES ${LVMP_DIR}/src/lvmp_tlsf.c)
 
 if(NOT EXISTS ${LVMP_C})
     message(FATAL_ERROR "${LVMP_C} not found. Run ${BINDINGS_DIR}/regenerate_all.sh --target micropython")

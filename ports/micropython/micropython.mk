@@ -52,6 +52,7 @@ SOURCES := $(foreach s,$(SOURCES),$(if $(strip $(foreach d,$(LVMP_EXCLUDE_DIRS),
 endif
 
 SOURCES += $(LVMP_DIR)/src/lv_mem_core_micropython.c
+SOURCES += $(LVMP_DIR)/src/lvmp_tlsf.c
 
 $(if $(wildcard $(LVMP_C)),,$(error $(LVMP_C) not found. Run $(BINDINGS_DIR)/regenerate_all.sh --target micropython))
 
