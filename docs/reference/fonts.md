@@ -19,6 +19,20 @@ loaded font is parsed into the heap (roughly its file size: see the sizes in
 your everyday fonts compiled in; load the occasional large size, or a script
 you only sometimes need, at runtime.
 
+## Leaving a built-in font out
+
+Each `LV_FONT_MONTSERRAT_<n>` in `lv_conf.h` can be set from the build, so a
+firmware short of flash can drop a compiled-in size without editing
+`lv_conf.h` or regenerating the binding:
+
+```bash
+make BOARD=... CFLAGS_EXTRA=-DLV_FONT_MONTSERRAT_40=0
+```
+
+`lv.font_montserrat_40` is then missing from the module, and you can load
+`montserrat_40.bin` at runtime instead. This only turns sizes off: a size that
+`lv_conf.h` leaves out has no wrapper in the generated binding.
+
 ## Getting a font onto the board
 
 ```bash

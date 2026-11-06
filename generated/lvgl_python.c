@@ -97877,11 +97877,21 @@ PyMODINIT_FUNC PyInit_lvgl(void)
     if (PyType_Ready(&py_lv_draw_sw_mask_map_param_cfg_t_type) < 0) return NULL;
     { PyObject *obj = lv_to_mp_struct(&py_lv_color_filter_dsc_t_type, (void *)&lv_color_filter_shade); if (obj == NULL) return NULL; if (PyModule_AddObject(m, "color_filter_shade", obj) < 0) { Py_DECREF(obj); return NULL; } }
     { PyObject *obj = lv_to_mp_struct(&py_lv_tree_class_t_type, (void *)&lv_tree_node_class); if (obj == NULL) return NULL; if (PyModule_AddObject(m, "tree_node_class", obj) < 0) { Py_DECREF(obj); return NULL; } }
+#if LV_FONT_MONTSERRAT_14
     { PyObject *obj = lv_to_mp_struct(&py_lv_font_t_type, (void *)&lv_font_montserrat_14); if (obj == NULL) return NULL; if (PyModule_AddObject(m, "font_montserrat_14", obj) < 0) { Py_DECREF(obj); return NULL; } }
+#endif
+#if LV_FONT_MONTSERRAT_16
     { PyObject *obj = lv_to_mp_struct(&py_lv_font_t_type, (void *)&lv_font_montserrat_16); if (obj == NULL) return NULL; if (PyModule_AddObject(m, "font_montserrat_16", obj) < 0) { Py_DECREF(obj); return NULL; } }
+#endif
+#if LV_FONT_MONTSERRAT_24
     { PyObject *obj = lv_to_mp_struct(&py_lv_font_t_type, (void *)&lv_font_montserrat_24); if (obj == NULL) return NULL; if (PyModule_AddObject(m, "font_montserrat_24", obj) < 0) { Py_DECREF(obj); return NULL; } }
+#endif
+#if LV_FONT_MONTSERRAT_32
     { PyObject *obj = lv_to_mp_struct(&py_lv_font_t_type, (void *)&lv_font_montserrat_32); if (obj == NULL) return NULL; if (PyModule_AddObject(m, "font_montserrat_32", obj) < 0) { Py_DECREF(obj); return NULL; } }
+#endif
+#if LV_FONT_MONTSERRAT_40
     { PyObject *obj = lv_to_mp_struct(&py_lv_font_t_type, (void *)&lv_font_montserrat_40); if (obj == NULL) return NULL; if (PyModule_AddObject(m, "font_montserrat_40", obj) < 0) { Py_DECREF(obj); return NULL; } }
+#endif
     { PyObject *obj = lv_to_mp_struct(&py_blob_type, (void *)&lv_style_const_prop_id_inv); if (obj == NULL) return NULL; if (PyModule_AddObject(m, "style_const_prop_id_inv", obj) < 0) { Py_DECREF(obj); return NULL; } }
     { PyObject *obj = lv_to_mp_struct(&py_lv_obj_class_t_type, (void *)&lv_obj_class); if (obj == NULL) return NULL; if (PyModule_AddObject(m, "obj_class", obj) < 0) { Py_DECREF(obj); return NULL; } }
     { PyObject *obj = lv_to_mp_struct(&py_lv_font_class_t_type, (void *)&lv_binfont_font_class); if (obj == NULL) return NULL; if (PyModule_AddObject(m, "binfont_font_class", obj) < 0) { Py_DECREF(obj); return NULL; } }
