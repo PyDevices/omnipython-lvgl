@@ -32,3 +32,11 @@ def test_fs_driver_is_frozen_from_the_one_copy():
 
 def test_no_consumer_smoke_wrapper_remains():
     assert not (ROOT / "tools" / "test_lvgl_unix.py").exists()
+
+
+def test_stm32_single_float_builds_get_a_double_sqrt():
+    make = (ROOT / "micropython.mk").read_text()
+    assert "src/lv_sqrt_single.c" in make
+    assert "/ports/stm32" in make
+    shim = (ROOT / "src" / "lv_sqrt_single.c").read_text()
+    assert "MICROPY_FLOAT_IMPL == MICROPY_FLOAT_IMPL_FLOAT" in shim

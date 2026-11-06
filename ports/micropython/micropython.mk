@@ -53,6 +53,14 @@ endif
 
 SOURCES += $(LVMP_DIR)/src/lv_mem_core_micropython.c
 
+# An stm32 firmware with single-precision floats links MicroPython's
+# single-precision libm, which has no double sqrt() for LVGL's gesture code.
+ifneq ($(findstring /ports/stm32,$(LVMP_PORT_DIR)),)
+ifeq ($(MICROPY_FLOAT_IMPL),single)
+SOURCES += $(LVMP_DIR)/src/lv_sqrt_single.c
+endif
+endif
+
 $(if $(wildcard $(LVMP_C)),,$(error $(LVMP_C) not found. Run $(BINDINGS_DIR)/regenerate_all.sh --target micropython))
 
 # -Wno-unused-function here is not enough on ports that append -Werror after py.mk
