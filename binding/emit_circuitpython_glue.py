@@ -8,6 +8,7 @@ from __future__ import print_function
 import collections
 
 from . import runtime
+from .util import guarded
 from .emit_backend import enum_namespace_plan, module_registration_plan, public_enum_module_names, public_struct_c_names
 
 
@@ -74,9 +75,12 @@ def _module_global_entries(
             )
         for global_name in plan.generated_globals:
             entries.append(
-                "    {{ MP_ROM_QSTR(MP_QSTR_{name}), MP_ROM_PTR(&mp_{global_name}) }}".format(
-                    name=export_name(global_name, "blob"),
-                    global_name=global_name,
+                guarded(
+                    "    {{ MP_ROM_QSTR(MP_QSTR_{name}), MP_ROM_PTR(&mp_{global_name}) }},".format(
+                        name=export_name(global_name, "blob"),
+                        global_name=global_name,
+                    ),
+                    global_name,
                 )
             )
     if plan.enum_names:
@@ -123,6 +127,17 @@ def _module_global_entries(
                 )
             )
     return entries
+
+
+def _table(entries):
+    """Join table entries; an entry that already ends in its comma keeps it.
+
+    Entries wrapped in ``#if``/``#endif`` carry their comma inside the guard.
+    """
+    return "\n".join(
+        entry if entry.endswith(",") or entry.endswith("#endif") else entry + ","
+        for entry in entries
+    )
 
 
 def finish_cp_fragment(max_phase):
@@ -192,7 +207,7 @@ const mp_rom_map_elem_t lvgl_module_entries[] = {{
 
 const size_t lvgl_module_entry_count = sizeof(lvgl_module_entries) / sizeof(lvgl_module_entries[0]);
 """.format(
-            table=",\n".join(all_entries) if all_entries else "    /* no module entries */"
+            table=_table(all_entries) if all_entries else "    /* no module entries */"
         )
     )
 

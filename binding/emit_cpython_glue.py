@@ -8,6 +8,7 @@ from __future__ import print_function
 import collections
 
 from . import runtime
+from .util import guarded
 from .emit_backend import enum_namespace_plan, module_registration_plan, public_enum_module_names, public_struct_c_names
 
 
@@ -424,12 +425,15 @@ static struct PyModuleDef lvgl_module_def = {
             )
             py_name = simplify_identifier(global_name)
             print(
-                '    {{ PyObject *obj = lv_to_mp_struct({type_object}, (void *)&{global_name});'
-                ' if (obj == NULL) return NULL;'
-                ' if (PyModule_AddObject(m, "{py_name}", obj) < 0) {{ Py_DECREF(obj); return NULL; }} }}'.format(
-                    type_object=type_object,
-                    global_name=global_name,
-                    py_name=py_name,
+                guarded(
+                    '    {{ PyObject *obj = lv_to_mp_struct({type_object}, (void *)&{global_name});'
+                    ' if (obj == NULL) return NULL;'
+                    ' if (PyModule_AddObject(m, "{py_name}", obj) < 0) {{ Py_DECREF(obj); return NULL; }} }}'.format(
+                        type_object=type_object,
+                        global_name=global_name,
+                        py_name=py_name,
+                    ),
+                    global_name,
                 )
             )
 

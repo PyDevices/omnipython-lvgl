@@ -73,7 +73,7 @@ from .emit_backend import (
     target_banner,
 )
 from .runtime_exports import filter_module_funcs_for_target, filter_registration_module_funcs
-from .util import eprint, memoize
+from .util import eprint, guarded, memoize
 from .context import EmitterResult
 
 
@@ -2929,15 +2929,21 @@ typedef struct {{
  * {module_name} {global_name} global definitions
  */
 
-static const mp_lv_struct_t mp_{global_name} = {{
-    {{ &mp_{struct_name}_type }},
-    ({cast}*)&{global_name}
-}};
+{definition}
     """.format(
                 module_name=module_name,
                 global_name=global_name,
-                struct_name=global_type,
-                cast=gen.visit(global_type_ast),
+                definition=guarded(
+                    """static const mp_lv_struct_t mp_{global_name} = {{
+    {{ &mp_{struct_name}_type }},
+    ({cast}*)&{global_name}
+}};""".format(
+                        global_name=global_name,
+                        struct_name=global_type,
+                        cast=gen.visit(global_type_ast),
+                    ),
+                    global_name,
+                ),
             )
         )
 
@@ -3157,10 +3163,15 @@ static const mp_rom_map_elem_t {module_name}_globals_table[] = {{
             ),
             blobs="".join(
                 [
-                    "{{ MP_ROM_QSTR(MP_QSTR_{name}), MP_ROM_PTR(&mp_{global_name}) }},\n    ".format(
-                        name=export_name(global_name, "blob"),
-                        global_name=global_name,
+                    guarded(
+                        "{{ MP_ROM_QSTR(MP_QSTR_{name}), MP_ROM_PTR(&mp_{global_name}) }},".format(
+                            name=export_name(global_name, "blob"),
+                            global_name=global_name,
+                        ),
+                        global_name,
+                        indent="    ",
                     )
+                    + "\n    "
                     # _nesting is deliberately kept here even though the
                     # canonical API model marks it private: see the
                     # comment in emit_backend.module_registration_plan and

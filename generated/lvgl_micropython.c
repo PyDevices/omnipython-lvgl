@@ -28194,50 +28194,60 @@ static const mp_lv_struct_t mp_lv_tree_node_class = {
  * lvgl lv_font_montserrat_14 global definitions
  */
 
+#if LV_FONT_MONTSERRAT_14
 static const mp_lv_struct_t mp_lv_font_montserrat_14 = {
     { &mp_lv_font_t_type },
     (lv_font_t*)&lv_font_montserrat_14
 };
+#endif
     
 
 /*
  * lvgl lv_font_montserrat_16 global definitions
  */
 
+#if LV_FONT_MONTSERRAT_16
 static const mp_lv_struct_t mp_lv_font_montserrat_16 = {
     { &mp_lv_font_t_type },
     (lv_font_t*)&lv_font_montserrat_16
 };
+#endif
     
 
 /*
  * lvgl lv_font_montserrat_24 global definitions
  */
 
+#if LV_FONT_MONTSERRAT_24
 static const mp_lv_struct_t mp_lv_font_montserrat_24 = {
     { &mp_lv_font_t_type },
     (lv_font_t*)&lv_font_montserrat_24
 };
+#endif
     
 
 /*
  * lvgl lv_font_montserrat_32 global definitions
  */
 
+#if LV_FONT_MONTSERRAT_32
 static const mp_lv_struct_t mp_lv_font_montserrat_32 = {
     { &mp_lv_font_t_type },
     (lv_font_t*)&lv_font_montserrat_32
 };
+#endif
     
 
 /*
  * lvgl lv_font_montserrat_40 global definitions
  */
 
+#if LV_FONT_MONTSERRAT_40
 static const mp_lv_struct_t mp_lv_font_montserrat_40 = {
     { &mp_lv_font_t_type },
     (lv_font_t*)&lv_font_montserrat_40
 };
+#endif
     
 /* Global struct wrapper for int */
 
@@ -49981,11 +49991,21 @@ static const mp_rom_map_elem_t lvgl_globals_table[] = {
     
     { MP_ROM_QSTR(MP_QSTR_color_filter_shade), MP_ROM_PTR(&mp_lv_color_filter_shade) },
     { MP_ROM_QSTR(MP_QSTR_tree_node_class), MP_ROM_PTR(&mp_lv_tree_node_class) },
+    #if LV_FONT_MONTSERRAT_14
     { MP_ROM_QSTR(MP_QSTR_font_montserrat_14), MP_ROM_PTR(&mp_lv_font_montserrat_14) },
+    #endif
+    #if LV_FONT_MONTSERRAT_16
     { MP_ROM_QSTR(MP_QSTR_font_montserrat_16), MP_ROM_PTR(&mp_lv_font_montserrat_16) },
+    #endif
+    #if LV_FONT_MONTSERRAT_24
     { MP_ROM_QSTR(MP_QSTR_font_montserrat_24), MP_ROM_PTR(&mp_lv_font_montserrat_24) },
+    #endif
+    #if LV_FONT_MONTSERRAT_32
     { MP_ROM_QSTR(MP_QSTR_font_montserrat_32), MP_ROM_PTR(&mp_lv_font_montserrat_32) },
+    #endif
+    #if LV_FONT_MONTSERRAT_40
     { MP_ROM_QSTR(MP_QSTR_font_montserrat_40), MP_ROM_PTR(&mp_lv_font_montserrat_40) },
+    #endif
     { MP_ROM_QSTR(MP_QSTR_style_const_prop_id_inv), MP_ROM_PTR(&mp_lv_style_const_prop_id_inv) },
     { MP_ROM_QSTR(MP_QSTR_obj_class), MP_ROM_PTR(&mp_lv_obj_class) },
     { MP_ROM_QSTR(MP_QSTR_binfont_font_class), MP_ROM_PTR(&mp_lv_binfont_font_class) },
