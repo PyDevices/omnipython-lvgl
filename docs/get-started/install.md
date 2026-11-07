@@ -37,6 +37,11 @@ wheels for 3.13 and 3.14 (`android_21_arm64_v8a` and `android_21_x86_64`) and a
 Pyodide wheel for the browser. pip picks the tag that matches your interpreter;
 use the same `pip` and `python` you will run.
 
+The binding has run on a Raspberry Pi 4 and a Pi 3 B+. A Pi 5 runs the same
+64-bit Raspberry Pi OS and should take the same aarch64 wheel, but nobody has
+tried it yet. If you do, [open an issue](https://github.com/PyDevices/omnipython-lvgl/issues)
+and say what worked.
+
 Pin a version with `pydevices-lvgl==9.5.52`. For an Android build, ask pip for
 the platform:
 
