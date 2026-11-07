@@ -52,6 +52,7 @@ SOURCES := $(foreach s,$(SOURCES),$(if $(strip $(foreach d,$(LVMP_EXCLUDE_DIRS),
 endif
 
 SOURCES += $(LVMP_DIR)/src/lv_mem_core_micropython.c
+SOURCES += $(LVMP_DIR)/src/lvmp_tlsf.c
 
 # An stm32 firmware with single-precision floats links MicroPython's
 # single-precision libm, which has no double sqrt() for LVGL's gesture code.

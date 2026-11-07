@@ -28,22 +28,37 @@
 // callback that only lv_obj_t.user_data refers to stays alive, as with
 // gc_alloc(). Allocations of LVMP_POOL_BIG bytes or more, and anything that
 // does not fit, still go to gc_alloc().
-#if defined(ESP_PLATFORM) && MICROPY_MALLOC_USES_ALLOCATED_SIZE
-#define LVMP_POOL (1)
-#else
-#define LVMP_POOL (0)
+//
+// Other ports: the same pools on LVGL's own TLSF (lv_tlsf.c, built for this in
+// lvmp_tlsf.c) when the board sets LVMP_POOL_TLSF=1. STM32H743 with a 28 MB
+// GC heap in SDRAM: a full-screen refresh of 48 buttons took 54 ms with a
+// fresh heap and 575 ms once 2 MB of bytearrays sat behind a free block, every
+// LVGL allocation walking the table past them (mpy-lvgl-boards, 2026-11-02).
+#include "lvmp_pool.h"
+
+#if LVMP_POOL && defined(ESP_PLATFORM)
+#include "multi_heap.h"
+#elif LVMP_POOL
+// lv_tlsf.h declares these only with LV_STDLIB_BUILTIN.
+typedef void * lv_tlsf_t;
+lv_tlsf_t lv_tlsf_create_with_pool(void * mem, size_t bytes);
+void * lv_tlsf_malloc(lv_tlsf_t tlsf, size_t bytes);
+void * lv_tlsf_realloc(lv_tlsf_t tlsf, void * ptr, size_t size);
+size_t lv_tlsf_free(lv_tlsf_t tlsf, const void * ptr);
+size_t lv_tlsf_block_size(void * ptr);
+typedef lv_tlsf_t multi_heap_handle_t;
+#define multi_heap_register(mem, bytes) lv_tlsf_create_with_pool((mem), (bytes))
+#define multi_heap_malloc lv_tlsf_malloc
+#define multi_heap_realloc lv_tlsf_realloc
+#define multi_heap_free(h, p) ((void)lv_tlsf_free((h), (p)))
+#define multi_heap_get_allocated_size(h, p) lv_tlsf_block_size(p)
 #endif
 
 #if LVMP_POOL
-#include "multi_heap.h"
 
-#define LVMP_POOL_MAX   (8)
-#define LVMP_POOL_BYTES (256 * 1024)
-#define LVMP_POOL_BIG   (32 * 1024)
-
-// The pools' GC blocks: a root pointer keeps them (and so everything LVGL
-// stores in them) reachable.
-MP_REGISTER_ROOT_POINTER(void *lvmp_pool_mem[8]);
+// The pools' GC blocks are kept reachable (and so everything LVGL stores in
+// them) by the root pointer lvmp_pool_mem, registered in lvgl_micropython_build.c:
+// make builds do not scan this file (SRC_USERMOD_LIB_C) for root pointers.
 
 static multi_heap_handle_t lvmp_heaps[LVMP_POOL_MAX];
 static uint8_t *lvmp_start[LVMP_POOL_MAX];

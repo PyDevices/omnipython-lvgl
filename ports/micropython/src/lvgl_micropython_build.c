@@ -6,6 +6,13 @@
 #include "py/obj.h"
 #include "py/objstr.h"
 #include "py/runtime.h"
+#include "lvmp_pool.h"
+
+#if LVMP_POOL
+// The GC blocks of lv_mem_core_micropython.c's pools: this root pointer keeps
+// them, and so everything LVGL stores in them, reachable.
+MP_REGISTER_ROOT_POINTER(void *lvmp_pool_mem[LVMP_POOL_MAX]);
+#endif
 
 #ifndef LVMP_REVISION
 #define LVMP_REVISION "unknown"
