@@ -31,7 +31,8 @@ ok
 ```
 
 CI builds a wheel per CPython minor version (3.11 to 3.15, and the
-free-threaded 3.15t) for Linux x86_64 and Windows x64. There are Android
+free-threaded 3.15t) for Linux x86_64, Linux aarch64 (64-bit Raspberry Pi OS,
+for one) and Windows x64. There are Android
 wheels for 3.13 and 3.14 (`android_21_arm64_v8a` and `android_21_x86_64`) and a
 Pyodide wheel for the browser. pip picks the tag that matches your interpreter;
 use the same `pip` and `python` you will run.
