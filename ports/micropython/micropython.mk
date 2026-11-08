@@ -70,6 +70,9 @@ CFLAGS_USERMOD += -I$(BINDINGS_DIR) -I$(LVMP_DIR) -Wno-unused-function
 SRC_USERMOD_LIB_C += $(SOURCES)
 SRC_USERMOD_C += $(LVMP_C)
 SRC_USERMOD_C += $(LVMP_DIR)/src/lvgl_micropython_build.c
+# What a failed LVGL assert does (lv_conf.h). Here rather than with LVGL's
+# sources so its message text is scanned like the binding's.
+SRC_USERMOD_C += $(LVMP_DIR)/src/lv_assert_micropython.c
 
 # --- which commit this firmware was built from ---------------------
 # Computed at build time from this repository's git, never stored; "unknown" when

@@ -45,7 +45,7 @@ if(NOT "${USER_C_MODULES}" MATCHES "jpegio")
 endif()
 
 add_library(lv_micropython INTERFACE)
-target_sources(lv_micropython INTERFACE ${LVMP_C} ${LVMP_DIR}/src/lvgl_micropython_build.c)
+target_sources(lv_micropython INTERFACE ${LVMP_C} ${LVMP_DIR}/src/lvgl_micropython_build.c ${LVMP_DIR}/src/lv_assert_micropython.c)
 
 # --- which commit this firmware was built from ---------------------
 # Computed at build time from this repository's git, never stored; "unknown" when

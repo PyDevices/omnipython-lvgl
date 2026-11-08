@@ -299,9 +299,21 @@
     #define LV_ASSERT_HANDLER_INCLUDE <stdint.h>
     __attribute__((weak)) void lv_circuitpython_assert_failed(void);
     #define LV_ASSERT_HANDLER { if (lv_circuitpython_assert_failed) { lv_circuitpython_assert_failed(); } while(1); }
-#else
+#elif defined(LV_CPYTHON_BUILD)
 #define LV_ASSERT_HANDLER_INCLUDE <stdint.h>
 #define LV_ASSERT_HANDLER while(1);   /*Halt by default*/
+#else
+    /* On MicroPython a spinning assert locks the scheduler out: USB serial and
+     * WebREPL go silent until a power cycle. The MicroPython port's handler
+     * raises RuntimeError naming the function, file and line instead, which
+     * the nearest Python frame or LVGL callback reports, and the board stays
+     * reachable. It is weak here, so a build without it still links and
+     * halts as before. */
+    #define LV_ASSERT_HANDLER_INCLUDE <stdint.h>
+    #if !defined(PYCPARSER) && !defined(__ASSEMBLY__)
+    __attribute__((weak)) void lv_micropython_assert_failed(const char *file, int line, const char *func);
+    #endif
+    #define LV_ASSERT_HANDLER { if (lv_micropython_assert_failed) { lv_micropython_assert_failed(__FILE__, __LINE__, __func__); } while(1); }
 #endif
 
 /*-------------
