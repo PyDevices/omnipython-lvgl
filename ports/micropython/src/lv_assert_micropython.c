@@ -32,7 +32,6 @@
 #include "lvgl/src/core/lv_global.h"
 #include "lvgl/src/display/lv_display_private.h"
 
-#include <string.h>
 
 void lv_micropython_assert_failed(const char *file, int line, const char *func);
 
@@ -50,11 +49,14 @@ static void lv_micropython_end_pass(void) {
 }
 
 void lv_micropython_assert_failed(const char *file, int line, const char *func) {
-    const char *base = strrchr(file, '/');
-    if (base == NULL) {
-        base = strrchr(file, '\\');
+    // Keep only the file's own name. A loop, not strrchr: some ports'
+    // C libraries (stm32's) don't provide it.
+    const char *base = file;
+    for (const char *p = file; *p; p++) {
+        if (*p == '/' || *p == '\\') {
+            base = p + 1;
+        }
     }
-    base = base ? base + 1 : file;
     if (mp_lv_nesting_depth() == 0) {
         lv_micropython_end_pass();
     }
