@@ -1020,6 +1020,7 @@ static mp_obj_t mp_lv_nesting_call(mp_obj_t func, size_t n_args, const mp_obj_t 
 // assert unwinds out of every LVGL frame, so the handler first clears the
 // state LVGL holds for the length of a pass; above zero, the callback's own
 // nlr frame catches it and LVGL carries on, so that state must stay.
+int mp_lv_nesting_depth(void);
 int mp_lv_nesting_depth(void)
 {
     return _nesting;
