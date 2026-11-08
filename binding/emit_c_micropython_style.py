@@ -1015,6 +1015,16 @@ static mp_obj_t mp_lv_nesting_call(mp_obj_t func, size_t n_args, const mp_obj_t 
     return result;
 }
 
+// How many Python callbacks LVGL is inside right now. The MicroPython port's
+// assert handler reads it: at zero, an exception raised from a failed LVGL
+// assert unwinds out of every LVGL frame, so the handler first clears the
+// state LVGL holds for the length of a pass; above zero, the callback's own
+// nlr frame catches it and LVGL carries on, so that state must stay.
+int mp_lv_nesting_depth(void)
+{
+    return _nesting;
+}
+
 // Function pointers wrapper
 
 static mp_obj_t mp_lv_funcptr(const mp_lv_obj_fun_builtin_var_t *mp_fun, void *lv_fun, void *lv_callback, qstr func_name, void *user_data)
