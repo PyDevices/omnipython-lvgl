@@ -11,15 +11,19 @@
 
 #include "py/mpconfig.h"
 
-// ESP32: ESP-IDF's multi_heap. Other ports: LVGL's TLSF, when the board sets
-// LVMP_POOL_TLSF=1.
-#if defined(ESP_PLATFORM) && MICROPY_MALLOC_USES_ALLOCATED_SIZE
-#define LVMP_POOL (1)
-#elif defined(LVMP_POOL_TLSF) && LVMP_POOL_TLSF
-#define LVMP_POOL (1)
+// On by default on ESP32, off elsewhere; a build sets LVMP_POOL_TLSF to 1 or 0
+// to choose. ESP32 is told apart by CONFIG_IDF_TARGET, which the port's
+// mpconfigport.h brings in from sdkconfig.h, not by ESP_PLATFORM: the esp32
+// port compiles every user C module a second time, for the executable, without
+// ESP_PLATFORM, and that second copy is the one linked.
+#ifndef LVMP_POOL_TLSF
+#if defined(CONFIG_IDF_TARGET)
+#define LVMP_POOL_TLSF (1)
 #else
-#define LVMP_POOL (0)
+#define LVMP_POOL_TLSF (0)
 #endif
+#endif
+#define LVMP_POOL (LVMP_POOL_TLSF)
 
 #define LVMP_POOL_MAX   (8)
 #define LVMP_POOL_BYTES (256 * 1024)
