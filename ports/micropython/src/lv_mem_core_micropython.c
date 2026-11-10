@@ -14,8 +14,8 @@
 #include <string.h>
 
 // LVGL's allocations come from TLSF pools kept inside GC-heap blocks, not
-// from gc_alloc() one by one. On by default on ESP32; other ports set
-// LVMP_POOL_TLSF=1 (lvmp_pool.h).
+// from gc_alloc() one by one, when the build sets LVMP_POOL_TLSF to 1
+// (lvmp_pool.h).
 //
 // gc_alloc() finds room by walking the allocation table from the first free
 // block, and LVGL's thousands of small, long-lived blocks leave the table

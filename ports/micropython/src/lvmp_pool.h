@@ -11,17 +11,19 @@
 
 #include "py/mpconfig.h"
 
-// On by default on ESP32, off elsewhere; a build sets LVMP_POOL_TLSF to 1 or 0
-// to choose. ESP32 is told apart by CONFIG_IDF_TARGET, which the port's
-// mpconfigport.h brings in from sdkconfig.h, not by ESP_PLATFORM: the esp32
-// port compiles every user C module a second time, for the executable, without
-// ESP_PLATFORM, and that second copy is the one linked.
+// Off unless a build sets LVMP_POOL_TLSF to 1, on every port. Set it where the
+// root-pointer scan sees it too: in the board's mpconfigboard.h, or in
+// CFLAGS_EXTRA on a make port. A definition that reaches only the compiler
+// (on the esp32 port, a CMake target_compile_definitions) leaves the pools'
+// root pointer unregistered and the build fails.
+//
+// The pools trade collection time for allocation time: gc.collect() scans
+// them whole, used or not. On an ESP32-P4 with 31 MB of GC heap in PSRAM, a
+// collection on a fresh heap took 6.1 ms with them against 2.9 ms without,
+// while creating and deleting 50 labels on a fragmented heap took 14 ms with
+// them against 43-49 ms without.
 #ifndef LVMP_POOL_TLSF
-#if defined(CONFIG_IDF_TARGET)
-#define LVMP_POOL_TLSF (1)
-#else
 #define LVMP_POOL_TLSF (0)
-#endif
 #endif
 #define LVMP_POOL (LVMP_POOL_TLSF)
 
