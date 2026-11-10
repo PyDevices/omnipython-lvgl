@@ -90,11 +90,15 @@ static bool lvmp_pool_add(void)
     if (lvmp_n >= LVMP_POOL_MAX) {
         return false;
     }
-    void *mem = gc_alloc(LVMP_POOL_BYTES, 0);
+    size_t bytes = (size_t)LVMP_POOL_FIRST << lvmp_n;
+    if (bytes > LVMP_POOL_BYTES) {
+        bytes = LVMP_POOL_BYTES;
+    }
+    void *mem = gc_alloc(bytes, 0);
     if (mem == NULL) {
         return false;
     }
-    lvmp_heap_t h = lvmp_heap_register(mem, LVMP_POOL_BYTES);
+    lvmp_heap_t h = lvmp_heap_register(mem, bytes);
     if (h == NULL) {
         gc_free(mem);
         return false;
@@ -102,7 +106,7 @@ static bool lvmp_pool_add(void)
     MP_STATE_VM(lvmp_pool_mem)[lvmp_n] = mem;
     lvmp_heaps[lvmp_n] = h;
     lvmp_start[lvmp_n] = mem;
-    lvmp_end[lvmp_n] = (uint8_t *)mem + LVMP_POOL_BYTES;
+    lvmp_end[lvmp_n] = (uint8_t *)mem + bytes;
     lvmp_n++;
     return true;
 }

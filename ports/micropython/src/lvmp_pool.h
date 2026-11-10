@@ -25,7 +25,12 @@
 #endif
 #define LVMP_POOL (LVMP_POOL_TLSF)
 
-#define LVMP_POOL_MAX   (8)
+// The first pool is small and each new one doubles, up to LVMP_POOL_BYTES:
+// gc.collect() scans a pool whole, used or not, so a pool much larger than
+// what LVGL keeps in it costs every collection. 32 + 64 + 128 + 7 x 256 KB,
+// about 2 MB, before allocations go back to gc_alloc().
+#define LVMP_POOL_MAX   (10)
+#define LVMP_POOL_FIRST (32 * 1024)
 #define LVMP_POOL_BYTES (256 * 1024)
 #define LVMP_POOL_BIG   (32 * 1024)
 
