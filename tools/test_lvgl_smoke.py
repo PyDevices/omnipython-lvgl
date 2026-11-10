@@ -739,6 +739,32 @@ def test_object_lifetime_and_pointer_validation(lv):
     print("OK: deleted-object and pointer validation")
 
 
+def test_assert_raises(lv, disp):
+    # On MicroPython a failed LVGL assert raises RuntimeError naming the
+    # source file and line, and LVGL keeps working. CircuitPython reboots
+    # into safe mode and CPython halts, so only MicroPython can check it.
+    if _runtime_target() != "micropython":
+        return
+    try:
+        disp.set_tile_cnt(256)  # LVGL asserts tile_cnt < 256
+    except RuntimeError as exc:
+        msg = str(exc)
+    else:
+        _fail("set_tile_cnt(256) returned instead of raising")
+    prefix = "LVGL assert failed at lv_display.c:"
+    if not msg.startswith(prefix) or not msg[len(prefix):].isdigit():
+        _fail("unexpected assert message: {}".format(msg))
+    if disp.get_tile_cnt() >= 256:
+        _fail("the asserting call changed the display")
+    label = lv.label(lv.screen_active())
+    label.set_text("after assert")
+    lv.refr_now(disp)
+    if label.get_text() != "after assert":
+        _fail("LVGL stopped working after an assert")
+    label.delete()
+    print("OK: an LVGL assert raises RuntimeError at file:line and LVGL carries on")
+
+
 def test_target_exceptions(lv):
     # LV_USE_TJPGD is 0 on every target: the JPEG decoder is jpegio's,
     # registered via lv_image_decoder_create by displayif, the CircuitPython
@@ -773,6 +799,7 @@ def main():
             test_refr_now(lv, disp)
             test_pointer_buffer_dereference(lv, disp)
         test_widget(lv)
+        test_assert_raises(lv, disp)
         test_struct_fields_and_arrays(lv)
         test_line_points_list_and_buffer(lv)
         test_struct_array_fields(lv)

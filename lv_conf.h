@@ -305,15 +305,24 @@
 #else
     /* On MicroPython a spinning assert locks the scheduler out: USB serial and
      * WebREPL go silent until a power cycle. The MicroPython port's handler
-     * raises RuntimeError naming the function, file and line instead, which
-     * the nearest Python frame or LVGL callback reports, and the board stays
-     * reachable. It is weak here, so a build without it still links and
-     * halts as before. */
+     * raises RuntimeError naming the file and line instead, which the nearest
+     * Python frame or LVGL callback reports, and the board stays reachable.
+     *
+     * LVGL has over a thousand assert sites, so each one is kept to a call
+     * with two arguments: the file's base name and the line, which are
+     * enough to find the assert. The handler doesn't return, so nothing
+     * follows the call. Passing the full path and the function name as well
+     * cost about 50 KB of flash on an ESP32-S3, and with code run from PSRAM
+     * (XIP) it took 128 KB of PSRAM from the heap. */
     #define LV_ASSERT_HANDLER_INCLUDE <stdint.h>
     #if !defined(PYCPARSER) && !defined(__ASSEMBLY__)
-    __attribute__((weak)) void lv_micropython_assert_failed(const char *file, int line, const char *func);
+    __attribute__((noreturn)) void lv_micropython_assert_failed(const char *file, int line);
     #endif
-    #define LV_ASSERT_HANDLER { if (lv_micropython_assert_failed) { lv_micropython_assert_failed(__FILE__, __LINE__, __func__); } while(1); }
+    #ifdef __FILE_NAME__
+    #define LV_ASSERT_HANDLER lv_micropython_assert_failed(__FILE_NAME__, __LINE__);
+    #else
+    #define LV_ASSERT_HANDLER lv_micropython_assert_failed(__FILE__, __LINE__);
+    #endif
 #endif
 
 /*-------------
