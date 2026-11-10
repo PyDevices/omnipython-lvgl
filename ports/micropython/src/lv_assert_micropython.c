@@ -6,9 +6,9 @@
  * to spin forever, and on a board that locks the MicroPython scheduler out:
  * USB serial and WebREPL go silent and only a power cycle brings it back.
  *
- * Instead this raises RuntimeError("LVGL assert failed in <function>
- * (<file>:<line>)"). LVGL's log is off in MicroPython builds, so the
- * function and line are how to find the assertion's message in LVGL's source.
+ * Instead this raises RuntimeError("LVGL assert failed at <file>:<line>").
+ * LVGL's log is off in MicroPython builds, so the file and line are how to
+ * find the assertion's message in LVGL's source.
  *
  * Where the exception lands decides what LVGL state needs repair:
  *
@@ -33,7 +33,7 @@
 #include "lvgl/src/display/lv_display_private.h"
 
 
-void lv_micropython_assert_failed(const char *file, int line, const char *func);
+MP_NORETURN void lv_micropython_assert_failed(const char *file, int line);
 
 // From the generated binding: how many Python callbacks LVGL is inside.
 int mp_lv_nesting_depth(void);
@@ -48,8 +48,9 @@ static void lv_micropython_end_pass(void) {
     }
 }
 
-void lv_micropython_assert_failed(const char *file, int line, const char *func) {
-    // Keep only the file's own name. A loop, not strrchr: some ports'
+void lv_micropython_assert_failed(const char *file, int line) {
+    // Keep only the file's own name, for a compiler without __FILE_NAME__
+    // (lv_conf.h passes __FILE__ there). A loop, not strrchr: some ports'
     // C libraries (stm32's) don't provide it.
     const char *base = file;
     for (const char *p = file; *p; p++) {
@@ -60,5 +61,5 @@ void lv_micropython_assert_failed(const char *file, int line, const char *func) 
     if (mp_lv_nesting_depth() == 0) {
         lv_micropython_end_pass();
     }
-    mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("LVGL assert failed in %s (%s:%d)"), func, base, line);
+    mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("LVGL assert failed at %s:%d"), base, line);
 }
