@@ -13,15 +13,16 @@
 #include <py/mpstate.h>
 #include <string.h>
 
-// ESP32: LVGL's allocations come from TLSF pools (ESP-IDF's multi_heap) kept
-// inside GC-heap blocks, not from gc_alloc() one by one.
+// LVGL's allocations come from TLSF pools kept inside GC-heap blocks, not
+// from gc_alloc() one by one, when the build sets LVMP_POOL_TLSF to 1
+// (lvmp_pool.h).
 //
 // gc_alloc() finds room by walking the allocation table from the first free
 // block, and LVGL's thousands of small, long-lived blocks leave the table
 // full of one-block holes. On an ESP32-S3 with its heap in PSRAM a 64-byte
 // allocation took ~90 us and a 2 KB one ~1.3 ms, and creating one LVGL
 // widget ~1-2.5 ms: a 30-row list took 2 s to build (Waveshare LCD-7,
-// 2026-09-25). multi_heap allocates in O(1).
+// 2026-09-25). TLSF allocates in O(1).
 //
 // The pools are ordinary GC blocks, reachable through a root pointer, so the
 // collector still scans every byte of LVGL's memory: a Python wrapper or
@@ -29,16 +30,14 @@
 // gc_alloc(). Allocations of LVMP_POOL_BIG bytes or more, and anything that
 // does not fit, still go to gc_alloc().
 //
-// Other ports: the same pools on LVGL's own TLSF (lv_tlsf.c, built for this in
-// lvmp_tlsf.c) when the board sets LVMP_POOL_TLSF=1. STM32H743 with a 28 MB
-// GC heap in SDRAM: a full-screen refresh of 48 buttons took 54 ms with a
-// fresh heap and 575 ms once 2 MB of bytearrays sat behind a free block, every
-// LVGL allocation walking the table past them (mpy-lvgl-boards, 2026-11-02).
+// The allocator is LVGL's own TLSF (lv_tlsf.c, built for this in lvmp_tlsf.c).
+// STM32H743 with a 28 MB GC heap in SDRAM: a full-screen refresh of 48 buttons
+// took 54 ms with a fresh heap and 575 ms once 2 MB of bytearrays sat behind a
+// free block, every LVGL allocation walking the table past them
+// (mpy-lvgl-boards, 2026-11-02).
 #include "lvmp_pool.h"
 
-#if LVMP_POOL && defined(ESP_PLATFORM)
-#include "multi_heap.h"
-#elif LVMP_POOL
+#if LVMP_POOL
 // lv_tlsf.h declares these only with LV_STDLIB_BUILTIN.
 typedef void * lv_tlsf_t;
 lv_tlsf_t lv_tlsf_create_with_pool(void * mem, size_t bytes);
@@ -46,12 +45,12 @@ void * lv_tlsf_malloc(lv_tlsf_t tlsf, size_t bytes);
 void * lv_tlsf_realloc(lv_tlsf_t tlsf, void * ptr, size_t size);
 size_t lv_tlsf_free(lv_tlsf_t tlsf, const void * ptr);
 size_t lv_tlsf_block_size(void * ptr);
-typedef lv_tlsf_t multi_heap_handle_t;
-#define multi_heap_register(mem, bytes) lv_tlsf_create_with_pool((mem), (bytes))
-#define multi_heap_malloc lv_tlsf_malloc
-#define multi_heap_realloc lv_tlsf_realloc
-#define multi_heap_free(h, p) ((void)lv_tlsf_free((h), (p)))
-#define multi_heap_get_allocated_size(h, p) lv_tlsf_block_size(p)
+typedef lv_tlsf_t lvmp_heap_t;
+#define lvmp_heap_register(mem, bytes) lv_tlsf_create_with_pool((mem), (bytes))
+#define lvmp_heap_malloc lv_tlsf_malloc
+#define lvmp_heap_realloc lv_tlsf_realloc
+#define lvmp_heap_free(h, p) ((void)lv_tlsf_free((h), (p)))
+#define lvmp_heap_size(h, p) lv_tlsf_block_size(p)
 #endif
 
 #if LVMP_POOL
@@ -60,7 +59,7 @@ typedef lv_tlsf_t multi_heap_handle_t;
 // them) by the root pointer lvmp_pool_mem, registered in lvgl_micropython_build.c:
 // make builds do not scan this file (SRC_USERMOD_LIB_C) for root pointers.
 
-static multi_heap_handle_t lvmp_heaps[LVMP_POOL_MAX];
+static lvmp_heap_t lvmp_heaps[LVMP_POOL_MAX];
 static uint8_t *lvmp_start[LVMP_POOL_MAX];
 static uint8_t *lvmp_end[LVMP_POOL_MAX];
 static int lvmp_n;
@@ -91,11 +90,15 @@ static bool lvmp_pool_add(void)
     if (lvmp_n >= LVMP_POOL_MAX) {
         return false;
     }
-    void *mem = gc_alloc(LVMP_POOL_BYTES, 0);
+    size_t bytes = (size_t)LVMP_POOL_FIRST << lvmp_n;
+    if (bytes > LVMP_POOL_BYTES) {
+        bytes = LVMP_POOL_BYTES;
+    }
+    void *mem = gc_alloc(bytes, 0);
     if (mem == NULL) {
         return false;
     }
-    multi_heap_handle_t h = multi_heap_register(mem, LVMP_POOL_BYTES);
+    lvmp_heap_t h = lvmp_heap_register(mem, bytes);
     if (h == NULL) {
         gc_free(mem);
         return false;
@@ -103,7 +106,7 @@ static bool lvmp_pool_add(void)
     MP_STATE_VM(lvmp_pool_mem)[lvmp_n] = mem;
     lvmp_heaps[lvmp_n] = h;
     lvmp_start[lvmp_n] = mem;
-    lvmp_end[lvmp_n] = (uint8_t *)mem + LVMP_POOL_BYTES;
+    lvmp_end[lvmp_n] = (uint8_t *)mem + bytes;
     lvmp_n++;
     return true;
 }
@@ -114,13 +117,13 @@ static void *lvmp_pool_malloc(size_t size)
         return NULL;
     }
     for (int i = 0; i < lvmp_n; i++) {
-        void *p = multi_heap_malloc(lvmp_heaps[i], size);
+        void *p = lvmp_heap_malloc(lvmp_heaps[i], size);
         if (p != NULL) {
             return p;
         }
     }
     if (lvmp_pool_add()) {
-        return multi_heap_malloc(lvmp_heaps[lvmp_n - 1], size);
+        return lvmp_heap_malloc(lvmp_heaps[lvmp_n - 1], size);
     }
     return NULL;
 }
@@ -208,16 +211,16 @@ void * lv_realloc_core(void * p, size_t new_size)
 #if LVMP_POOL
     int pool = p != NULL ? lvmp_pool_of(p) : -1;
     if (pool >= 0) {
-        void *q = multi_heap_realloc(lvmp_heaps[pool], p, new_size);
+        void *q = lvmp_heap_realloc(lvmp_heaps[pool], p, new_size);
         if (q != NULL || new_size == 0) {
             return q;
         }
         // Did not fit in its pool: move it (another pool, or the GC heap).
-        size_t old_size = multi_heap_get_allocated_size(lvmp_heaps[pool], p);
+        size_t old_size = lvmp_heap_size(lvmp_heaps[pool], p);
         q = lv_malloc_core(new_size);
         if (q != NULL) {
             memcpy(q, p, old_size < new_size ? old_size : new_size);
-            multi_heap_free(lvmp_heaps[pool], p);
+            lvmp_heap_free(lvmp_heaps[pool], p);
         }
         return q;
     }
@@ -240,7 +243,7 @@ void lv_free_core(void * p)
 #if LVMP_POOL
     int pool = p != NULL ? lvmp_pool_of(p) : -1;
     if (pool >= 0) {
-        multi_heap_free(lvmp_heaps[pool], p);
+        lvmp_heap_free(lvmp_heaps[pool], p);
         return;
     }
 #endif
