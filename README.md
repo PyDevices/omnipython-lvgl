@@ -52,6 +52,6 @@ Hello from LVGL - drew 240 px wide
 
 The picture at the top is the frame that program drew.
 
-[Docs](docs/index.md) · [Examples](https://pydevices.github.io/gallery/pyscript/) · [Roadmap](ROADMAP.md)
+[Docs](docs/index.md) · [Examples](https://gallery.omnipython.org/pyscript/) · [Roadmap](ROADMAP.md)
 
 OmniPython is made by [PyDevices](https://pydevices.com).
