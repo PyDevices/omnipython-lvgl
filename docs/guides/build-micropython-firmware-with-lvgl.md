@@ -70,8 +70,8 @@ port, with upstream's own boards.
 ./build_mp.py --port unix --modules lvgl,pygraphics
 ```
 
-`lvgl` is this port: `build_mp.py` fetches omnipython-lvgl at the commit its
-`modules.lock` pins, or uses an `omnipython-lvgl` checkout beside it. To build
+`lvgl` is this port: `build_mp.py` fetches omnipython-lvgl at the commit
+micropython-pydevices pins, or uses an `omnipython-lvgl` checkout beside it. To build
 another checkout, name its port by path instead
 (`--modules /path/to/omnipython-lvgl/ports/micropython,pygraphics`).
 
