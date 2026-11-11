@@ -291,8 +291,19 @@
 
 /*Argument checks: a public function given a NULL pointer, or an argument out
  *of range, logs (when LV_USE_LOG is on) and returns instead of dereferencing
- *it. LVGL turns them on by default; set them here so the choice is ours.*/
+ *it. LVGL turns them on by default; set them here so the choice is ours.
+ *Several of LVGL 9.5's asserts became these checks in 9.6.
+ *
+ *On MicroPython a failed check also goes to the assert handler, which raises
+ *RuntimeError, so a bad argument from Python still raises as it did when
+ *these were asserts. CircuitPython's handler reboots into safe mode and
+ *CPython's halts, so there the call just returns.*/
 #define LV_USE_CHECK_ARG            1
+#if defined(LV_CIRCUITPYTHON_BUILD) || defined(LV_CPYTHON_BUILD)
+#define LV_CHECK_ARG_ASSERT_ON_FAIL 0
+#else
+#define LV_CHECK_ARG_ASSERT_ON_FAIL 1
+#endif
 
 /*Add a custom handler when assert happens e.g. to restart the MCU*/
 #if defined(LV_CIRCUITPYTHON_BUILD)
