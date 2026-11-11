@@ -52,12 +52,12 @@ jobs:
           ref: v1.29.0
           path: integration/micropython
 
-      - name: Check out CircuitPython 11.0.0-alpha.1
+      - name: Check out CircuitPython 11.0.0-alpha.2
         if: matrix.runtime == 'circuitpython'
         uses: actions/checkout@v7
         with:
           repository: adafruit/circuitpython
-          ref: 11.0.0-alpha.1
+          ref: 11.0.0-alpha.2
           path: integration/circuitpython
 
       - name: Install native build dependencies
@@ -95,7 +95,10 @@ jobs:
         working-directory: integration
         run: |
           make -C circuitpython/mpy-cross -j"$(nproc)"
+          # The coverage build's qstrs, LVGL's included, pass the 64 KB that
+          # 2-byte qstr offsets can address.
           make -C circuitpython/ports/unix -j"$(nproc)" VARIANT=coverage \
+              CFLAGS_EXTRA=-DMICROPY_QSTR_OFFSET_BYTES=4 \
               USER_C_MODULES="$GITHUB_WORKSPACE/integration/omnipython-lvgl/ports/circuitpython" \
               FROZEN_MANIFEST="$GITHUB_WORKSPACE/integration/omnipython-lvgl/ports/circuitpython/manifest.py"
 
