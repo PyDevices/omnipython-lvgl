@@ -60,6 +60,21 @@ jobs:
           ref: 11.0.0-alpha.2
           path: integration/circuitpython
 
+      # CircuitPython addresses a qstr pool with 2-byte offsets, so a pool
+      # holds 64 KB of names, and LVGL 9.6's push the coverage build's past
+      # it. micropython-pydevices builds CircuitPython with two patches that
+      # make the offset size a setting, for the firmware's pools and for
+      # mpy-tool's frozen ones; ports/circuitpython asks for 4.
+      - name: Patch CircuitPython for 4-byte qstr offsets
+        if: matrix.runtime == 'circuitpython'
+        working-directory: integration/circuitpython
+        run: |
+          base=https://raw.githubusercontent.com/PyDevices/micropython-pydevices/9a241aaadd035b912605b5e0d218ee55068abeb1/patches/circuitpython
+          for p in 0001-qstr-offsets-of-four-bytes-when-a-build-asks.patch \
+                   0010-mpy-tool-freezes-qstr-offsets-of-the-width-the-build-asks.patch; do
+            curl -fsSL "$base/$p" | git apply
+          done
+
       - name: Install native build dependencies
         run: |
           sudo apt-get update
@@ -95,8 +110,6 @@ jobs:
         working-directory: integration
         run: |
           make -C circuitpython/mpy-cross -j"$(nproc)"
-          # The coverage build's qstrs, LVGL's included, pass the 64 KB that
-          # 2-byte qstr offsets can address.
           make -C circuitpython/ports/unix -j"$(nproc)" VARIANT=coverage \
               CFLAGS_EXTRA=-DMICROPY_QSTR_OFFSET_BYTES=4 \
               USER_C_MODULES="$GITHUB_WORKSPACE/integration/omnipython-lvgl/ports/circuitpython" \
