@@ -25,6 +25,7 @@ def read_lvgl_version_major_minor(repo_root: Optional[Path] = None) -> str:
 
     repo_root = (repo_root or Path(__file__).resolve().parent.parent).resolve()
     for version_file in (
+        repo_root / "lvgl" / "include" / "lvgl" / "lv_version.h",
         repo_root / "lvgl" / "lv_version.h",
         repo_root / "lvgl" / "lvgl.h",
     ):

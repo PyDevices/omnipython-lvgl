@@ -146,6 +146,14 @@ def emit_c(ctx):
  */
 
 {lv_headers}
+
+/*
+ * The binding keeps every function LVGL marks deprecated callable until LVGL
+ * removes it, so a call to one here is not a warning (LVGL 9.6 and later).
+ */
+#ifdef LV_DEPRECATIONS_IGNORE_BEGIN
+LV_DEPRECATIONS_IGNORE_BEGIN
+#endif
 """.format(
         module_name=module_name,
         target_banner=_target_banner,

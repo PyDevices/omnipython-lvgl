@@ -38,6 +38,7 @@ API_SCHEMA_VERSION = 3
 _MODULE_ENUM_NAME_OVERRIDES = {
     "animimg_part_t": "ANIM_IMAGE_PART",
     "cache_reserve_cond_res_t": "CACHE_RESERVE_COND",
+    "lru_res_t": "LRU",
     "indev_gesture_type_t": "INDEV_GESTURE",
     "event_code_t": "EVENT",
     "align_t": "ALIGN",

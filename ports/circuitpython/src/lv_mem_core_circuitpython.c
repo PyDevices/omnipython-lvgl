@@ -16,7 +16,7 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "lvgl/src/stdlib/lv_mem.h"
+#include "lvgl/lvgl.h"
 
 /* Must match lv_conf.h when building for CircuitPython. */
 #ifndef LV_STDLIB_CIRCUITPYTHON_OVERRIDE

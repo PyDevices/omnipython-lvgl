@@ -5,7 +5,7 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "lvgl/src/stdlib/lv_mem.h"
+#include "lvgl/lvgl.h"
 #if LV_USE_STDLIB_MALLOC == LV_STDLIB_MICROPYTHON_OVERRIDE
 #include <py/mpconfig.h>
 #include <py/misc.h>
