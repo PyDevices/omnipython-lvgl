@@ -1,5 +1,5 @@
 {
-  "api_hash": "af91095e37fe3705cd9a2da008224dcfc665ce05aa9d6622f8e99b6e5f8d349e",
+  "api_hash": "cee5b09a7b1604c89b90c59186b902c706be97b12cd274042311952e47eee333",
   "constants": [
     {
       "available_on": [
@@ -59725,7 +59725,6 @@
           }
         }
       ],
-      "policy_reason": "LVGL-internal helper",
       "python_name": "get_glyph_dsc_internal",
       "receiver": "font_t",
       "return_type": {
@@ -59741,7 +59740,7 @@
       "static": false,
       "storage": [],
       "variadic": false,
-      "visibility": "private"
+      "visibility": "public"
     },
     {
       "available_on": [
