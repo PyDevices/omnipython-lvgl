@@ -166,6 +166,12 @@ class ApiPolicy:
             return PolicyDecision("private", reason=unsupported.reason)
         if not name.startswith(self.module_prefix + "_"):
             return PolicyDecision("private", reason="outside module prefix")
+        if name.endswith("_internal"):
+            # Inline helpers from LVGL's private headers (LVGL 9.6 has 164,
+            # mostly lv_obj_get_style_*_internal). Each one but
+            # lv_font_get_glyph_dsc_internal backs a public function of the
+            # same name without the suffix, so binding them only costs flash.
+            return PolicyDecision("private", reason="LVGL-internal helper")
         return PolicyDecision(
             "public",
             available_on=self._available_on(name),

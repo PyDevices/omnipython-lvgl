@@ -1,5 +1,5 @@
 {
-  "api_hash": "3a06d8cf5faf1688f83f0d4a1ced36659d59f4881285bd53c2969e40061ae103",
+  "api_hash": "af91095e37fe3705cd9a2da008224dcfc665ce05aa9d6622f8e99b6e5f8d349e",
   "constants": [
     {
       "available_on": [
@@ -21536,6 +21536,7 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "bidi_calculate_align_internal",
       "return_type": {
         "kind": "primitive",
@@ -21552,7 +21553,7 @@
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -54513,6 +54514,7 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "unit_draw_letter_internal",
       "receiver": "draw_task_t",
       "return_type": {
@@ -54528,7 +54530,7 @@
       "static": false,
       "storage": [],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -59200,6 +59202,7 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_bottom_trim_internal",
       "receiver": "font_t",
       "return_type": {
@@ -59217,7 +59220,7 @@
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -59388,6 +59391,7 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_glyph_bitmap_internal",
       "receiver": "font_glyph_dsc_t",
       "return_type": {
@@ -59409,7 +59413,7 @@
       "static": false,
       "storage": [],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -59721,6 +59725,7 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_glyph_dsc_internal",
       "receiver": "font_t",
       "return_type": {
@@ -59736,7 +59741,7 @@
       "static": false,
       "storage": [],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -59831,6 +59836,7 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_glyph_static_bitmap_internal",
       "receiver": "font_glyph_dsc_t",
       "return_type": {
@@ -59852,7 +59858,7 @@
       "static": false,
       "storage": [],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -60015,6 +60021,7 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_glyph_width_internal",
       "receiver": "font_t",
       "return_type": {
@@ -60030,7 +60037,7 @@
       "static": false,
       "storage": [],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -60127,6 +60134,7 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_line_height_internal",
       "receiver": "font_t",
       "return_type": {
@@ -60144,7 +60152,7 @@
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -60275,6 +60283,7 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_top_trim_internal",
       "receiver": "font_t",
       "return_type": {
@@ -60292,7 +60301,7 @@
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -60459,6 +60468,7 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "release_draw_data_internal",
       "receiver": "font_glyph_dsc_t",
       "return_type": {
@@ -60474,7 +60484,7 @@
       "static": false,
       "storage": [],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -60571,6 +60581,7 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "has_static_bitmap_internal",
       "receiver": "font_t",
       "return_type": {
@@ -60588,7 +60599,7 @@
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -90544,8 +90555,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "calculate_style_text_align_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_text_align_t"
@@ -90555,13 +90567,13 @@
         "conversion": "enum_int",
         "python_type": "TEXT_ALIGN | int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -94198,8 +94210,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_align_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_align_t"
@@ -94209,13 +94222,13 @@
         "conversion": "enum_int",
         "python_type": "ALIGN | int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -94424,8 +94437,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_anim_duration_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "uint32_t"
@@ -94435,13 +94449,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -94500,8 +94514,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_anim_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "pointer",
         "target": {
@@ -94517,13 +94532,13 @@
         "conversion": "struct_pointer",
         "python_type": "anim_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -94726,8 +94741,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_arc_color_filtered_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -94737,13 +94753,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -94802,8 +94818,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_arc_color_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -94813,13 +94830,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -94956,8 +94973,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_arc_image_src_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "pointer",
         "target": {
@@ -94973,13 +94991,13 @@
         "conversion": "opaque",
         "python_type": "Any"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -95110,8 +95128,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_arc_opa_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_opa_t"
@@ -95121,13 +95140,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -95258,8 +95277,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_arc_rounded_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "primitive",
         "name": "bool"
@@ -95269,13 +95289,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -95406,8 +95426,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_arc_width_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -95417,13 +95438,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -95554,8 +95575,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_base_dir_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_base_dir_t"
@@ -95565,13 +95587,13 @@
         "conversion": "enum_int",
         "python_type": "BASE_DIR | int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -95774,8 +95796,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_bg_color_filtered_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -95785,13 +95808,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -95850,8 +95873,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_bg_color_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -95861,13 +95885,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -96148,8 +96172,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_bg_grad_color_filtered_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -96159,13 +96184,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -96224,8 +96249,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_bg_grad_color_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -96235,13 +96261,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -96372,8 +96398,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_bg_grad_dir_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_grad_dir_t"
@@ -96383,13 +96410,13 @@
         "conversion": "enum_int",
         "python_type": "GRAD_DIR | int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -96448,8 +96475,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_bg_grad_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "pointer",
         "target": {
@@ -96465,13 +96493,13 @@
         "conversion": "struct_pointer",
         "python_type": "grad_dsc_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -96602,8 +96630,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_bg_grad_opa_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_opa_t"
@@ -96613,13 +96642,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -96750,8 +96779,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_bg_grad_stop_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -96761,13 +96791,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -96898,8 +96928,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_bg_image_opa_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_opa_t"
@@ -96909,13 +96940,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -97118,8 +97149,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_bg_image_recolor_filtered_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -97129,13 +97161,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -97194,8 +97226,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_bg_image_recolor_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -97205,13 +97238,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -97342,8 +97375,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_bg_image_recolor_opa_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_opa_t"
@@ -97353,13 +97387,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -97496,8 +97530,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_bg_image_src_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "pointer",
         "target": {
@@ -97513,13 +97548,13 @@
         "conversion": "opaque",
         "python_type": "Any"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -97650,8 +97685,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_bg_image_tiled_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "primitive",
         "name": "bool"
@@ -97661,13 +97697,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -97798,8 +97834,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_bg_main_opa_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_opa_t"
@@ -97809,13 +97846,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -97946,8 +97983,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_bg_main_stop_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -97957,13 +97995,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -98094,8 +98132,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_bg_opa_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_opa_t"
@@ -98105,13 +98144,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -98248,8 +98287,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_bitmap_mask_src_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "pointer",
         "target": {
@@ -98265,13 +98305,13 @@
         "conversion": "opaque",
         "python_type": "Any"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -98402,8 +98442,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_blend_mode_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_blend_mode_t"
@@ -98413,13 +98454,13 @@
         "conversion": "enum_int",
         "python_type": "BLEND_MODE | int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -98550,8 +98591,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_blur_backdrop_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "primitive",
         "name": "bool"
@@ -98561,13 +98603,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -98698,8 +98740,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_blur_quality_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_blur_quality_t"
@@ -98709,13 +98752,13 @@
         "conversion": "enum_int",
         "python_type": "BLUR_QUALITY | int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -98846,8 +98889,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_blur_radius_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -98857,13 +98901,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -99066,8 +99110,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_border_color_filtered_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -99077,13 +99122,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -99142,8 +99187,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_border_color_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -99153,13 +99199,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -99290,8 +99336,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_border_opa_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_opa_t"
@@ -99301,13 +99348,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -99438,8 +99485,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_border_post_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "primitive",
         "name": "bool"
@@ -99449,13 +99497,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -99586,8 +99634,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_border_side_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_border_side_t"
@@ -99597,13 +99646,13 @@
         "conversion": "enum_int",
         "python_type": "BORDER_SIDE | int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -99734,8 +99783,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_border_width_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -99745,13 +99795,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -99986,8 +100036,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_clip_corner_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "primitive",
         "name": "bool"
@@ -99997,13 +100048,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -100140,8 +100191,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_color_filter_dsc_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "pointer",
         "target": {
@@ -100157,13 +100209,13 @@
         "conversion": "struct_pointer",
         "python_type": "color_filter_dsc_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -100294,8 +100346,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_color_filter_opa_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_opa_t"
@@ -100305,13 +100358,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -100514,8 +100567,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_drop_shadow_color_filtered_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -100525,13 +100579,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -100590,8 +100644,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_drop_shadow_color_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -100601,13 +100656,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -100738,8 +100793,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_drop_shadow_offset_x_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -100749,13 +100805,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -100886,8 +100942,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_drop_shadow_offset_y_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -100897,13 +100954,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -101034,8 +101091,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_drop_shadow_opa_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_opa_t"
@@ -101045,13 +101103,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -101182,8 +101240,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_drop_shadow_quality_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_blur_quality_t"
@@ -101193,13 +101252,13 @@
         "conversion": "enum_int",
         "python_type": "BLUR_QUALITY | int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -101330,8 +101389,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_drop_shadow_radius_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -101341,13 +101401,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -101570,8 +101630,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_flex_cross_place_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_flex_align_t"
@@ -101581,13 +101642,13 @@
         "conversion": "enum_int",
         "python_type": "FLEX_ALIGN | int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -101718,8 +101779,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_flex_flow_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_flex_flow_t"
@@ -101729,13 +101791,13 @@
         "conversion": "enum_int",
         "python_type": "FLEX_FLOW | int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -101866,8 +101928,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_flex_grow_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "uint8_t"
@@ -101877,13 +101940,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -102014,8 +102077,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_flex_main_place_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_flex_align_t"
@@ -102025,13 +102089,13 @@
         "conversion": "enum_int",
         "python_type": "FLEX_ALIGN | int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -102162,8 +102226,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_flex_track_place_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_flex_align_t"
@@ -102173,13 +102238,13 @@
         "conversion": "enum_int",
         "python_type": "FLEX_ALIGN | int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -102310,8 +102375,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_grid_cell_column_pos_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -102321,13 +102387,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -102458,8 +102524,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_grid_cell_column_span_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -102469,13 +102536,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -102606,8 +102673,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_grid_cell_row_pos_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -102617,13 +102685,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -102754,8 +102822,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_grid_cell_row_span_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -102765,13 +102834,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -102902,8 +102971,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_grid_cell_x_align_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_grid_align_t"
@@ -102913,13 +102983,13 @@
         "conversion": "enum_int",
         "python_type": "GRID_ALIGN | int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -103050,8 +103120,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_grid_cell_y_align_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_grid_align_t"
@@ -103061,13 +103132,13 @@
         "conversion": "enum_int",
         "python_type": "GRID_ALIGN | int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -103198,8 +103269,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_grid_column_align_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_grid_align_t"
@@ -103209,13 +103281,13 @@
         "conversion": "enum_int",
         "python_type": "GRID_ALIGN | int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -103352,8 +103424,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_grid_column_dsc_array_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "pointer",
         "target": {
@@ -103369,13 +103442,13 @@
         "conversion": "typed_buffer",
         "python_type": "Any"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -103506,8 +103579,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_grid_row_align_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_grid_align_t"
@@ -103517,13 +103591,13 @@
         "conversion": "enum_int",
         "python_type": "GRID_ALIGN | int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -103660,8 +103734,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_grid_row_dsc_array_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "pointer",
         "target": {
@@ -103677,13 +103752,13 @@
         "conversion": "typed_buffer",
         "python_type": "Any"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -103814,8 +103889,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_height_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -103825,13 +103901,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -103968,8 +104044,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_image_colorkey_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "pointer",
         "target": {
@@ -103985,13 +104062,13 @@
         "conversion": "struct_pointer",
         "python_type": "image_colorkey_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -104122,8 +104199,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_image_opa_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_opa_t"
@@ -104133,13 +104211,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -104342,8 +104420,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_image_recolor_filtered_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -104353,13 +104432,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -104418,8 +104497,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_image_recolor_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -104429,13 +104509,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -104566,8 +104646,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_image_recolor_opa_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_opa_t"
@@ -104577,13 +104658,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -104714,8 +104795,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_layout_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "uint16_t"
@@ -104725,13 +104807,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -104862,8 +104944,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_length_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -104873,13 +104956,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -105082,8 +105165,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_line_color_filtered_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -105093,13 +105177,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -105158,8 +105242,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_line_color_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -105169,13 +105254,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -105306,8 +105391,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_line_dash_gap_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -105317,13 +105403,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -105454,8 +105540,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_line_dash_width_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -105465,13 +105552,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -105602,8 +105689,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_line_opa_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_opa_t"
@@ -105613,13 +105701,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -105750,8 +105838,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_line_rounded_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "primitive",
         "name": "bool"
@@ -105761,13 +105850,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -105898,8 +105987,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_line_width_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -105909,13 +105999,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -106046,8 +106136,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_margin_bottom_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -106057,13 +106148,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -106194,8 +106285,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_margin_left_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -106205,13 +106297,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -106342,8 +106434,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_margin_right_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -106353,13 +106446,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -106490,8 +106583,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_margin_top_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -106501,13 +106595,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -106638,8 +106732,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_max_height_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -106649,13 +106744,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -106786,8 +106881,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_max_width_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -106797,13 +106893,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -106934,8 +107030,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_min_height_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -106945,13 +107042,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -107082,8 +107179,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_min_width_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -107093,13 +107191,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -107230,8 +107328,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_opa_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_opa_t"
@@ -107241,13 +107340,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -107378,8 +107477,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_opa_layered_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_opa_t"
@@ -107389,13 +107489,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -107670,8 +107770,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_outline_color_filtered_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -107681,13 +107782,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -107746,8 +107847,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_outline_color_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -107757,13 +107859,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -107894,8 +107996,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_outline_opa_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_opa_t"
@@ -107905,13 +108008,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -108042,8 +108145,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_outline_pad_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -108053,13 +108157,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -108190,8 +108294,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_outline_width_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -108201,13 +108306,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -108338,8 +108443,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_pad_bottom_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -108349,13 +108455,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -108486,8 +108592,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_pad_column_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -108497,13 +108604,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -108634,8 +108741,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_pad_left_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -108645,13 +108753,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -108782,8 +108890,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_pad_radial_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -108793,13 +108902,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -108930,8 +109039,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_pad_right_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -108941,13 +109051,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -109078,8 +109188,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_pad_row_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -109089,13 +109200,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -109226,8 +109337,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_pad_top_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -109237,13 +109349,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -109406,8 +109518,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_prop_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_style_value_t"
@@ -109417,11 +109530,11 @@
         "conversion": "struct_value",
         "python_type": "style_value_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -109552,8 +109665,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_radial_offset_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -109563,13 +109677,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -109700,8 +109814,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_radius_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -109711,13 +109826,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -109848,8 +109963,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_recolor_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -109859,13 +109975,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -109996,8 +110112,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_recolor_opa_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_opa_t"
@@ -110007,13 +110124,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -110216,8 +110333,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_rotary_sensitivity_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "uint32_t"
@@ -110227,13 +110345,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -110436,8 +110554,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_shadow_color_filtered_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -110447,13 +110566,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -110512,8 +110631,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_shadow_color_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -110523,13 +110643,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -110660,8 +110780,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_shadow_offset_x_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -110671,13 +110792,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -110808,8 +110929,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_shadow_offset_y_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -110819,13 +110941,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -110956,8 +111078,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_shadow_opa_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_opa_t"
@@ -110967,13 +111090,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -111104,8 +111227,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_shadow_spread_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -111115,13 +111239,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -111252,8 +111376,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_shadow_width_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -111263,13 +111388,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -111400,8 +111525,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_space_bottom_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -111411,13 +111537,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -111548,8 +111674,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_space_left_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -111559,13 +111686,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -111696,8 +111823,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_space_right_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -111707,13 +111835,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -111844,8 +111972,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_space_top_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -111855,13 +111984,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -111992,8 +112121,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_text_align_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_text_align_t"
@@ -112003,13 +112133,13 @@
         "conversion": "enum_int",
         "python_type": "TEXT_ALIGN | int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -112212,8 +112342,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_text_color_filtered_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -112223,13 +112354,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -112288,8 +112419,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_text_color_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -112299,13 +112431,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -112436,8 +112568,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_text_decor_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_text_decor_t"
@@ -112447,13 +112580,13 @@
         "conversion": "enum_int",
         "python_type": "TEXT_DECOR | int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -112590,8 +112723,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_text_font_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "pointer",
         "target": {
@@ -112607,13 +112741,13 @@
         "conversion": "struct_pointer",
         "python_type": "font_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -112744,8 +112878,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_text_leading_trim_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_text_leading_trim_t"
@@ -112755,13 +112890,13 @@
         "conversion": "enum_int",
         "python_type": "TEXT_LEADING_TRIM | int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -112892,8 +113027,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_text_letter_space_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -112903,13 +113039,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -113040,8 +113176,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_text_line_space_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -113051,13 +113188,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -113188,8 +113325,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_text_opa_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_opa_t"
@@ -113199,13 +113337,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -113408,8 +113546,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_text_outline_stroke_color_filtered_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -113419,13 +113558,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -113484,8 +113623,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_text_outline_stroke_color_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_color_t"
@@ -113495,13 +113635,13 @@
         "conversion": "struct_value",
         "python_type": "color_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -113632,8 +113772,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_text_outline_stroke_opa_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_opa_t"
@@ -113643,13 +113784,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -113780,8 +113921,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_text_outline_stroke_width_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -113791,13 +113933,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -113928,8 +114070,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_transform_height_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -113939,13 +114082,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -114076,8 +114219,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_transform_pivot_x_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -114087,13 +114231,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -114224,8 +114368,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_transform_pivot_y_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -114235,13 +114380,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -114372,8 +114517,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_transform_rotation_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -114383,13 +114529,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -114520,8 +114666,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_transform_scale_x_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -114531,13 +114678,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -114668,8 +114815,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_transform_scale_x_safe_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -114679,13 +114827,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -114816,8 +114964,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_transform_scale_y_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -114827,13 +114976,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -114964,8 +115113,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_transform_scale_y_safe_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -114975,13 +115125,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -115112,8 +115262,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_transform_skew_x_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -115123,13 +115274,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -115260,8 +115411,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_transform_skew_y_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -115271,13 +115423,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -115408,8 +115560,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_transform_width_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -115419,13 +115572,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -115562,8 +115715,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_transition_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "pointer",
         "target": {
@@ -115579,13 +115733,13 @@
         "conversion": "struct_pointer",
         "python_type": "style_transition_dsc_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -115716,8 +115870,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_translate_radial_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -115727,13 +115882,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -115864,8 +116019,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_translate_x_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -115875,13 +116031,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -116012,8 +116168,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_translate_y_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -116023,13 +116180,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -116160,8 +116317,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_width_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -116171,13 +116329,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -116308,8 +116466,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_x_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -116319,13 +116478,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -116456,8 +116615,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_style_y_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "int32_t"
@@ -116467,13 +116627,13 @@
         "conversion": "integer",
         "python_type": "int"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -141564,8 +141724,9 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "style_apply_color_filter_internal",
-      "receiver": "obj",
+      "receiver": "obj_t",
       "return_type": {
         "kind": "identifier",
         "name": "lv_style_value_t"
@@ -141575,11 +141736,11 @@
         "conversion": "struct_value",
         "python_type": "style_value_t"
       },
-      "role": "object_method",
+      "role": "struct_method",
       "static": false,
       "storage": [],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -157958,6 +158119,7 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "get_prop_internal",
       "receiver": "style_t",
       "return_type": {
@@ -157975,7 +158137,7 @@
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -158124,6 +158286,7 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "is_const_internal",
       "receiver": "style_t",
       "return_type": {
@@ -158141,7 +158304,7 @@
         "static"
       ],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -174540,6 +174703,7 @@
           }
         }
       ],
+      "policy_reason": "LVGL-internal helper",
       "python_name": "text_get_size_internal",
       "return_type": {
         "kind": "primitive",
@@ -174554,7 +174718,7 @@
       "static": false,
       "storage": [],
       "variadic": false,
-      "visibility": "public"
+      "visibility": "private"
     },
     {
       "available_on": [
@@ -183093,7 +183257,6 @@
         "calc_dynamic_width",
         "calculate_ext_draw_size",
         "calculate_style_text_align",
-        "calculate_style_text_align_internal",
         "center",
         "check_type",
         "class_create_obj",
@@ -183149,306 +183312,158 @@
         "get_sibling_by_type",
         "get_state",
         "get_style_align",
-        "get_style_align_internal",
         "get_style_anim",
         "get_style_anim_duration",
-        "get_style_anim_duration_internal",
-        "get_style_anim_internal",
         "get_style_arc_color",
         "get_style_arc_color_filtered",
-        "get_style_arc_color_filtered_internal",
-        "get_style_arc_color_internal",
         "get_style_arc_image_src",
-        "get_style_arc_image_src_internal",
         "get_style_arc_opa",
-        "get_style_arc_opa_internal",
         "get_style_arc_rounded",
-        "get_style_arc_rounded_internal",
         "get_style_arc_width",
-        "get_style_arc_width_internal",
         "get_style_base_dir",
-        "get_style_base_dir_internal",
         "get_style_bg_color",
         "get_style_bg_color_filtered",
-        "get_style_bg_color_filtered_internal",
-        "get_style_bg_color_internal",
         "get_style_bg_grad",
         "get_style_bg_grad_color",
         "get_style_bg_grad_color_filtered",
-        "get_style_bg_grad_color_filtered_internal",
-        "get_style_bg_grad_color_internal",
         "get_style_bg_grad_dir",
-        "get_style_bg_grad_dir_internal",
-        "get_style_bg_grad_internal",
         "get_style_bg_grad_opa",
-        "get_style_bg_grad_opa_internal",
         "get_style_bg_grad_stop",
-        "get_style_bg_grad_stop_internal",
         "get_style_bg_image_opa",
-        "get_style_bg_image_opa_internal",
         "get_style_bg_image_recolor",
         "get_style_bg_image_recolor_filtered",
-        "get_style_bg_image_recolor_filtered_internal",
-        "get_style_bg_image_recolor_internal",
         "get_style_bg_image_recolor_opa",
-        "get_style_bg_image_recolor_opa_internal",
         "get_style_bg_image_src",
-        "get_style_bg_image_src_internal",
         "get_style_bg_image_tiled",
-        "get_style_bg_image_tiled_internal",
         "get_style_bg_main_opa",
-        "get_style_bg_main_opa_internal",
         "get_style_bg_main_stop",
-        "get_style_bg_main_stop_internal",
         "get_style_bg_opa",
-        "get_style_bg_opa_internal",
         "get_style_bitmap_mask_src",
-        "get_style_bitmap_mask_src_internal",
         "get_style_blend_mode",
-        "get_style_blend_mode_internal",
         "get_style_blur_backdrop",
-        "get_style_blur_backdrop_internal",
         "get_style_blur_quality",
-        "get_style_blur_quality_internal",
         "get_style_blur_radius",
-        "get_style_blur_radius_internal",
         "get_style_border_color",
         "get_style_border_color_filtered",
-        "get_style_border_color_filtered_internal",
-        "get_style_border_color_internal",
         "get_style_border_opa",
-        "get_style_border_opa_internal",
         "get_style_border_post",
-        "get_style_border_post_internal",
         "get_style_border_side",
-        "get_style_border_side_internal",
         "get_style_border_width",
-        "get_style_border_width_internal",
         "get_style_clamped_height",
         "get_style_clamped_width",
         "get_style_clip_corner",
-        "get_style_clip_corner_internal",
         "get_style_color_filter_dsc",
-        "get_style_color_filter_dsc_internal",
         "get_style_color_filter_opa",
-        "get_style_color_filter_opa_internal",
         "get_style_drop_shadow_color",
         "get_style_drop_shadow_color_filtered",
-        "get_style_drop_shadow_color_filtered_internal",
-        "get_style_drop_shadow_color_internal",
         "get_style_drop_shadow_offset_x",
-        "get_style_drop_shadow_offset_x_internal",
         "get_style_drop_shadow_offset_y",
-        "get_style_drop_shadow_offset_y_internal",
         "get_style_drop_shadow_opa",
-        "get_style_drop_shadow_opa_internal",
         "get_style_drop_shadow_quality",
-        "get_style_drop_shadow_quality_internal",
         "get_style_drop_shadow_radius",
-        "get_style_drop_shadow_radius_internal",
         "get_style_enabled",
         "get_style_flex_cross_place",
-        "get_style_flex_cross_place_internal",
         "get_style_flex_flow",
-        "get_style_flex_flow_internal",
         "get_style_flex_grow",
-        "get_style_flex_grow_internal",
         "get_style_flex_main_place",
-        "get_style_flex_main_place_internal",
         "get_style_flex_track_place",
-        "get_style_flex_track_place_internal",
         "get_style_grid_cell_column_pos",
-        "get_style_grid_cell_column_pos_internal",
         "get_style_grid_cell_column_span",
-        "get_style_grid_cell_column_span_internal",
         "get_style_grid_cell_row_pos",
-        "get_style_grid_cell_row_pos_internal",
         "get_style_grid_cell_row_span",
-        "get_style_grid_cell_row_span_internal",
         "get_style_grid_cell_x_align",
-        "get_style_grid_cell_x_align_internal",
         "get_style_grid_cell_y_align",
-        "get_style_grid_cell_y_align_internal",
         "get_style_grid_column_align",
-        "get_style_grid_column_align_internal",
         "get_style_grid_column_dsc_array",
-        "get_style_grid_column_dsc_array_internal",
         "get_style_grid_row_align",
-        "get_style_grid_row_align_internal",
         "get_style_grid_row_dsc_array",
-        "get_style_grid_row_dsc_array_internal",
         "get_style_height",
-        "get_style_height_internal",
         "get_style_image_colorkey",
-        "get_style_image_colorkey_internal",
         "get_style_image_opa",
-        "get_style_image_opa_internal",
         "get_style_image_recolor",
         "get_style_image_recolor_filtered",
-        "get_style_image_recolor_filtered_internal",
-        "get_style_image_recolor_internal",
         "get_style_image_recolor_opa",
-        "get_style_image_recolor_opa_internal",
         "get_style_layout",
-        "get_style_layout_internal",
         "get_style_length",
-        "get_style_length_internal",
         "get_style_line_color",
         "get_style_line_color_filtered",
-        "get_style_line_color_filtered_internal",
-        "get_style_line_color_internal",
         "get_style_line_dash_gap",
-        "get_style_line_dash_gap_internal",
         "get_style_line_dash_width",
-        "get_style_line_dash_width_internal",
         "get_style_line_opa",
-        "get_style_line_opa_internal",
         "get_style_line_rounded",
-        "get_style_line_rounded_internal",
         "get_style_line_width",
-        "get_style_line_width_internal",
         "get_style_margin_bottom",
-        "get_style_margin_bottom_internal",
         "get_style_margin_left",
-        "get_style_margin_left_internal",
         "get_style_margin_right",
-        "get_style_margin_right_internal",
         "get_style_margin_top",
-        "get_style_margin_top_internal",
         "get_style_max_height",
-        "get_style_max_height_internal",
         "get_style_max_width",
-        "get_style_max_width_internal",
         "get_style_min_height",
-        "get_style_min_height_internal",
         "get_style_min_width",
-        "get_style_min_width_internal",
         "get_style_opa",
-        "get_style_opa_internal",
         "get_style_opa_layered",
-        "get_style_opa_layered_internal",
         "get_style_opa_recursive",
         "get_style_outline_color",
         "get_style_outline_color_filtered",
-        "get_style_outline_color_filtered_internal",
-        "get_style_outline_color_internal",
         "get_style_outline_opa",
-        "get_style_outline_opa_internal",
         "get_style_outline_pad",
-        "get_style_outline_pad_internal",
         "get_style_outline_width",
-        "get_style_outline_width_internal",
         "get_style_pad_bottom",
-        "get_style_pad_bottom_internal",
         "get_style_pad_column",
-        "get_style_pad_column_internal",
         "get_style_pad_left",
-        "get_style_pad_left_internal",
         "get_style_pad_radial",
-        "get_style_pad_radial_internal",
         "get_style_pad_right",
-        "get_style_pad_right_internal",
         "get_style_pad_row",
-        "get_style_pad_row_internal",
         "get_style_pad_top",
-        "get_style_pad_top_internal",
         "get_style_prop",
-        "get_style_prop_internal",
         "get_style_radial_offset",
-        "get_style_radial_offset_internal",
         "get_style_radius",
-        "get_style_radius_internal",
         "get_style_recolor",
-        "get_style_recolor_internal",
         "get_style_recolor_opa",
-        "get_style_recolor_opa_internal",
         "get_style_recolor_recursive",
         "get_style_rotary_sensitivity",
-        "get_style_rotary_sensitivity_internal",
         "get_style_shadow_color",
         "get_style_shadow_color_filtered",
-        "get_style_shadow_color_filtered_internal",
-        "get_style_shadow_color_internal",
         "get_style_shadow_offset_x",
-        "get_style_shadow_offset_x_internal",
         "get_style_shadow_offset_y",
-        "get_style_shadow_offset_y_internal",
         "get_style_shadow_opa",
-        "get_style_shadow_opa_internal",
         "get_style_shadow_spread",
-        "get_style_shadow_spread_internal",
         "get_style_shadow_width",
-        "get_style_shadow_width_internal",
         "get_style_space_bottom",
-        "get_style_space_bottom_internal",
         "get_style_space_left",
-        "get_style_space_left_internal",
         "get_style_space_right",
-        "get_style_space_right_internal",
         "get_style_space_top",
-        "get_style_space_top_internal",
         "get_style_text_align",
-        "get_style_text_align_internal",
         "get_style_text_color",
         "get_style_text_color_filtered",
-        "get_style_text_color_filtered_internal",
-        "get_style_text_color_internal",
         "get_style_text_decor",
-        "get_style_text_decor_internal",
         "get_style_text_font",
-        "get_style_text_font_internal",
         "get_style_text_leading_trim",
-        "get_style_text_leading_trim_internal",
         "get_style_text_letter_space",
-        "get_style_text_letter_space_internal",
         "get_style_text_line_space",
-        "get_style_text_line_space_internal",
         "get_style_text_opa",
-        "get_style_text_opa_internal",
         "get_style_text_outline_stroke_color",
         "get_style_text_outline_stroke_color_filtered",
-        "get_style_text_outline_stroke_color_filtered_internal",
-        "get_style_text_outline_stroke_color_internal",
         "get_style_text_outline_stroke_opa",
-        "get_style_text_outline_stroke_opa_internal",
         "get_style_text_outline_stroke_width",
-        "get_style_text_outline_stroke_width_internal",
         "get_style_transform_height",
-        "get_style_transform_height_internal",
         "get_style_transform_pivot_x",
-        "get_style_transform_pivot_x_internal",
         "get_style_transform_pivot_y",
-        "get_style_transform_pivot_y_internal",
         "get_style_transform_rotation",
-        "get_style_transform_rotation_internal",
         "get_style_transform_scale_x",
-        "get_style_transform_scale_x_internal",
         "get_style_transform_scale_x_safe",
-        "get_style_transform_scale_x_safe_internal",
         "get_style_transform_scale_y",
-        "get_style_transform_scale_y_internal",
         "get_style_transform_scale_y_safe",
-        "get_style_transform_scale_y_safe_internal",
         "get_style_transform_skew_x",
-        "get_style_transform_skew_x_internal",
         "get_style_transform_skew_y",
-        "get_style_transform_skew_y_internal",
         "get_style_transform_width",
-        "get_style_transform_width_internal",
         "get_style_transition",
-        "get_style_transition_internal",
         "get_style_translate_radial",
-        "get_style_translate_radial_internal",
         "get_style_translate_x",
-        "get_style_translate_x_internal",
         "get_style_translate_y",
-        "get_style_translate_y_internal",
         "get_style_width",
-        "get_style_width_internal",
         "get_style_x",
-        "get_style_x_internal",
         "get_style_y",
-        "get_style_y_internal",
         "get_transform",
         "get_transformed_area",
         "get_user_data",
@@ -183778,7 +183793,6 @@
         "set_y",
         "stop_scroll_anim",
         "style_apply_color_filter",
-        "style_apply_color_filter_internal",
         "style_apply_recolor",
         "style_create_transition",
         "style_deinit",

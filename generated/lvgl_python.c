@@ -6404,30 +6404,29 @@ static PyMethodDef py_lv_obj_move_background_def = {
 
 /*
  * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_width_internal(const lv_obj_t *obj, lv_part_t part)
+ * void lv_obj_set_flex_flow(lv_obj_t *obj, lv_flex_flow_t flow)
  */
-static PyObject *py_lv_obj_get_style_width_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+static PyObject *py_lv_obj_set_flex_flow(PyObject *self, PyObject *py_args, PyObject *py_kwds)
 {
     PyGILState_STATE gstate = PyGILState_Ensure();
     (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
+    PyObject *flow_py;
+    if (!PyArg_ParseTuple(py_args, "O", &flow_py)) { PyGILState_Release(gstate); return NULL; }
     lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
+    lv_flex_flow_t flow = (int)mp_obj_get_int(flow_py);
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
-    int32_t _res;
     lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_width_internal)(obj, part);
+    ((void (*)(lv_obj_t *, lv_flex_flow_t))lv_obj_set_flex_flow)(obj, flow);
     lvpy_unlock();
     
     PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
+    Py_RETURN_NONE;
 }
 
-static PyMethodDef py_lv_obj_get_style_width_internal_def = {
-    "lv_obj_get_style_width_internal",
-    (PyCFunction)py_lv_obj_get_style_width_internal,
+static PyMethodDef py_lv_obj_set_flex_flow_def = {
+    "lv_obj_set_flex_flow",
+    (PyCFunction)py_lv_obj_set_flex_flow,
     METH_VARARGS | METH_KEYWORDS,
     NULL
 };
@@ -6435,30 +6434,31 @@ static PyMethodDef py_lv_obj_get_style_width_internal_def = {
 
 /*
  * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_min_width_internal(const lv_obj_t *obj, lv_part_t part)
+ * void lv_obj_set_flex_align(lv_obj_t *obj, lv_flex_align_t main_place, lv_flex_align_t cross_place, lv_flex_align_t track_cross_place)
  */
-static PyObject *py_lv_obj_get_style_min_width_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+static PyObject *py_lv_obj_set_flex_align(PyObject *self, PyObject *py_args, PyObject *py_kwds)
 {
     PyGILState_STATE gstate = PyGILState_Ensure();
     (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
+    PyObject *main_place_py; PyObject *cross_place_py; PyObject *track_cross_place_py;
+    if (!PyArg_ParseTuple(py_args, "OOO", &main_place_py, &cross_place_py, &track_cross_place_py)) { PyGILState_Release(gstate); return NULL; }
     lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
+    lv_flex_align_t main_place = (int)mp_obj_get_int(main_place_py);
+    lv_flex_align_t cross_place = (int)mp_obj_get_int(cross_place_py);
+    lv_flex_align_t track_cross_place = (int)mp_obj_get_int(track_cross_place_py);
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
-    int32_t _res;
     lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_min_width_internal)(obj, part);
+    ((void (*)(lv_obj_t *, lv_flex_align_t, lv_flex_align_t, lv_flex_align_t))lv_obj_set_flex_align)(obj, main_place, cross_place, track_cross_place);
     lvpy_unlock();
     
     PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
+    Py_RETURN_NONE;
 }
 
-static PyMethodDef py_lv_obj_get_style_min_width_internal_def = {
-    "lv_obj_get_style_min_width_internal",
-    (PyCFunction)py_lv_obj_get_style_min_width_internal,
+static PyMethodDef py_lv_obj_set_flex_align_def = {
+    "lv_obj_set_flex_align",
+    (PyCFunction)py_lv_obj_set_flex_align,
     METH_VARARGS | METH_KEYWORDS,
     NULL
 };
@@ -6466,30 +6466,29 @@ static PyMethodDef py_lv_obj_get_style_min_width_internal_def = {
 
 /*
  * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_max_width_internal(const lv_obj_t *obj, lv_part_t part)
+ * void lv_obj_set_flex_grow(lv_obj_t *obj, uint8_t grow)
  */
-static PyObject *py_lv_obj_get_style_max_width_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+static PyObject *py_lv_obj_set_flex_grow(PyObject *self, PyObject *py_args, PyObject *py_kwds)
 {
     PyGILState_STATE gstate = PyGILState_Ensure();
     (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
+    long grow_val;
+    if (!PyArg_ParseTuple(py_args, "l", &grow_val)) { PyGILState_Release(gstate); return NULL; }
     lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
+    uint8_t grow = (uint8_t)grow_val;
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
-    int32_t _res;
     lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_max_width_internal)(obj, part);
+    ((void (*)(lv_obj_t *, uint8_t))lv_obj_set_flex_grow)(obj, grow);
     lvpy_unlock();
     
     PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
+    Py_RETURN_NONE;
 }
 
-static PyMethodDef py_lv_obj_get_style_max_width_internal_def = {
-    "lv_obj_get_style_max_width_internal",
-    (PyCFunction)py_lv_obj_get_style_max_width_internal,
+static PyMethodDef py_lv_obj_set_flex_grow_def = {
+    "lv_obj_set_flex_grow",
+    (PyCFunction)py_lv_obj_set_flex_grow,
     METH_VARARGS | METH_KEYWORDS,
     NULL
 };
@@ -6497,30 +6496,30 @@ static PyMethodDef py_lv_obj_get_style_max_width_internal_def = {
 
 /*
  * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_height_internal(const lv_obj_t *obj, lv_part_t part)
+ * void lv_obj_set_grid_dsc_array(lv_obj_t *obj, const int32_t col_dsc[], const int32_t row_dsc[])
  */
-static PyObject *py_lv_obj_get_style_height_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+static PyObject *py_lv_obj_set_grid_dsc_array(PyObject *self, PyObject *py_args, PyObject *py_kwds)
 {
     PyGILState_STATE gstate = PyGILState_Ensure();
     (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
+    PyObject *col_dsc_py; PyObject *row_dsc_py;
+    if (!PyArg_ParseTuple(py_args, "OO", &col_dsc_py, &row_dsc_py)) { PyGILState_Release(gstate); return NULL; }
     lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
+    const int32_t *col_dsc = (const int32_t *)mp_to_ptr(col_dsc_py);
+    const int32_t *row_dsc = (const int32_t *)mp_to_ptr(row_dsc_py);
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
-    int32_t _res;
     lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_height_internal)(obj, part);
+    ((void (*)(lv_obj_t *, const int32_t [], const int32_t []))lv_obj_set_grid_dsc_array)(obj, col_dsc, row_dsc);
     lvpy_unlock();
     
     PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
+    Py_RETURN_NONE;
 }
 
-static PyMethodDef py_lv_obj_get_style_height_internal_def = {
-    "lv_obj_get_style_height_internal",
-    (PyCFunction)py_lv_obj_get_style_height_internal,
+static PyMethodDef py_lv_obj_set_grid_dsc_array_def = {
+    "lv_obj_set_grid_dsc_array",
+    (PyCFunction)py_lv_obj_set_grid_dsc_array,
     METH_VARARGS | METH_KEYWORDS,
     NULL
 };
@@ -6528,30 +6527,30 @@ static PyMethodDef py_lv_obj_get_style_height_internal_def = {
 
 /*
  * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_min_height_internal(const lv_obj_t *obj, lv_part_t part)
+ * void lv_obj_set_grid_align(lv_obj_t *obj, lv_grid_align_t column_align, lv_grid_align_t row_align)
  */
-static PyObject *py_lv_obj_get_style_min_height_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+static PyObject *py_lv_obj_set_grid_align(PyObject *self, PyObject *py_args, PyObject *py_kwds)
 {
     PyGILState_STATE gstate = PyGILState_Ensure();
     (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
+    PyObject *column_align_py; PyObject *row_align_py;
+    if (!PyArg_ParseTuple(py_args, "OO", &column_align_py, &row_align_py)) { PyGILState_Release(gstate); return NULL; }
     lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
+    lv_grid_align_t column_align = (int)mp_obj_get_int(column_align_py);
+    lv_grid_align_t row_align = (int)mp_obj_get_int(row_align_py);
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
-    int32_t _res;
     lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_min_height_internal)(obj, part);
+    ((void (*)(lv_obj_t *, lv_grid_align_t, lv_grid_align_t))lv_obj_set_grid_align)(obj, column_align, row_align);
     lvpy_unlock();
     
     PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
+    Py_RETURN_NONE;
 }
 
-static PyMethodDef py_lv_obj_get_style_min_height_internal_def = {
-    "lv_obj_get_style_min_height_internal",
-    (PyCFunction)py_lv_obj_get_style_min_height_internal,
+static PyMethodDef py_lv_obj_set_grid_align_def = {
+    "lv_obj_set_grid_align",
+    (PyCFunction)py_lv_obj_set_grid_align,
     METH_VARARGS | METH_KEYWORDS,
     NULL
 };
@@ -6559,30 +6558,34 @@ static PyMethodDef py_lv_obj_get_style_min_height_internal_def = {
 
 /*
  * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_max_height_internal(const lv_obj_t *obj, lv_part_t part)
+ * void lv_obj_set_grid_cell(lv_obj_t *obj, lv_grid_align_t column_align, int32_t col_pos, int32_t col_span, lv_grid_align_t row_align, int32_t row_pos, int32_t row_span)
  */
-static PyObject *py_lv_obj_get_style_max_height_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+static PyObject *py_lv_obj_set_grid_cell(PyObject *self, PyObject *py_args, PyObject *py_kwds)
 {
     PyGILState_STATE gstate = PyGILState_Ensure();
     (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
+    PyObject *column_align_py; long col_pos_val; long col_span_val; PyObject *row_align_py; long row_pos_val; long row_span_val;
+    if (!PyArg_ParseTuple(py_args, "OllOll", &column_align_py, &col_pos_val, &col_span_val, &row_align_py, &row_pos_val, &row_span_val)) { PyGILState_Release(gstate); return NULL; }
     lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
+    lv_grid_align_t column_align = (int)mp_obj_get_int(column_align_py);
+    int32_t col_pos = (int32_t)col_pos_val;
+    int32_t col_span = (int32_t)col_span_val;
+    lv_grid_align_t row_align = (int)mp_obj_get_int(row_align_py);
+    int32_t row_pos = (int32_t)row_pos_val;
+    int32_t row_span = (int32_t)row_span_val;
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
-    int32_t _res;
     lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_max_height_internal)(obj, part);
+    ((void (*)(lv_obj_t *, lv_grid_align_t, int32_t, int32_t, lv_grid_align_t, int32_t, int32_t))lv_obj_set_grid_cell)(obj, column_align, col_pos, col_span, row_align, row_pos, row_span);
     lvpy_unlock();
     
     PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
+    Py_RETURN_NONE;
 }
 
-static PyMethodDef py_lv_obj_get_style_max_height_internal_def = {
-    "lv_obj_get_style_max_height_internal",
-    (PyCFunction)py_lv_obj_get_style_max_height_internal,
+static PyMethodDef py_lv_obj_set_grid_cell_def = {
+    "lv_obj_set_grid_cell",
+    (PyCFunction)py_lv_obj_set_grid_cell,
     METH_VARARGS | METH_KEYWORDS,
     NULL
 };
@@ -6590,4917 +6593,27 @@ static PyMethodDef py_lv_obj_get_style_max_height_internal_def = {
 
 /*
  * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_length_internal(const lv_obj_t *obj, lv_part_t part)
+ * void lv_obj_delete(lv_obj_t *obj)
  */
-static PyObject *py_lv_obj_get_style_length_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+static PyObject *py_lv_obj_delete(PyObject *self, PyObject *py_args, PyObject *py_kwds)
 {
     PyGILState_STATE gstate = PyGILState_Ensure();
     (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_length_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_length_internal_def = {
-    "lv_obj_get_style_length_internal",
-    (PyCFunction)py_lv_obj_get_style_length_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_x_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_x_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_x_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_x_internal_def = {
-    "lv_obj_get_style_x_internal",
-    (PyCFunction)py_lv_obj_get_style_x_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_y_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_y_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_y_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_y_internal_def = {
-    "lv_obj_get_style_y_internal",
-    (PyCFunction)py_lv_obj_get_style_y_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_align_t lv_obj_get_style_align_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_align_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_align_t _res;
-    lvpy_lock();
-    _res = ((lv_align_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_align_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_align_internal_def = {
-    "lv_obj_get_style_align_internal",
-    (PyCFunction)py_lv_obj_get_style_align_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_transform_width_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_transform_width_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_transform_width_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_transform_width_internal_def = {
-    "lv_obj_get_style_transform_width_internal",
-    (PyCFunction)py_lv_obj_get_style_transform_width_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_transform_height_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_transform_height_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_transform_height_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_transform_height_internal_def = {
-    "lv_obj_get_style_transform_height_internal",
-    (PyCFunction)py_lv_obj_get_style_transform_height_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_translate_x_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_translate_x_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_translate_x_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_translate_x_internal_def = {
-    "lv_obj_get_style_translate_x_internal",
-    (PyCFunction)py_lv_obj_get_style_translate_x_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_translate_y_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_translate_y_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_translate_y_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_translate_y_internal_def = {
-    "lv_obj_get_style_translate_y_internal",
-    (PyCFunction)py_lv_obj_get_style_translate_y_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_translate_radial_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_translate_radial_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_translate_radial_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_translate_radial_internal_def = {
-    "lv_obj_get_style_translate_radial_internal",
-    (PyCFunction)py_lv_obj_get_style_translate_radial_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_transform_scale_x_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_transform_scale_x_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_transform_scale_x_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_transform_scale_x_internal_def = {
-    "lv_obj_get_style_transform_scale_x_internal",
-    (PyCFunction)py_lv_obj_get_style_transform_scale_x_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_transform_scale_y_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_transform_scale_y_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_transform_scale_y_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_transform_scale_y_internal_def = {
-    "lv_obj_get_style_transform_scale_y_internal",
-    (PyCFunction)py_lv_obj_get_style_transform_scale_y_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_transform_rotation_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_transform_rotation_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_transform_rotation_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_transform_rotation_internal_def = {
-    "lv_obj_get_style_transform_rotation_internal",
-    (PyCFunction)py_lv_obj_get_style_transform_rotation_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_transform_pivot_x_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_transform_pivot_x_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_transform_pivot_x_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_transform_pivot_x_internal_def = {
-    "lv_obj_get_style_transform_pivot_x_internal",
-    (PyCFunction)py_lv_obj_get_style_transform_pivot_x_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_transform_pivot_y_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_transform_pivot_y_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_transform_pivot_y_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_transform_pivot_y_internal_def = {
-    "lv_obj_get_style_transform_pivot_y_internal",
-    (PyCFunction)py_lv_obj_get_style_transform_pivot_y_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_transform_skew_x_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_transform_skew_x_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_transform_skew_x_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_transform_skew_x_internal_def = {
-    "lv_obj_get_style_transform_skew_x_internal",
-    (PyCFunction)py_lv_obj_get_style_transform_skew_x_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_transform_skew_y_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_transform_skew_y_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_transform_skew_y_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_transform_skew_y_internal_def = {
-    "lv_obj_get_style_transform_skew_y_internal",
-    (PyCFunction)py_lv_obj_get_style_transform_skew_y_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_pad_top_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_pad_top_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_pad_top_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_pad_top_internal_def = {
-    "lv_obj_get_style_pad_top_internal",
-    (PyCFunction)py_lv_obj_get_style_pad_top_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_pad_bottom_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_pad_bottom_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_pad_bottom_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_pad_bottom_internal_def = {
-    "lv_obj_get_style_pad_bottom_internal",
-    (PyCFunction)py_lv_obj_get_style_pad_bottom_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_pad_left_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_pad_left_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_pad_left_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_pad_left_internal_def = {
-    "lv_obj_get_style_pad_left_internal",
-    (PyCFunction)py_lv_obj_get_style_pad_left_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_pad_right_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_pad_right_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_pad_right_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_pad_right_internal_def = {
-    "lv_obj_get_style_pad_right_internal",
-    (PyCFunction)py_lv_obj_get_style_pad_right_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_pad_row_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_pad_row_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_pad_row_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_pad_row_internal_def = {
-    "lv_obj_get_style_pad_row_internal",
-    (PyCFunction)py_lv_obj_get_style_pad_row_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_pad_column_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_pad_column_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_pad_column_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_pad_column_internal_def = {
-    "lv_obj_get_style_pad_column_internal",
-    (PyCFunction)py_lv_obj_get_style_pad_column_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_pad_radial_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_pad_radial_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_pad_radial_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_pad_radial_internal_def = {
-    "lv_obj_get_style_pad_radial_internal",
-    (PyCFunction)py_lv_obj_get_style_pad_radial_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_margin_top_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_margin_top_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_margin_top_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_margin_top_internal_def = {
-    "lv_obj_get_style_margin_top_internal",
-    (PyCFunction)py_lv_obj_get_style_margin_top_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_margin_bottom_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_margin_bottom_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_margin_bottom_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_margin_bottom_internal_def = {
-    "lv_obj_get_style_margin_bottom_internal",
-    (PyCFunction)py_lv_obj_get_style_margin_bottom_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_margin_left_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_margin_left_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_margin_left_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_margin_left_internal_def = {
-    "lv_obj_get_style_margin_left_internal",
-    (PyCFunction)py_lv_obj_get_style_margin_left_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_margin_right_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_margin_right_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_margin_right_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_margin_right_internal_def = {
-    "lv_obj_get_style_margin_right_internal",
-    (PyCFunction)py_lv_obj_get_style_margin_right_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * Struct lv_color_t (CPython)
- */
-
-extern PyMethodDef py_lv_color_t_methods[];
-
-static PyObject *py_lv_color_t_getattro(PyObject *self, PyObject *name)
-{
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_color_t *data = (lv_color_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return NULL;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return NULL;
-    if (strcmp(attr, "blue") == 0) return mp_obj_new_int_from_uint(data->blue);
-    if (strcmp(attr, "green") == 0) return mp_obj_new_int_from_uint(data->green);
-    if (strcmp(attr, "red") == 0) return mp_obj_new_int_from_uint(data->red);
-    for (PyMethodDef *m = py_lv_color_t_methods; m->ml_name != NULL; m++) {
-        if (strcmp(attr, m->ml_name) == 0)
-            return PyCFunction_NewEx(m, self, NULL);
-    }
-    return PyObject_GenericGetAttr((PyObject *)self, name);
-}
-
-static const char *const py_lv_color_t_field_names[] = {"blue", "green", "red", NULL};
-
-static PyObject *py_lv_color_t_dir(PyObject *self, PyObject *unused)
-{
-    (void)unused;
-    return lvpy_struct_dir(self, py_lv_color_t_field_names, py_lv_color_t_methods);
-}
-
-static PyMethodDef py_lv_color_t_type_methods[] = {
-    {"__dir__", py_lv_color_t_dir, METH_NOARGS, NULL},
-    {NULL}
-};
-
-static int py_lv_color_t_setattro(PyObject *self, PyObject *name, PyObject *value)
-{
-    if (value == NULL) {
-        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
-        return -1;
-    }
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_color_t *data = (lv_color_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return -1;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return -1;
-    int result = -1;
-    lv_color_t saved;
-    memcpy(&saved, data, sizeof(saved));
-    if (strcmp(attr, "blue") == 0) { data->blue = (uint8_t)mp_obj_get_int(value); result = 0; }
-    if (strcmp(attr, "green") == 0) { data->green = (uint8_t)mp_obj_get_int(value); result = 0; }
-    if (strcmp(attr, "red") == 0) { data->red = (uint8_t)mp_obj_get_int(value); result = 0; }
-    if (PyErr_Occurred()) {
-        memcpy(data, &saved, sizeof(saved));
-        return -1;
-    }
-    if (result < 0) {
-        PyErr_Format(PyExc_AttributeError, "'lv_color_t' object has no attribute '%s'", attr);
-    }
-    return result;
-}
-
-static PyObject *py_lv_color_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-    return make_new_lv_struct(type, args, kwds, sizeof(lv_color_t));
-}
-
-static void py_lv_color_t_dealloc(py_lv_struct_t *self)
-{
-    py_lv_struct_dealloc(self);
-}
-
-PyTypeObject py_lv_color_t_type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "lvgl.lv_color_t",
-    .tp_basicsize = sizeof(py_lv_struct_t),
-    .tp_dealloc = (destructor)py_lv_color_t_dealloc,
-    .tp_getattro = (getter)py_lv_color_t_getattro,
-    .tp_setattro = (setter)py_lv_color_t_setattro,
-    .tp_new = py_lv_color_t_new,
-    .tp_methods = py_lv_color_t_type_methods,
-    .tp_base = &py_lv_base_struct_type,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-};
-
-static inline void* mp_write_ptr_lv_color_t(PyObject *self_in)
-{
-    if (!self_in || self_in == Py_None) return NULL;
-    if (!PyObject_TypeCheck(self_in, &py_lv_color_t_type)) {
-        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_color_t, got '%s'", Py_TYPE(self_in)->tp_name);
-        return NULL;
-    }
-    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
-    return (lv_color_t*)self->data;
-}
-
-static lv_color_t mp_write_scratch_lv_color_t;
-
-static inline void* mp_write_value_ptr_lv_color_t(PyObject *value)
-{
-    if (value != NULL && PyDict_Check(value)) {
-        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_color_t_type, value);
-        if (tmp != NULL) {
-            memcpy(&mp_write_scratch_lv_color_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_color_t));
-            Py_DECREF(tmp);
-            return &mp_write_scratch_lv_color_t;
-        }
-    } else if (value != NULL && value != Py_None) {
-        void *p = mp_write_ptr_lv_color_t(value);
-        if (p != NULL) return p;
-    } else {
-        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_color_t or dict, got None");
-    }
-    memset(&mp_write_scratch_lv_color_t, 0, sizeof(lv_color_t));
-    return &mp_write_scratch_lv_color_t;
-}
-
-#define mp_write_lv_color_t(struct_obj) (*((lv_color_t*)mp_write_value_ptr_lv_color_t(struct_obj)))
-
-static inline PyObject *mp_read_ptr_lv_color_t(void *field)
-{
-    return lv_to_mp_struct(&py_lv_color_t_type, field);
-}
-
-#define mp_read_lv_color_t(field) lv_to_mp_struct_own(&py_lv_color_t_type, copy_buffer(&field, sizeof(lv_color_t)))
-#define mp_read_byref_lv_color_t(field) mp_read_ptr_lv_color_t(&field)
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_bg_color_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_bg_color_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_bg_color_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_bg_color_internal_def = {
-    "lv_obj_get_style_bg_color_internal",
-    (PyCFunction)py_lv_obj_get_style_bg_color_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_bg_color_filtered_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_bg_color_filtered_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_bg_color_filtered_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_bg_color_filtered_internal_def = {
-    "lv_obj_get_style_bg_color_filtered_internal",
-    (PyCFunction)py_lv_obj_get_style_bg_color_filtered_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_opa_t lv_obj_get_style_bg_opa_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_bg_opa_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_opa_t _res;
-    lvpy_lock();
-    _res = ((lv_opa_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_bg_opa_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_bg_opa_internal_def = {
-    "lv_obj_get_style_bg_opa_internal",
-    (PyCFunction)py_lv_obj_get_style_bg_opa_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_bg_grad_color_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_bg_grad_color_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_bg_grad_color_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_bg_grad_color_internal_def = {
-    "lv_obj_get_style_bg_grad_color_internal",
-    (PyCFunction)py_lv_obj_get_style_bg_grad_color_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_bg_grad_color_filtered_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_bg_grad_color_filtered_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_bg_grad_color_filtered_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_bg_grad_color_filtered_internal_def = {
-    "lv_obj_get_style_bg_grad_color_filtered_internal",
-    (PyCFunction)py_lv_obj_get_style_bg_grad_color_filtered_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_grad_dir_t lv_obj_get_style_bg_grad_dir_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_bg_grad_dir_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_grad_dir_t _res;
-    lvpy_lock();
-    _res = ((lv_grad_dir_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_bg_grad_dir_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_bg_grad_dir_internal_def = {
-    "lv_obj_get_style_bg_grad_dir_internal",
-    (PyCFunction)py_lv_obj_get_style_bg_grad_dir_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_bg_main_stop_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_bg_main_stop_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_bg_main_stop_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_bg_main_stop_internal_def = {
-    "lv_obj_get_style_bg_main_stop_internal",
-    (PyCFunction)py_lv_obj_get_style_bg_main_stop_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_bg_grad_stop_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_bg_grad_stop_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_bg_grad_stop_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_bg_grad_stop_internal_def = {
-    "lv_obj_get_style_bg_grad_stop_internal",
-    (PyCFunction)py_lv_obj_get_style_bg_grad_stop_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_opa_t lv_obj_get_style_bg_main_opa_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_bg_main_opa_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_opa_t _res;
-    lvpy_lock();
-    _res = ((lv_opa_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_bg_main_opa_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_bg_main_opa_internal_def = {
-    "lv_obj_get_style_bg_main_opa_internal",
-    (PyCFunction)py_lv_obj_get_style_bg_main_opa_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_opa_t lv_obj_get_style_bg_grad_opa_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_bg_grad_opa_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_opa_t _res;
-    lvpy_lock();
-    _res = ((lv_opa_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_bg_grad_opa_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_bg_grad_opa_internal_def = {
-    "lv_obj_get_style_bg_grad_opa_internal",
-    (PyCFunction)py_lv_obj_get_style_bg_grad_opa_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * Struct lv_grad_stop_t (CPython)
- */
-
-extern PyMethodDef py_lv_grad_stop_t_methods[];
-
-static PyObject *py_lv_grad_stop_t_getattro(PyObject *self, PyObject *name)
-{
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_grad_stop_t *data = (lv_grad_stop_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return NULL;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return NULL;
-    if (strcmp(attr, "color") == 0) return mp_read_byref_lv_color_t(data->color);
-    if (strcmp(attr, "opa") == 0) return mp_obj_new_int_from_uint(data->opa);
-    if (strcmp(attr, "frac") == 0) return mp_obj_new_int_from_uint(data->frac);
-    for (PyMethodDef *m = py_lv_grad_stop_t_methods; m->ml_name != NULL; m++) {
-        if (strcmp(attr, m->ml_name) == 0)
-            return PyCFunction_NewEx(m, self, NULL);
-    }
-    return PyObject_GenericGetAttr((PyObject *)self, name);
-}
-
-static const char *const py_lv_grad_stop_t_field_names[] = {"color", "opa", "frac", NULL};
-
-static PyObject *py_lv_grad_stop_t_dir(PyObject *self, PyObject *unused)
-{
-    (void)unused;
-    return lvpy_struct_dir(self, py_lv_grad_stop_t_field_names, py_lv_grad_stop_t_methods);
-}
-
-static PyMethodDef py_lv_grad_stop_t_type_methods[] = {
-    {"__dir__", py_lv_grad_stop_t_dir, METH_NOARGS, NULL},
-    {NULL}
-};
-
-static int py_lv_grad_stop_t_setattro(PyObject *self, PyObject *name, PyObject *value)
-{
-    if (value == NULL) {
-        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
-        return -1;
-    }
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_grad_stop_t *data = (lv_grad_stop_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return -1;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return -1;
-    int result = -1;
-    lv_grad_stop_t saved;
-    memcpy(&saved, data, sizeof(saved));
-    if (strcmp(attr, "color") == 0) { data->color = mp_write_lv_color_t(value); result = 0; }
-    if (strcmp(attr, "opa") == 0) { data->opa = (uint8_t)mp_obj_get_int(value); result = 0; }
-    if (strcmp(attr, "frac") == 0) { data->frac = (uint8_t)mp_obj_get_int(value); result = 0; }
-    if (PyErr_Occurred()) {
-        memcpy(data, &saved, sizeof(saved));
-        return -1;
-    }
-    if (result < 0) {
-        PyErr_Format(PyExc_AttributeError, "'lv_grad_stop_t' object has no attribute '%s'", attr);
-    }
-    return result;
-}
-
-static PyObject *py_lv_grad_stop_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-    return make_new_lv_struct(type, args, kwds, sizeof(lv_grad_stop_t));
-}
-
-static void py_lv_grad_stop_t_dealloc(py_lv_struct_t *self)
-{
-    py_lv_struct_dealloc(self);
-}
-
-PyTypeObject py_lv_grad_stop_t_type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "lvgl.lv_grad_stop_t",
-    .tp_basicsize = sizeof(py_lv_struct_t),
-    .tp_dealloc = (destructor)py_lv_grad_stop_t_dealloc,
-    .tp_getattro = (getter)py_lv_grad_stop_t_getattro,
-    .tp_setattro = (setter)py_lv_grad_stop_t_setattro,
-    .tp_new = py_lv_grad_stop_t_new,
-    .tp_methods = py_lv_grad_stop_t_type_methods,
-    .tp_base = &py_lv_base_struct_type,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-};
-
-static inline void* mp_write_ptr_lv_grad_stop_t(PyObject *self_in)
-{
-    if (!self_in || self_in == Py_None) return NULL;
-    if (!PyObject_TypeCheck(self_in, &py_lv_grad_stop_t_type)) {
-        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_grad_stop_t, got '%s'", Py_TYPE(self_in)->tp_name);
-        return NULL;
-    }
-    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
-    return (lv_grad_stop_t*)self->data;
-}
-
-static lv_grad_stop_t mp_write_scratch_lv_grad_stop_t;
-
-static inline void* mp_write_value_ptr_lv_grad_stop_t(PyObject *value)
-{
-    if (value != NULL && PyDict_Check(value)) {
-        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_grad_stop_t_type, value);
-        if (tmp != NULL) {
-            memcpy(&mp_write_scratch_lv_grad_stop_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_grad_stop_t));
-            Py_DECREF(tmp);
-            return &mp_write_scratch_lv_grad_stop_t;
-        }
-    } else if (value != NULL && value != Py_None) {
-        void *p = mp_write_ptr_lv_grad_stop_t(value);
-        if (p != NULL) return p;
-    } else {
-        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_grad_stop_t or dict, got None");
-    }
-    memset(&mp_write_scratch_lv_grad_stop_t, 0, sizeof(lv_grad_stop_t));
-    return &mp_write_scratch_lv_grad_stop_t;
-}
-
-#define mp_write_lv_grad_stop_t(struct_obj) (*((lv_grad_stop_t*)mp_write_value_ptr_lv_grad_stop_t(struct_obj)))
-
-static inline PyObject *mp_read_ptr_lv_grad_stop_t(void *field)
-{
-    return lv_to_mp_struct(&py_lv_grad_stop_t_type, field);
-}
-
-#define mp_read_lv_grad_stop_t(field) lv_to_mp_struct_own(&py_lv_grad_stop_t_type, copy_buffer(&field, sizeof(lv_grad_stop_t)))
-#define mp_read_byref_lv_grad_stop_t(field) mp_read_ptr_lv_grad_stop_t(&field)
-
-typedef __typeof__( ((lv_grad_dsc_t*)(0))->params ) lv_grad_dsc_params_t;
-typedef __typeof__( ((lv_grad_dsc_params_t*)(0))->linear ) lv_grad_dsc_params_linear_t;
-
-/*
- * Struct lv_point_t (CPython)
- */
-
-extern PyMethodDef py_lv_point_t_methods[];
-
-static PyObject *py_lv_point_t_getattro(PyObject *self, PyObject *name)
-{
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_point_t *data = (lv_point_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return NULL;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return NULL;
-    if (strcmp(attr, "x") == 0) return mp_obj_new_int(data->x);
-    if (strcmp(attr, "y") == 0) return mp_obj_new_int(data->y);
-    for (PyMethodDef *m = py_lv_point_t_methods; m->ml_name != NULL; m++) {
-        if (strcmp(attr, m->ml_name) == 0)
-            return PyCFunction_NewEx(m, self, NULL);
-    }
-    return PyObject_GenericGetAttr((PyObject *)self, name);
-}
-
-static const char *const py_lv_point_t_field_names[] = {"x", "y", NULL};
-
-static PyObject *py_lv_point_t_dir(PyObject *self, PyObject *unused)
-{
-    (void)unused;
-    return lvpy_struct_dir(self, py_lv_point_t_field_names, py_lv_point_t_methods);
-}
-
-static PyMethodDef py_lv_point_t_type_methods[] = {
-    {"__dir__", py_lv_point_t_dir, METH_NOARGS, NULL},
-    {NULL}
-};
-
-static int py_lv_point_t_setattro(PyObject *self, PyObject *name, PyObject *value)
-{
-    if (value == NULL) {
-        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
-        return -1;
-    }
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_point_t *data = (lv_point_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return -1;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return -1;
-    int result = -1;
-    lv_point_t saved;
-    memcpy(&saved, data, sizeof(saved));
-    if (strcmp(attr, "x") == 0) { data->x = (int32_t)mp_obj_get_int(value); result = 0; }
-    if (strcmp(attr, "y") == 0) { data->y = (int32_t)mp_obj_get_int(value); result = 0; }
-    if (PyErr_Occurred()) {
-        memcpy(data, &saved, sizeof(saved));
-        return -1;
-    }
-    if (result < 0) {
-        PyErr_Format(PyExc_AttributeError, "'lv_point_t' object has no attribute '%s'", attr);
-    }
-    return result;
-}
-
-static PyObject *py_lv_point_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-    return make_new_lv_struct(type, args, kwds, sizeof(lv_point_t));
-}
-
-static void py_lv_point_t_dealloc(py_lv_struct_t *self)
-{
-    py_lv_struct_dealloc(self);
-}
-
-PyTypeObject py_lv_point_t_type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "lvgl.lv_point_t",
-    .tp_basicsize = sizeof(py_lv_struct_t),
-    .tp_dealloc = (destructor)py_lv_point_t_dealloc,
-    .tp_getattro = (getter)py_lv_point_t_getattro,
-    .tp_setattro = (setter)py_lv_point_t_setattro,
-    .tp_new = py_lv_point_t_new,
-    .tp_methods = py_lv_point_t_type_methods,
-    .tp_base = &py_lv_base_struct_type,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-};
-
-static inline void* mp_write_ptr_lv_point_t(PyObject *self_in)
-{
-    if (!self_in || self_in == Py_None) return NULL;
-    if (!PyObject_TypeCheck(self_in, &py_lv_point_t_type)) {
-        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_point_t, got '%s'", Py_TYPE(self_in)->tp_name);
-        return NULL;
-    }
-    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
-    return (lv_point_t*)self->data;
-}
-
-static lv_point_t mp_write_scratch_lv_point_t;
-
-static inline void* mp_write_value_ptr_lv_point_t(PyObject *value)
-{
-    if (value != NULL && PyDict_Check(value)) {
-        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_point_t_type, value);
-        if (tmp != NULL) {
-            memcpy(&mp_write_scratch_lv_point_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_point_t));
-            Py_DECREF(tmp);
-            return &mp_write_scratch_lv_point_t;
-        }
-    } else if (value != NULL && value != Py_None) {
-        void *p = mp_write_ptr_lv_point_t(value);
-        if (p != NULL) return p;
-    } else {
-        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_point_t or dict, got None");
-    }
-    memset(&mp_write_scratch_lv_point_t, 0, sizeof(lv_point_t));
-    return &mp_write_scratch_lv_point_t;
-}
-
-#define mp_write_lv_point_t(struct_obj) (*((lv_point_t*)mp_write_value_ptr_lv_point_t(struct_obj)))
-
-static inline PyObject *mp_read_ptr_lv_point_t(void *field)
-{
-    return lv_to_mp_struct(&py_lv_point_t_type, field);
-}
-
-#define mp_read_lv_point_t(field) lv_to_mp_struct_own(&py_lv_point_t_type, copy_buffer(&field, sizeof(lv_point_t)))
-#define mp_read_byref_lv_point_t(field) mp_read_ptr_lv_point_t(&field)
-
-
-/*
- * Struct lv_grad_dsc_params_linear_t (CPython)
- */
-
-extern PyMethodDef py_lv_grad_dsc_params_linear_t_methods[];
-
-static PyObject *py_lv_grad_dsc_params_linear_t_getattro(PyObject *self, PyObject *name)
-{
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_grad_dsc_params_linear_t *data = (lv_grad_dsc_params_linear_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return NULL;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return NULL;
-    if (strcmp(attr, "start") == 0) return mp_read_byref_lv_point_t(data->start);
-    if (strcmp(attr, "end") == 0) return mp_read_byref_lv_point_t(data->end);
-    for (PyMethodDef *m = py_lv_grad_dsc_params_linear_t_methods; m->ml_name != NULL; m++) {
-        if (strcmp(attr, m->ml_name) == 0)
-            return PyCFunction_NewEx(m, self, NULL);
-    }
-    return PyObject_GenericGetAttr((PyObject *)self, name);
-}
-
-static const char *const py_lv_grad_dsc_params_linear_t_field_names[] = {"start", "end", NULL};
-
-static PyObject *py_lv_grad_dsc_params_linear_t_dir(PyObject *self, PyObject *unused)
-{
-    (void)unused;
-    return lvpy_struct_dir(self, py_lv_grad_dsc_params_linear_t_field_names, py_lv_grad_dsc_params_linear_t_methods);
-}
-
-static PyMethodDef py_lv_grad_dsc_params_linear_t_type_methods[] = {
-    {"__dir__", py_lv_grad_dsc_params_linear_t_dir, METH_NOARGS, NULL},
-    {NULL}
-};
-
-static int py_lv_grad_dsc_params_linear_t_setattro(PyObject *self, PyObject *name, PyObject *value)
-{
-    if (value == NULL) {
-        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
-        return -1;
-    }
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_grad_dsc_params_linear_t *data = (lv_grad_dsc_params_linear_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return -1;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return -1;
-    int result = -1;
-    lv_grad_dsc_params_linear_t saved;
-    memcpy(&saved, data, sizeof(saved));
-    if (strcmp(attr, "start") == 0) { data->start = mp_write_lv_point_t(value); result = 0; }
-    if (strcmp(attr, "end") == 0) { data->end = mp_write_lv_point_t(value); result = 0; }
-    if (PyErr_Occurred()) {
-        memcpy(data, &saved, sizeof(saved));
-        return -1;
-    }
-    if (result < 0) {
-        PyErr_Format(PyExc_AttributeError, "'lv_grad_dsc_params_linear_t' object has no attribute '%s'", attr);
-    }
-    return result;
-}
-
-static PyObject *py_lv_grad_dsc_params_linear_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-    return make_new_lv_struct(type, args, kwds, sizeof(lv_grad_dsc_params_linear_t));
-}
-
-static void py_lv_grad_dsc_params_linear_t_dealloc(py_lv_struct_t *self)
-{
-    py_lv_struct_dealloc(self);
-}
-
-PyTypeObject py_lv_grad_dsc_params_linear_t_type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "lvgl.lv_grad_dsc_params_linear_t",
-    .tp_basicsize = sizeof(py_lv_struct_t),
-    .tp_dealloc = (destructor)py_lv_grad_dsc_params_linear_t_dealloc,
-    .tp_getattro = (getter)py_lv_grad_dsc_params_linear_t_getattro,
-    .tp_setattro = (setter)py_lv_grad_dsc_params_linear_t_setattro,
-    .tp_new = py_lv_grad_dsc_params_linear_t_new,
-    .tp_methods = py_lv_grad_dsc_params_linear_t_type_methods,
-    .tp_base = &py_lv_base_struct_type,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-};
-
-static inline void* mp_write_ptr_lv_grad_dsc_params_linear_t(PyObject *self_in)
-{
-    if (!self_in || self_in == Py_None) return NULL;
-    if (!PyObject_TypeCheck(self_in, &py_lv_grad_dsc_params_linear_t_type)) {
-        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_params_linear_t, got '%s'", Py_TYPE(self_in)->tp_name);
-        return NULL;
-    }
-    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
-    return (lv_grad_dsc_params_linear_t*)self->data;
-}
-
-static lv_grad_dsc_params_linear_t mp_write_scratch_lv_grad_dsc_params_linear_t;
-
-static inline void* mp_write_value_ptr_lv_grad_dsc_params_linear_t(PyObject *value)
-{
-    if (value != NULL && PyDict_Check(value)) {
-        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_grad_dsc_params_linear_t_type, value);
-        if (tmp != NULL) {
-            memcpy(&mp_write_scratch_lv_grad_dsc_params_linear_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_grad_dsc_params_linear_t));
-            Py_DECREF(tmp);
-            return &mp_write_scratch_lv_grad_dsc_params_linear_t;
-        }
-    } else if (value != NULL && value != Py_None) {
-        void *p = mp_write_ptr_lv_grad_dsc_params_linear_t(value);
-        if (p != NULL) return p;
-    } else {
-        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_params_linear_t or dict, got None");
-    }
-    memset(&mp_write_scratch_lv_grad_dsc_params_linear_t, 0, sizeof(lv_grad_dsc_params_linear_t));
-    return &mp_write_scratch_lv_grad_dsc_params_linear_t;
-}
-
-#define mp_write_lv_grad_dsc_params_linear_t(struct_obj) (*((lv_grad_dsc_params_linear_t*)mp_write_value_ptr_lv_grad_dsc_params_linear_t(struct_obj)))
-
-static inline PyObject *mp_read_ptr_lv_grad_dsc_params_linear_t(void *field)
-{
-    return lv_to_mp_struct(&py_lv_grad_dsc_params_linear_t_type, field);
-}
-
-#define mp_read_lv_grad_dsc_params_linear_t(field) lv_to_mp_struct_own(&py_lv_grad_dsc_params_linear_t_type, copy_buffer(&field, sizeof(lv_grad_dsc_params_linear_t)))
-#define mp_read_byref_lv_grad_dsc_params_linear_t(field) mp_read_ptr_lv_grad_dsc_params_linear_t(&field)
-
-typedef __typeof__( ((lv_grad_dsc_params_t*)(0))->radial ) lv_grad_dsc_params_radial_t;
-
-/*
- * Struct lv_grad_dsc_params_radial_t (CPython)
- */
-
-extern PyMethodDef py_lv_grad_dsc_params_radial_t_methods[];
-
-static PyObject *py_lv_grad_dsc_params_radial_t_getattro(PyObject *self, PyObject *name)
-{
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_grad_dsc_params_radial_t *data = (lv_grad_dsc_params_radial_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return NULL;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return NULL;
-    if (strcmp(attr, "focal") == 0) return mp_read_byref_lv_point_t(data->focal);
-    if (strcmp(attr, "focal_extent") == 0) return mp_read_byref_lv_point_t(data->focal_extent);
-    if (strcmp(attr, "end") == 0) return mp_read_byref_lv_point_t(data->end);
-    if (strcmp(attr, "end_extent") == 0) return mp_read_byref_lv_point_t(data->end_extent);
-    for (PyMethodDef *m = py_lv_grad_dsc_params_radial_t_methods; m->ml_name != NULL; m++) {
-        if (strcmp(attr, m->ml_name) == 0)
-            return PyCFunction_NewEx(m, self, NULL);
-    }
-    return PyObject_GenericGetAttr((PyObject *)self, name);
-}
-
-static const char *const py_lv_grad_dsc_params_radial_t_field_names[] = {"focal", "focal_extent", "end", "end_extent", NULL};
-
-static PyObject *py_lv_grad_dsc_params_radial_t_dir(PyObject *self, PyObject *unused)
-{
-    (void)unused;
-    return lvpy_struct_dir(self, py_lv_grad_dsc_params_radial_t_field_names, py_lv_grad_dsc_params_radial_t_methods);
-}
-
-static PyMethodDef py_lv_grad_dsc_params_radial_t_type_methods[] = {
-    {"__dir__", py_lv_grad_dsc_params_radial_t_dir, METH_NOARGS, NULL},
-    {NULL}
-};
-
-static int py_lv_grad_dsc_params_radial_t_setattro(PyObject *self, PyObject *name, PyObject *value)
-{
-    if (value == NULL) {
-        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
-        return -1;
-    }
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_grad_dsc_params_radial_t *data = (lv_grad_dsc_params_radial_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return -1;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return -1;
-    int result = -1;
-    lv_grad_dsc_params_radial_t saved;
-    memcpy(&saved, data, sizeof(saved));
-    if (strcmp(attr, "focal") == 0) { data->focal = mp_write_lv_point_t(value); result = 0; }
-    if (strcmp(attr, "focal_extent") == 0) { data->focal_extent = mp_write_lv_point_t(value); result = 0; }
-    if (strcmp(attr, "end") == 0) { data->end = mp_write_lv_point_t(value); result = 0; }
-    if (strcmp(attr, "end_extent") == 0) { data->end_extent = mp_write_lv_point_t(value); result = 0; }
-    if (PyErr_Occurred()) {
-        memcpy(data, &saved, sizeof(saved));
-        return -1;
-    }
-    if (result < 0) {
-        PyErr_Format(PyExc_AttributeError, "'lv_grad_dsc_params_radial_t' object has no attribute '%s'", attr);
-    }
-    return result;
-}
-
-static PyObject *py_lv_grad_dsc_params_radial_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-    return make_new_lv_struct(type, args, kwds, sizeof(lv_grad_dsc_params_radial_t));
-}
-
-static void py_lv_grad_dsc_params_radial_t_dealloc(py_lv_struct_t *self)
-{
-    py_lv_struct_dealloc(self);
-}
-
-PyTypeObject py_lv_grad_dsc_params_radial_t_type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "lvgl.lv_grad_dsc_params_radial_t",
-    .tp_basicsize = sizeof(py_lv_struct_t),
-    .tp_dealloc = (destructor)py_lv_grad_dsc_params_radial_t_dealloc,
-    .tp_getattro = (getter)py_lv_grad_dsc_params_radial_t_getattro,
-    .tp_setattro = (setter)py_lv_grad_dsc_params_radial_t_setattro,
-    .tp_new = py_lv_grad_dsc_params_radial_t_new,
-    .tp_methods = py_lv_grad_dsc_params_radial_t_type_methods,
-    .tp_base = &py_lv_base_struct_type,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-};
-
-static inline void* mp_write_ptr_lv_grad_dsc_params_radial_t(PyObject *self_in)
-{
-    if (!self_in || self_in == Py_None) return NULL;
-    if (!PyObject_TypeCheck(self_in, &py_lv_grad_dsc_params_radial_t_type)) {
-        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_params_radial_t, got '%s'", Py_TYPE(self_in)->tp_name);
-        return NULL;
-    }
-    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
-    return (lv_grad_dsc_params_radial_t*)self->data;
-}
-
-static lv_grad_dsc_params_radial_t mp_write_scratch_lv_grad_dsc_params_radial_t;
-
-static inline void* mp_write_value_ptr_lv_grad_dsc_params_radial_t(PyObject *value)
-{
-    if (value != NULL && PyDict_Check(value)) {
-        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_grad_dsc_params_radial_t_type, value);
-        if (tmp != NULL) {
-            memcpy(&mp_write_scratch_lv_grad_dsc_params_radial_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_grad_dsc_params_radial_t));
-            Py_DECREF(tmp);
-            return &mp_write_scratch_lv_grad_dsc_params_radial_t;
-        }
-    } else if (value != NULL && value != Py_None) {
-        void *p = mp_write_ptr_lv_grad_dsc_params_radial_t(value);
-        if (p != NULL) return p;
-    } else {
-        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_params_radial_t or dict, got None");
-    }
-    memset(&mp_write_scratch_lv_grad_dsc_params_radial_t, 0, sizeof(lv_grad_dsc_params_radial_t));
-    return &mp_write_scratch_lv_grad_dsc_params_radial_t;
-}
-
-#define mp_write_lv_grad_dsc_params_radial_t(struct_obj) (*((lv_grad_dsc_params_radial_t*)mp_write_value_ptr_lv_grad_dsc_params_radial_t(struct_obj)))
-
-static inline PyObject *mp_read_ptr_lv_grad_dsc_params_radial_t(void *field)
-{
-    return lv_to_mp_struct(&py_lv_grad_dsc_params_radial_t_type, field);
-}
-
-#define mp_read_lv_grad_dsc_params_radial_t(field) lv_to_mp_struct_own(&py_lv_grad_dsc_params_radial_t_type, copy_buffer(&field, sizeof(lv_grad_dsc_params_radial_t)))
-#define mp_read_byref_lv_grad_dsc_params_radial_t(field) mp_read_ptr_lv_grad_dsc_params_radial_t(&field)
-
-typedef __typeof__( ((lv_grad_dsc_params_t*)(0))->conical ) lv_grad_dsc_params_conical_t;
-
-/*
- * Struct lv_grad_dsc_params_conical_t (CPython)
- */
-
-extern PyMethodDef py_lv_grad_dsc_params_conical_t_methods[];
-
-static PyObject *py_lv_grad_dsc_params_conical_t_getattro(PyObject *self, PyObject *name)
-{
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_grad_dsc_params_conical_t *data = (lv_grad_dsc_params_conical_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return NULL;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return NULL;
-    if (strcmp(attr, "center") == 0) return mp_read_byref_lv_point_t(data->center);
-    if (strcmp(attr, "start_angle") == 0) return mp_obj_new_int(data->start_angle);
-    if (strcmp(attr, "end_angle") == 0) return mp_obj_new_int(data->end_angle);
-    for (PyMethodDef *m = py_lv_grad_dsc_params_conical_t_methods; m->ml_name != NULL; m++) {
-        if (strcmp(attr, m->ml_name) == 0)
-            return PyCFunction_NewEx(m, self, NULL);
-    }
-    return PyObject_GenericGetAttr((PyObject *)self, name);
-}
-
-static const char *const py_lv_grad_dsc_params_conical_t_field_names[] = {"center", "start_angle", "end_angle", NULL};
-
-static PyObject *py_lv_grad_dsc_params_conical_t_dir(PyObject *self, PyObject *unused)
-{
-    (void)unused;
-    return lvpy_struct_dir(self, py_lv_grad_dsc_params_conical_t_field_names, py_lv_grad_dsc_params_conical_t_methods);
-}
-
-static PyMethodDef py_lv_grad_dsc_params_conical_t_type_methods[] = {
-    {"__dir__", py_lv_grad_dsc_params_conical_t_dir, METH_NOARGS, NULL},
-    {NULL}
-};
-
-static int py_lv_grad_dsc_params_conical_t_setattro(PyObject *self, PyObject *name, PyObject *value)
-{
-    if (value == NULL) {
-        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
-        return -1;
-    }
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_grad_dsc_params_conical_t *data = (lv_grad_dsc_params_conical_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return -1;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return -1;
-    int result = -1;
-    lv_grad_dsc_params_conical_t saved;
-    memcpy(&saved, data, sizeof(saved));
-    if (strcmp(attr, "center") == 0) { data->center = mp_write_lv_point_t(value); result = 0; }
-    if (strcmp(attr, "start_angle") == 0) { data->start_angle = (int16_t)mp_obj_get_int(value); result = 0; }
-    if (strcmp(attr, "end_angle") == 0) { data->end_angle = (int16_t)mp_obj_get_int(value); result = 0; }
-    if (PyErr_Occurred()) {
-        memcpy(data, &saved, sizeof(saved));
-        return -1;
-    }
-    if (result < 0) {
-        PyErr_Format(PyExc_AttributeError, "'lv_grad_dsc_params_conical_t' object has no attribute '%s'", attr);
-    }
-    return result;
-}
-
-static PyObject *py_lv_grad_dsc_params_conical_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-    return make_new_lv_struct(type, args, kwds, sizeof(lv_grad_dsc_params_conical_t));
-}
-
-static void py_lv_grad_dsc_params_conical_t_dealloc(py_lv_struct_t *self)
-{
-    py_lv_struct_dealloc(self);
-}
-
-PyTypeObject py_lv_grad_dsc_params_conical_t_type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "lvgl.lv_grad_dsc_params_conical_t",
-    .tp_basicsize = sizeof(py_lv_struct_t),
-    .tp_dealloc = (destructor)py_lv_grad_dsc_params_conical_t_dealloc,
-    .tp_getattro = (getter)py_lv_grad_dsc_params_conical_t_getattro,
-    .tp_setattro = (setter)py_lv_grad_dsc_params_conical_t_setattro,
-    .tp_new = py_lv_grad_dsc_params_conical_t_new,
-    .tp_methods = py_lv_grad_dsc_params_conical_t_type_methods,
-    .tp_base = &py_lv_base_struct_type,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-};
-
-static inline void* mp_write_ptr_lv_grad_dsc_params_conical_t(PyObject *self_in)
-{
-    if (!self_in || self_in == Py_None) return NULL;
-    if (!PyObject_TypeCheck(self_in, &py_lv_grad_dsc_params_conical_t_type)) {
-        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_params_conical_t, got '%s'", Py_TYPE(self_in)->tp_name);
-        return NULL;
-    }
-    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
-    return (lv_grad_dsc_params_conical_t*)self->data;
-}
-
-static lv_grad_dsc_params_conical_t mp_write_scratch_lv_grad_dsc_params_conical_t;
-
-static inline void* mp_write_value_ptr_lv_grad_dsc_params_conical_t(PyObject *value)
-{
-    if (value != NULL && PyDict_Check(value)) {
-        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_grad_dsc_params_conical_t_type, value);
-        if (tmp != NULL) {
-            memcpy(&mp_write_scratch_lv_grad_dsc_params_conical_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_grad_dsc_params_conical_t));
-            Py_DECREF(tmp);
-            return &mp_write_scratch_lv_grad_dsc_params_conical_t;
-        }
-    } else if (value != NULL && value != Py_None) {
-        void *p = mp_write_ptr_lv_grad_dsc_params_conical_t(value);
-        if (p != NULL) return p;
-    } else {
-        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_params_conical_t or dict, got None");
-    }
-    memset(&mp_write_scratch_lv_grad_dsc_params_conical_t, 0, sizeof(lv_grad_dsc_params_conical_t));
-    return &mp_write_scratch_lv_grad_dsc_params_conical_t;
-}
-
-#define mp_write_lv_grad_dsc_params_conical_t(struct_obj) (*((lv_grad_dsc_params_conical_t*)mp_write_value_ptr_lv_grad_dsc_params_conical_t(struct_obj)))
-
-static inline PyObject *mp_read_ptr_lv_grad_dsc_params_conical_t(void *field)
-{
-    return lv_to_mp_struct(&py_lv_grad_dsc_params_conical_t_type, field);
-}
-
-#define mp_read_lv_grad_dsc_params_conical_t(field) lv_to_mp_struct_own(&py_lv_grad_dsc_params_conical_t_type, copy_buffer(&field, sizeof(lv_grad_dsc_params_conical_t)))
-#define mp_read_byref_lv_grad_dsc_params_conical_t(field) mp_read_ptr_lv_grad_dsc_params_conical_t(&field)
-
-
-/*
- * Struct lv_grad_dsc_params_t (CPython)
- */
-
-extern PyMethodDef py_lv_grad_dsc_params_t_methods[];
-
-static PyObject *py_lv_grad_dsc_params_t_getattro(PyObject *self, PyObject *name)
-{
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_grad_dsc_params_t *data = (lv_grad_dsc_params_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return NULL;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return NULL;
-    if (strcmp(attr, "linear") == 0) return mp_read_byref_lv_grad_dsc_params_linear_t(data->linear);
-    if (strcmp(attr, "radial") == 0) return mp_read_byref_lv_grad_dsc_params_radial_t(data->radial);
-    if (strcmp(attr, "conical") == 0) return mp_read_byref_lv_grad_dsc_params_conical_t(data->conical);
-    for (PyMethodDef *m = py_lv_grad_dsc_params_t_methods; m->ml_name != NULL; m++) {
-        if (strcmp(attr, m->ml_name) == 0)
-            return PyCFunction_NewEx(m, self, NULL);
-    }
-    return PyObject_GenericGetAttr((PyObject *)self, name);
-}
-
-static const char *const py_lv_grad_dsc_params_t_field_names[] = {"linear", "radial", "conical", NULL};
-
-static PyObject *py_lv_grad_dsc_params_t_dir(PyObject *self, PyObject *unused)
-{
-    (void)unused;
-    return lvpy_struct_dir(self, py_lv_grad_dsc_params_t_field_names, py_lv_grad_dsc_params_t_methods);
-}
-
-static PyMethodDef py_lv_grad_dsc_params_t_type_methods[] = {
-    {"__dir__", py_lv_grad_dsc_params_t_dir, METH_NOARGS, NULL},
-    {NULL}
-};
-
-static int py_lv_grad_dsc_params_t_setattro(PyObject *self, PyObject *name, PyObject *value)
-{
-    if (value == NULL) {
-        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
-        return -1;
-    }
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_grad_dsc_params_t *data = (lv_grad_dsc_params_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return -1;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return -1;
-    int result = -1;
-    lv_grad_dsc_params_t saved;
-    memcpy(&saved, data, sizeof(saved));
-    if (strcmp(attr, "linear") == 0) { data->linear = mp_write_lv_grad_dsc_params_linear_t(value); result = 0; }
-    if (strcmp(attr, "radial") == 0) { data->radial = mp_write_lv_grad_dsc_params_radial_t(value); result = 0; }
-    if (strcmp(attr, "conical") == 0) { data->conical = mp_write_lv_grad_dsc_params_conical_t(value); result = 0; }
-    if (PyErr_Occurred()) {
-        memcpy(data, &saved, sizeof(saved));
-        return -1;
-    }
-    if (result < 0) {
-        PyErr_Format(PyExc_AttributeError, "'lv_grad_dsc_params_t' object has no attribute '%s'", attr);
-    }
-    return result;
-}
-
-static PyObject *py_lv_grad_dsc_params_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-    return make_new_lv_struct(type, args, kwds, sizeof(lv_grad_dsc_params_t));
-}
-
-static void py_lv_grad_dsc_params_t_dealloc(py_lv_struct_t *self)
-{
-    py_lv_struct_dealloc(self);
-}
-
-PyTypeObject py_lv_grad_dsc_params_t_type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "lvgl.lv_grad_dsc_params_t",
-    .tp_basicsize = sizeof(py_lv_struct_t),
-    .tp_dealloc = (destructor)py_lv_grad_dsc_params_t_dealloc,
-    .tp_getattro = (getter)py_lv_grad_dsc_params_t_getattro,
-    .tp_setattro = (setter)py_lv_grad_dsc_params_t_setattro,
-    .tp_new = py_lv_grad_dsc_params_t_new,
-    .tp_methods = py_lv_grad_dsc_params_t_type_methods,
-    .tp_base = &py_lv_base_struct_type,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-};
-
-static inline void* mp_write_ptr_lv_grad_dsc_params_t(PyObject *self_in)
-{
-    if (!self_in || self_in == Py_None) return NULL;
-    if (!PyObject_TypeCheck(self_in, &py_lv_grad_dsc_params_t_type)) {
-        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_params_t, got '%s'", Py_TYPE(self_in)->tp_name);
-        return NULL;
-    }
-    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
-    return (lv_grad_dsc_params_t*)self->data;
-}
-
-static lv_grad_dsc_params_t mp_write_scratch_lv_grad_dsc_params_t;
-
-static inline void* mp_write_value_ptr_lv_grad_dsc_params_t(PyObject *value)
-{
-    if (value != NULL && PyDict_Check(value)) {
-        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_grad_dsc_params_t_type, value);
-        if (tmp != NULL) {
-            memcpy(&mp_write_scratch_lv_grad_dsc_params_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_grad_dsc_params_t));
-            Py_DECREF(tmp);
-            return &mp_write_scratch_lv_grad_dsc_params_t;
-        }
-    } else if (value != NULL && value != Py_None) {
-        void *p = mp_write_ptr_lv_grad_dsc_params_t(value);
-        if (p != NULL) return p;
-    } else {
-        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_params_t or dict, got None");
-    }
-    memset(&mp_write_scratch_lv_grad_dsc_params_t, 0, sizeof(lv_grad_dsc_params_t));
-    return &mp_write_scratch_lv_grad_dsc_params_t;
-}
-
-#define mp_write_lv_grad_dsc_params_t(struct_obj) (*((lv_grad_dsc_params_t*)mp_write_value_ptr_lv_grad_dsc_params_t(struct_obj)))
-
-static inline PyObject *mp_read_ptr_lv_grad_dsc_params_t(void *field)
-{
-    return lv_to_mp_struct(&py_lv_grad_dsc_params_t_type, field);
-}
-
-#define mp_read_lv_grad_dsc_params_t(field) lv_to_mp_struct_own(&py_lv_grad_dsc_params_t_type, copy_buffer(&field, sizeof(lv_grad_dsc_params_t)))
-#define mp_read_byref_lv_grad_dsc_params_t(field) mp_read_ptr_lv_grad_dsc_params_t(&field)
-
-
-/*
- * Struct lv_grad_dsc_t (CPython)
- */
-
-extern PyMethodDef py_lv_grad_dsc_t_methods[];
-
-static PyObject *py_lv_grad_dsc_t_getattro(PyObject *self, PyObject *name)
-{
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_grad_dsc_t *data = (lv_grad_dsc_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return NULL;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return NULL;
-    if (strcmp(attr, "stops") == 0) return lvpy_struct_array_new(self, data->stops, 2, sizeof(lv_grad_stop_t), mp_read_ptr_lv_grad_stop_t, mp_write_value_ptr_lv_grad_stop_t);
-    if (strcmp(attr, "stops_count") == 0) return mp_obj_new_int_from_uint(data->stops_count);
-    if (strcmp(attr, "dir") == 0) return mp_obj_new_int(data->dir);
-    if (strcmp(attr, "extend") == 0) return mp_obj_new_int(data->extend);
-    if (strcmp(attr, "params") == 0) return mp_read_byref_lv_grad_dsc_params_t(data->params);
-    if (strcmp(attr, "state") == 0) return ptr_to_mp((void*)data->state);
-    for (PyMethodDef *m = py_lv_grad_dsc_t_methods; m->ml_name != NULL; m++) {
-        if (strcmp(attr, m->ml_name) == 0)
-            return PyCFunction_NewEx(m, self, NULL);
-    }
-    return PyObject_GenericGetAttr((PyObject *)self, name);
-}
-
-static const char *const py_lv_grad_dsc_t_field_names[] = {"stops", "stops_count", "dir", "extend", "params", "state", NULL};
-
-static PyObject *py_lv_grad_dsc_t_dir(PyObject *self, PyObject *unused)
-{
-    (void)unused;
-    return lvpy_struct_dir(self, py_lv_grad_dsc_t_field_names, py_lv_grad_dsc_t_methods);
-}
-
-static PyMethodDef py_lv_grad_dsc_t_type_methods[] = {
-    {"__dir__", py_lv_grad_dsc_t_dir, METH_NOARGS, NULL},
-    {NULL}
-};
-
-static int py_lv_grad_dsc_t_setattro(PyObject *self, PyObject *name, PyObject *value)
-{
-    if (value == NULL) {
-        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
-        return -1;
-    }
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_grad_dsc_t *data = (lv_grad_dsc_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return -1;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return -1;
-    int result = -1;
-    lv_grad_dsc_t saved;
-    memcpy(&saved, data, sizeof(saved));
-    if (strcmp(attr, "stops") == 0) { lvpy_struct_array_assign(data->stops, 2, sizeof(lv_grad_stop_t), mp_write_value_ptr_lv_grad_stop_t, value); result = 0; }
-    if (strcmp(attr, "stops_count") == 0) { data->stops_count = (uint8_t)mp_obj_get_int(value); result = 0; }
-    if (strcmp(attr, "dir") == 0) { data->dir = (int)mp_obj_get_int(value); result = 0; }
-    if (strcmp(attr, "extend") == 0) { data->extend = (int)mp_obj_get_int(value); result = 0; }
-    if (strcmp(attr, "params") == 0) { data->params = mp_write_lv_grad_dsc_params_t(value); result = 0; }
-    if (strcmp(attr, "state") == 0) { data->state = (void*)mp_to_ptr(value); result = 0; }
-    if (PyErr_Occurred()) {
-        memcpy(data, &saved, sizeof(saved));
-        return -1;
-    }
-    if (result < 0) {
-        PyErr_Format(PyExc_AttributeError, "'lv_grad_dsc_t' object has no attribute '%s'", attr);
-    }
-    return result;
-}
-
-static PyObject *py_lv_grad_dsc_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-    return make_new_lv_struct(type, args, kwds, sizeof(lv_grad_dsc_t));
-}
-
-static void py_lv_grad_dsc_t_dealloc(py_lv_struct_t *self)
-{
-    py_lv_struct_dealloc(self);
-}
-
-PyTypeObject py_lv_grad_dsc_t_type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "lvgl.lv_grad_dsc_t",
-    .tp_basicsize = sizeof(py_lv_struct_t),
-    .tp_dealloc = (destructor)py_lv_grad_dsc_t_dealloc,
-    .tp_getattro = (getter)py_lv_grad_dsc_t_getattro,
-    .tp_setattro = (setter)py_lv_grad_dsc_t_setattro,
-    .tp_new = py_lv_grad_dsc_t_new,
-    .tp_methods = py_lv_grad_dsc_t_type_methods,
-    .tp_base = &py_lv_base_struct_type,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-};
-
-static inline void* mp_write_ptr_lv_grad_dsc_t(PyObject *self_in)
-{
-    if (!self_in || self_in == Py_None) return NULL;
-    if (!PyObject_TypeCheck(self_in, &py_lv_grad_dsc_t_type)) {
-        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_t, got '%s'", Py_TYPE(self_in)->tp_name);
-        return NULL;
-    }
-    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
-    return (lv_grad_dsc_t*)self->data;
-}
-
-static lv_grad_dsc_t mp_write_scratch_lv_grad_dsc_t;
-
-static inline void* mp_write_value_ptr_lv_grad_dsc_t(PyObject *value)
-{
-    if (value != NULL && PyDict_Check(value)) {
-        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_grad_dsc_t_type, value);
-        if (tmp != NULL) {
-            memcpy(&mp_write_scratch_lv_grad_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_grad_dsc_t));
-            Py_DECREF(tmp);
-            return &mp_write_scratch_lv_grad_dsc_t;
-        }
-    } else if (value != NULL && value != Py_None) {
-        void *p = mp_write_ptr_lv_grad_dsc_t(value);
-        if (p != NULL) return p;
-    } else {
-        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_t or dict, got None");
-    }
-    memset(&mp_write_scratch_lv_grad_dsc_t, 0, sizeof(lv_grad_dsc_t));
-    return &mp_write_scratch_lv_grad_dsc_t;
-}
-
-#define mp_write_lv_grad_dsc_t(struct_obj) (*((lv_grad_dsc_t*)mp_write_value_ptr_lv_grad_dsc_t(struct_obj)))
-
-static inline PyObject *mp_read_ptr_lv_grad_dsc_t(void *field)
-{
-    return lv_to_mp_struct(&py_lv_grad_dsc_t_type, field);
-}
-
-#define mp_read_lv_grad_dsc_t(field) lv_to_mp_struct_own(&py_lv_grad_dsc_t_type, copy_buffer(&field, sizeof(lv_grad_dsc_t)))
-#define mp_read_byref_lv_grad_dsc_t(field) mp_read_ptr_lv_grad_dsc_t(&field)
-
-
-/*
- * lvgl extension definition for:
- * inline static const lv_grad_dsc_t *lv_obj_get_style_bg_grad_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_bg_grad_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    const lv_grad_dsc_t * _res;
-    lvpy_lock();
-    _res = ((const lv_grad_dsc_t *(*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_bg_grad_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_ptr_lv_grad_dsc_t((void*)_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_bg_grad_internal_def = {
-    "lv_obj_get_style_bg_grad_internal",
-    (PyCFunction)py_lv_obj_get_style_bg_grad_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static const void *lv_obj_get_style_bg_image_src_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_bg_image_src_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    const void * _res;
-    lvpy_lock();
-    _res = ((const void *(*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_bg_image_src_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return ptr_to_mp((void*)_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_bg_image_src_internal_def = {
-    "lv_obj_get_style_bg_image_src_internal",
-    (PyCFunction)py_lv_obj_get_style_bg_image_src_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_opa_t lv_obj_get_style_bg_image_opa_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_bg_image_opa_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_opa_t _res;
-    lvpy_lock();
-    _res = ((lv_opa_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_bg_image_opa_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_bg_image_opa_internal_def = {
-    "lv_obj_get_style_bg_image_opa_internal",
-    (PyCFunction)py_lv_obj_get_style_bg_image_opa_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_bg_image_recolor_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_bg_image_recolor_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_bg_image_recolor_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_bg_image_recolor_internal_def = {
-    "lv_obj_get_style_bg_image_recolor_internal",
-    (PyCFunction)py_lv_obj_get_style_bg_image_recolor_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_bg_image_recolor_filtered_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_bg_image_recolor_filtered_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_bg_image_recolor_filtered_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_bg_image_recolor_filtered_internal_def = {
-    "lv_obj_get_style_bg_image_recolor_filtered_internal",
-    (PyCFunction)py_lv_obj_get_style_bg_image_recolor_filtered_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_opa_t lv_obj_get_style_bg_image_recolor_opa_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_bg_image_recolor_opa_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_opa_t _res;
-    lvpy_lock();
-    _res = ((lv_opa_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_bg_image_recolor_opa_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_bg_image_recolor_opa_internal_def = {
-    "lv_obj_get_style_bg_image_recolor_opa_internal",
-    (PyCFunction)py_lv_obj_get_style_bg_image_recolor_opa_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static bool lv_obj_get_style_bg_image_tiled_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_bg_image_tiled_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    bool _res;
-    lvpy_lock();
-    _res = ((bool (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_bg_image_tiled_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return convert_to_bool(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_bg_image_tiled_internal_def = {
-    "lv_obj_get_style_bg_image_tiled_internal",
-    (PyCFunction)py_lv_obj_get_style_bg_image_tiled_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_border_color_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_border_color_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_border_color_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_border_color_internal_def = {
-    "lv_obj_get_style_border_color_internal",
-    (PyCFunction)py_lv_obj_get_style_border_color_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_border_color_filtered_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_border_color_filtered_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_border_color_filtered_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_border_color_filtered_internal_def = {
-    "lv_obj_get_style_border_color_filtered_internal",
-    (PyCFunction)py_lv_obj_get_style_border_color_filtered_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_opa_t lv_obj_get_style_border_opa_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_border_opa_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_opa_t _res;
-    lvpy_lock();
-    _res = ((lv_opa_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_border_opa_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_border_opa_internal_def = {
-    "lv_obj_get_style_border_opa_internal",
-    (PyCFunction)py_lv_obj_get_style_border_opa_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_border_width_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_border_width_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_border_width_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_border_width_internal_def = {
-    "lv_obj_get_style_border_width_internal",
-    (PyCFunction)py_lv_obj_get_style_border_width_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_border_side_t lv_obj_get_style_border_side_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_border_side_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_border_side_t _res;
-    lvpy_lock();
-    _res = ((lv_border_side_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_border_side_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_border_side_internal_def = {
-    "lv_obj_get_style_border_side_internal",
-    (PyCFunction)py_lv_obj_get_style_border_side_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static bool lv_obj_get_style_border_post_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_border_post_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    bool _res;
-    lvpy_lock();
-    _res = ((bool (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_border_post_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return convert_to_bool(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_border_post_internal_def = {
-    "lv_obj_get_style_border_post_internal",
-    (PyCFunction)py_lv_obj_get_style_border_post_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_outline_width_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_outline_width_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_outline_width_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_outline_width_internal_def = {
-    "lv_obj_get_style_outline_width_internal",
-    (PyCFunction)py_lv_obj_get_style_outline_width_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_outline_color_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_outline_color_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_outline_color_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_outline_color_internal_def = {
-    "lv_obj_get_style_outline_color_internal",
-    (PyCFunction)py_lv_obj_get_style_outline_color_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_outline_color_filtered_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_outline_color_filtered_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_outline_color_filtered_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_outline_color_filtered_internal_def = {
-    "lv_obj_get_style_outline_color_filtered_internal",
-    (PyCFunction)py_lv_obj_get_style_outline_color_filtered_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_opa_t lv_obj_get_style_outline_opa_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_outline_opa_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_opa_t _res;
-    lvpy_lock();
-    _res = ((lv_opa_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_outline_opa_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_outline_opa_internal_def = {
-    "lv_obj_get_style_outline_opa_internal",
-    (PyCFunction)py_lv_obj_get_style_outline_opa_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_outline_pad_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_outline_pad_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_outline_pad_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_outline_pad_internal_def = {
-    "lv_obj_get_style_outline_pad_internal",
-    (PyCFunction)py_lv_obj_get_style_outline_pad_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_shadow_width_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_shadow_width_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_shadow_width_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_shadow_width_internal_def = {
-    "lv_obj_get_style_shadow_width_internal",
-    (PyCFunction)py_lv_obj_get_style_shadow_width_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_shadow_offset_x_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_shadow_offset_x_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_shadow_offset_x_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_shadow_offset_x_internal_def = {
-    "lv_obj_get_style_shadow_offset_x_internal",
-    (PyCFunction)py_lv_obj_get_style_shadow_offset_x_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_shadow_offset_y_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_shadow_offset_y_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_shadow_offset_y_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_shadow_offset_y_internal_def = {
-    "lv_obj_get_style_shadow_offset_y_internal",
-    (PyCFunction)py_lv_obj_get_style_shadow_offset_y_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_shadow_spread_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_shadow_spread_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_shadow_spread_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_shadow_spread_internal_def = {
-    "lv_obj_get_style_shadow_spread_internal",
-    (PyCFunction)py_lv_obj_get_style_shadow_spread_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_shadow_color_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_shadow_color_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_shadow_color_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_shadow_color_internal_def = {
-    "lv_obj_get_style_shadow_color_internal",
-    (PyCFunction)py_lv_obj_get_style_shadow_color_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_shadow_color_filtered_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_shadow_color_filtered_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_shadow_color_filtered_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_shadow_color_filtered_internal_def = {
-    "lv_obj_get_style_shadow_color_filtered_internal",
-    (PyCFunction)py_lv_obj_get_style_shadow_color_filtered_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_opa_t lv_obj_get_style_shadow_opa_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_shadow_opa_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_opa_t _res;
-    lvpy_lock();
-    _res = ((lv_opa_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_shadow_opa_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_shadow_opa_internal_def = {
-    "lv_obj_get_style_shadow_opa_internal",
-    (PyCFunction)py_lv_obj_get_style_shadow_opa_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_opa_t lv_obj_get_style_image_opa_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_image_opa_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_opa_t _res;
-    lvpy_lock();
-    _res = ((lv_opa_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_image_opa_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_image_opa_internal_def = {
-    "lv_obj_get_style_image_opa_internal",
-    (PyCFunction)py_lv_obj_get_style_image_opa_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_image_recolor_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_image_recolor_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_image_recolor_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_image_recolor_internal_def = {
-    "lv_obj_get_style_image_recolor_internal",
-    (PyCFunction)py_lv_obj_get_style_image_recolor_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_image_recolor_filtered_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_image_recolor_filtered_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_image_recolor_filtered_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_image_recolor_filtered_internal_def = {
-    "lv_obj_get_style_image_recolor_filtered_internal",
-    (PyCFunction)py_lv_obj_get_style_image_recolor_filtered_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_opa_t lv_obj_get_style_image_recolor_opa_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_image_recolor_opa_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_opa_t _res;
-    lvpy_lock();
-    _res = ((lv_opa_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_image_recolor_opa_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_image_recolor_opa_internal_def = {
-    "lv_obj_get_style_image_recolor_opa_internal",
-    (PyCFunction)py_lv_obj_get_style_image_recolor_opa_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * Struct lv_image_colorkey_t (CPython)
- */
-
-extern PyMethodDef py_lv_image_colorkey_t_methods[];
-
-static PyObject *py_lv_image_colorkey_t_getattro(PyObject *self, PyObject *name)
-{
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_image_colorkey_t *data = (lv_image_colorkey_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return NULL;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return NULL;
-    if (strcmp(attr, "low") == 0) return mp_read_byref_lv_color_t(data->low);
-    if (strcmp(attr, "high") == 0) return mp_read_byref_lv_color_t(data->high);
-    for (PyMethodDef *m = py_lv_image_colorkey_t_methods; m->ml_name != NULL; m++) {
-        if (strcmp(attr, m->ml_name) == 0)
-            return PyCFunction_NewEx(m, self, NULL);
-    }
-    return PyObject_GenericGetAttr((PyObject *)self, name);
-}
-
-static const char *const py_lv_image_colorkey_t_field_names[] = {"low", "high", NULL};
-
-static PyObject *py_lv_image_colorkey_t_dir(PyObject *self, PyObject *unused)
-{
-    (void)unused;
-    return lvpy_struct_dir(self, py_lv_image_colorkey_t_field_names, py_lv_image_colorkey_t_methods);
-}
-
-static PyMethodDef py_lv_image_colorkey_t_type_methods[] = {
-    {"__dir__", py_lv_image_colorkey_t_dir, METH_NOARGS, NULL},
-    {NULL}
-};
-
-static int py_lv_image_colorkey_t_setattro(PyObject *self, PyObject *name, PyObject *value)
-{
-    if (value == NULL) {
-        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
-        return -1;
-    }
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_image_colorkey_t *data = (lv_image_colorkey_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return -1;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return -1;
-    int result = -1;
-    lv_image_colorkey_t saved;
-    memcpy(&saved, data, sizeof(saved));
-    if (strcmp(attr, "low") == 0) { data->low = mp_write_lv_color_t(value); result = 0; }
-    if (strcmp(attr, "high") == 0) { data->high = mp_write_lv_color_t(value); result = 0; }
-    if (PyErr_Occurred()) {
-        memcpy(data, &saved, sizeof(saved));
-        return -1;
-    }
-    if (result < 0) {
-        PyErr_Format(PyExc_AttributeError, "'lv_image_colorkey_t' object has no attribute '%s'", attr);
-    }
-    return result;
-}
-
-static PyObject *py_lv_image_colorkey_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-    return make_new_lv_struct(type, args, kwds, sizeof(lv_image_colorkey_t));
-}
-
-static void py_lv_image_colorkey_t_dealloc(py_lv_struct_t *self)
-{
-    py_lv_struct_dealloc(self);
-}
-
-PyTypeObject py_lv_image_colorkey_t_type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "lvgl.lv_image_colorkey_t",
-    .tp_basicsize = sizeof(py_lv_struct_t),
-    .tp_dealloc = (destructor)py_lv_image_colorkey_t_dealloc,
-    .tp_getattro = (getter)py_lv_image_colorkey_t_getattro,
-    .tp_setattro = (setter)py_lv_image_colorkey_t_setattro,
-    .tp_new = py_lv_image_colorkey_t_new,
-    .tp_methods = py_lv_image_colorkey_t_type_methods,
-    .tp_base = &py_lv_base_struct_type,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-};
-
-static inline void* mp_write_ptr_lv_image_colorkey_t(PyObject *self_in)
-{
-    if (!self_in || self_in == Py_None) return NULL;
-    if (!PyObject_TypeCheck(self_in, &py_lv_image_colorkey_t_type)) {
-        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_image_colorkey_t, got '%s'", Py_TYPE(self_in)->tp_name);
-        return NULL;
-    }
-    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
-    return (lv_image_colorkey_t*)self->data;
-}
-
-static lv_image_colorkey_t mp_write_scratch_lv_image_colorkey_t;
-
-static inline void* mp_write_value_ptr_lv_image_colorkey_t(PyObject *value)
-{
-    if (value != NULL && PyDict_Check(value)) {
-        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_image_colorkey_t_type, value);
-        if (tmp != NULL) {
-            memcpy(&mp_write_scratch_lv_image_colorkey_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_image_colorkey_t));
-            Py_DECREF(tmp);
-            return &mp_write_scratch_lv_image_colorkey_t;
-        }
-    } else if (value != NULL && value != Py_None) {
-        void *p = mp_write_ptr_lv_image_colorkey_t(value);
-        if (p != NULL) return p;
-    } else {
-        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_image_colorkey_t or dict, got None");
-    }
-    memset(&mp_write_scratch_lv_image_colorkey_t, 0, sizeof(lv_image_colorkey_t));
-    return &mp_write_scratch_lv_image_colorkey_t;
-}
-
-#define mp_write_lv_image_colorkey_t(struct_obj) (*((lv_image_colorkey_t*)mp_write_value_ptr_lv_image_colorkey_t(struct_obj)))
-
-static inline PyObject *mp_read_ptr_lv_image_colorkey_t(void *field)
-{
-    return lv_to_mp_struct(&py_lv_image_colorkey_t_type, field);
-}
-
-#define mp_read_lv_image_colorkey_t(field) lv_to_mp_struct_own(&py_lv_image_colorkey_t_type, copy_buffer(&field, sizeof(lv_image_colorkey_t)))
-#define mp_read_byref_lv_image_colorkey_t(field) mp_read_ptr_lv_image_colorkey_t(&field)
-
-
-/*
- * lvgl extension definition for:
- * inline static const lv_image_colorkey_t *lv_obj_get_style_image_colorkey_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_image_colorkey_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    const lv_image_colorkey_t * _res;
-    lvpy_lock();
-    _res = ((const lv_image_colorkey_t *(*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_image_colorkey_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_ptr_lv_image_colorkey_t((void*)_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_image_colorkey_internal_def = {
-    "lv_obj_get_style_image_colorkey_internal",
-    (PyCFunction)py_lv_obj_get_style_image_colorkey_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_line_width_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_line_width_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_line_width_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_line_width_internal_def = {
-    "lv_obj_get_style_line_width_internal",
-    (PyCFunction)py_lv_obj_get_style_line_width_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_line_dash_width_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_line_dash_width_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_line_dash_width_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_line_dash_width_internal_def = {
-    "lv_obj_get_style_line_dash_width_internal",
-    (PyCFunction)py_lv_obj_get_style_line_dash_width_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_line_dash_gap_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_line_dash_gap_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_line_dash_gap_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_line_dash_gap_internal_def = {
-    "lv_obj_get_style_line_dash_gap_internal",
-    (PyCFunction)py_lv_obj_get_style_line_dash_gap_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static bool lv_obj_get_style_line_rounded_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_line_rounded_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    bool _res;
-    lvpy_lock();
-    _res = ((bool (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_line_rounded_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return convert_to_bool(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_line_rounded_internal_def = {
-    "lv_obj_get_style_line_rounded_internal",
-    (PyCFunction)py_lv_obj_get_style_line_rounded_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_line_color_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_line_color_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_line_color_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_line_color_internal_def = {
-    "lv_obj_get_style_line_color_internal",
-    (PyCFunction)py_lv_obj_get_style_line_color_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_line_color_filtered_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_line_color_filtered_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_line_color_filtered_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_line_color_filtered_internal_def = {
-    "lv_obj_get_style_line_color_filtered_internal",
-    (PyCFunction)py_lv_obj_get_style_line_color_filtered_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_opa_t lv_obj_get_style_line_opa_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_line_opa_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_opa_t _res;
-    lvpy_lock();
-    _res = ((lv_opa_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_line_opa_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_line_opa_internal_def = {
-    "lv_obj_get_style_line_opa_internal",
-    (PyCFunction)py_lv_obj_get_style_line_opa_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_arc_width_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_arc_width_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_arc_width_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_arc_width_internal_def = {
-    "lv_obj_get_style_arc_width_internal",
-    (PyCFunction)py_lv_obj_get_style_arc_width_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static bool lv_obj_get_style_arc_rounded_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_arc_rounded_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    bool _res;
-    lvpy_lock();
-    _res = ((bool (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_arc_rounded_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return convert_to_bool(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_arc_rounded_internal_def = {
-    "lv_obj_get_style_arc_rounded_internal",
-    (PyCFunction)py_lv_obj_get_style_arc_rounded_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_arc_color_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_arc_color_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_arc_color_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_arc_color_internal_def = {
-    "lv_obj_get_style_arc_color_internal",
-    (PyCFunction)py_lv_obj_get_style_arc_color_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_arc_color_filtered_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_arc_color_filtered_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_arc_color_filtered_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_arc_color_filtered_internal_def = {
-    "lv_obj_get_style_arc_color_filtered_internal",
-    (PyCFunction)py_lv_obj_get_style_arc_color_filtered_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_opa_t lv_obj_get_style_arc_opa_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_arc_opa_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_opa_t _res;
-    lvpy_lock();
-    _res = ((lv_opa_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_arc_opa_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_arc_opa_internal_def = {
-    "lv_obj_get_style_arc_opa_internal",
-    (PyCFunction)py_lv_obj_get_style_arc_opa_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static const void *lv_obj_get_style_arc_image_src_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_arc_image_src_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    const void * _res;
-    lvpy_lock();
-    _res = ((const void *(*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_arc_image_src_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return ptr_to_mp((void*)_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_arc_image_src_internal_def = {
-    "lv_obj_get_style_arc_image_src_internal",
-    (PyCFunction)py_lv_obj_get_style_arc_image_src_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_text_color_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_text_color_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_text_color_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_text_color_internal_def = {
-    "lv_obj_get_style_text_color_internal",
-    (PyCFunction)py_lv_obj_get_style_text_color_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_text_color_filtered_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_text_color_filtered_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_text_color_filtered_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_text_color_filtered_internal_def = {
-    "lv_obj_get_style_text_color_filtered_internal",
-    (PyCFunction)py_lv_obj_get_style_text_color_filtered_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_opa_t lv_obj_get_style_text_opa_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_text_opa_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_opa_t _res;
-    lvpy_lock();
-    _res = ((lv_opa_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_text_opa_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_text_opa_internal_def = {
-    "lv_obj_get_style_text_opa_internal",
-    (PyCFunction)py_lv_obj_get_style_text_opa_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-#define funcptr_get_glyph_dsc NULL
-
-static inline PyObject *mp_lv_funcptr_get_glyph_dsc(void *func){ return mp_lv_funcptr(NULL, func, NULL, "", NULL); }
-
-static bool lv_font_t_get_glyph_dsc_callback(const lv_font_t *font, lv_font_glyph_dsc_t *dsc_out, uint32_t letter, uint32_t letter_next);
-#define funcptr_get_glyph_bitmap NULL
-
-static inline PyObject *mp_lv_funcptr_get_glyph_bitmap(void *func){ return mp_lv_funcptr(NULL, func, NULL, "", NULL); }
-
-
-/*
- * Function NOT generated:
- * Missing 'user_data' field for callback 'lv_font_t_get_glyph_bitmap'
- * const void *(*get_glyph_bitmap)(lv_font_glyph_dsc_t *g_dsc, lv_draw_buf_t *draw_buf)
- */
-    
-#define funcptr_release_glyph NULL
-
-static inline PyObject *mp_lv_funcptr_release_glyph(void *func){ return mp_lv_funcptr(NULL, func, NULL, "", NULL); }
-
-static void lv_font_t_release_glyph_callback(const lv_font_t *font, lv_font_glyph_dsc_t *g_dsc);
-
-/*
- * Struct lv_font_t (CPython)
- */
-
-extern PyMethodDef py_lv_font_t_methods[];
-
-static PyObject *py_lv_font_t_getattro(PyObject *self, PyObject *name)
-{
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_font_t *data = (lv_font_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return NULL;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return NULL;
-    if (strcmp(attr, "dsc") == 0) return ptr_to_mp((void*)data->dsc);
-    if (strcmp(attr, "fallback") == 0) return ptr_to_mp((void*)data->fallback);
-    if (strcmp(attr, "user_data") == 0) return ptr_to_mp((void*)data->user_data);
-    if (strcmp(attr, "get_glyph_dsc") == 0) return mp_lv_funcptr(NULL, (void*)data->get_glyph_dsc, lv_font_t_get_glyph_dsc_callback, "lv_font_t_get_glyph_dsc", data->user_data);
-    if (strcmp(attr, "get_glyph_bitmap") == 0) return mp_lv_funcptr(NULL, (void*)data->get_glyph_bitmap, NULL, "lv_font_t_get_glyph_bitmap", NULL);
-    if (strcmp(attr, "release_glyph") == 0) return mp_lv_funcptr(NULL, (void*)data->release_glyph, lv_font_t_release_glyph_callback, "lv_font_t_release_glyph", data->user_data);
-    if (strcmp(attr, "line_height") == 0) return mp_obj_new_int(data->line_height);
-    if (strcmp(attr, "base_line") == 0) return mp_obj_new_int(data->base_line);
-    if (strcmp(attr, "cap_height") == 0) return mp_obj_new_int(data->cap_height);
-    if (strcmp(attr, "x_height") == 0) return mp_obj_new_int(data->x_height);
-    if (strcmp(attr, "subpx") == 0) return mp_obj_new_int_from_uint(data->subpx);
-    if (strcmp(attr, "kerning") == 0) return mp_obj_new_int_from_uint(data->kerning);
-    if (strcmp(attr, "static_bitmap") == 0) return mp_obj_new_int_from_uint(data->static_bitmap);
-    if (strcmp(attr, "underline_position") == 0) return mp_obj_new_int(data->underline_position);
-    if (strcmp(attr, "underline_thickness") == 0) return mp_obj_new_int(data->underline_thickness);
-    for (PyMethodDef *m = py_lv_font_t_methods; m->ml_name != NULL; m++) {
-        if (strcmp(attr, m->ml_name) == 0)
-            return PyCFunction_NewEx(m, self, NULL);
-    }
-    return PyObject_GenericGetAttr((PyObject *)self, name);
-}
-
-static const char *const py_lv_font_t_field_names[] = {"dsc", "fallback", "user_data", "get_glyph_dsc", "get_glyph_bitmap", "release_glyph", "line_height", "base_line", "cap_height", "x_height", "subpx", "kerning", "static_bitmap", "underline_position", "underline_thickness", NULL};
-
-static PyObject *py_lv_font_t_dir(PyObject *self, PyObject *unused)
-{
-    (void)unused;
-    return lvpy_struct_dir(self, py_lv_font_t_field_names, py_lv_font_t_methods);
-}
-
-static PyMethodDef py_lv_font_t_type_methods[] = {
-    {"__dir__", py_lv_font_t_dir, METH_NOARGS, NULL},
-    {NULL}
-};
-
-static int py_lv_font_t_setattro(PyObject *self, PyObject *name, PyObject *value)
-{
-    if (value == NULL) {
-        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
-        return -1;
-    }
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_font_t *data = (lv_font_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return -1;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return -1;
-    int result = -1;
-    lv_font_t saved;
-    memcpy(&saved, data, sizeof(saved));
-    if (strcmp(attr, "dsc") == 0) { data->dsc = (void*)mp_to_ptr(value); result = 0; }
-    if (strcmp(attr, "fallback") == 0) { data->fallback = (void*)mp_to_ptr(value); result = 0; }
-    if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
-    if (strcmp(attr, "get_glyph_dsc") == 0) { data->get_glyph_dsc = (void*)mp_lv_callback(value, lv_font_t_get_glyph_dsc_callback, "lv_font_t_get_glyph_dsc", &data->user_data, data, NULL, NULL); result = 0; }
-    if (strcmp(attr, "get_glyph_bitmap") == 0) { data->get_glyph_bitmap = (void*)mp_lv_callback(value, NULL, "lv_font_t_get_glyph_bitmap", NULL, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "release_glyph") == 0) { data->release_glyph = (void*)mp_lv_callback(value, lv_font_t_release_glyph_callback, "lv_font_t_release_glyph", &data->user_data, data, NULL, NULL); result = 0; }
-    if (strcmp(attr, "line_height") == 0) { data->line_height = (int32_t)mp_obj_get_int(value); result = 0; }
-    if (strcmp(attr, "base_line") == 0) { data->base_line = (int32_t)mp_obj_get_int(value); result = 0; }
-    if (strcmp(attr, "cap_height") == 0) { data->cap_height = (int32_t)mp_obj_get_int(value); result = 0; }
-    if (strcmp(attr, "x_height") == 0) { data->x_height = (int32_t)mp_obj_get_int(value); result = 0; }
-    if (strcmp(attr, "subpx") == 0) { data->subpx = (uint8_t)mp_obj_get_int(value); result = 0; }
-    if (strcmp(attr, "kerning") == 0) { data->kerning = (uint8_t)mp_obj_get_int(value); result = 0; }
-    if (strcmp(attr, "static_bitmap") == 0) { data->static_bitmap = (uint8_t)mp_obj_get_int(value); result = 0; }
-    if (strcmp(attr, "underline_position") == 0) { data->underline_position = (int8_t)mp_obj_get_int(value); result = 0; }
-    if (strcmp(attr, "underline_thickness") == 0) { data->underline_thickness = (int8_t)mp_obj_get_int(value); result = 0; }
-    if (PyErr_Occurred()) {
-        memcpy(data, &saved, sizeof(saved));
-        return -1;
-    }
-    if (result < 0) {
-        PyErr_Format(PyExc_AttributeError, "'lv_font_t' object has no attribute '%s'", attr);
-    }
-    return result;
-}
-
-static PyObject *py_lv_font_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-    return make_new_lv_struct(type, args, kwds, sizeof(lv_font_t));
-}
-
-static void py_lv_font_t_dealloc(py_lv_struct_t *self)
-{
-    py_lv_struct_dealloc(self);
-}
-
-PyTypeObject py_lv_font_t_type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "lvgl.lv_font_t",
-    .tp_basicsize = sizeof(py_lv_struct_t),
-    .tp_dealloc = (destructor)py_lv_font_t_dealloc,
-    .tp_getattro = (getter)py_lv_font_t_getattro,
-    .tp_setattro = (setter)py_lv_font_t_setattro,
-    .tp_new = py_lv_font_t_new,
-    .tp_methods = py_lv_font_t_type_methods,
-    .tp_base = &py_lv_base_struct_type,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-};
-
-static inline void* mp_write_ptr_lv_font_t(PyObject *self_in)
-{
-    if (!self_in || self_in == Py_None) return NULL;
-    if (!PyObject_TypeCheck(self_in, &py_lv_font_t_type)) {
-        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_font_t, got '%s'", Py_TYPE(self_in)->tp_name);
-        return NULL;
-    }
-    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
-    return (lv_font_t*)self->data;
-}
-
-static lv_font_t mp_write_scratch_lv_font_t;
-
-static inline void* mp_write_value_ptr_lv_font_t(PyObject *value)
-{
-    if (value != NULL && PyDict_Check(value)) {
-        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_font_t_type, value);
-        if (tmp != NULL) {
-            memcpy(&mp_write_scratch_lv_font_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_font_t));
-            Py_DECREF(tmp);
-            return &mp_write_scratch_lv_font_t;
-        }
-    } else if (value != NULL && value != Py_None) {
-        void *p = mp_write_ptr_lv_font_t(value);
-        if (p != NULL) return p;
-    } else {
-        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_font_t or dict, got None");
-    }
-    memset(&mp_write_scratch_lv_font_t, 0, sizeof(lv_font_t));
-    return &mp_write_scratch_lv_font_t;
-}
-
-#define mp_write_lv_font_t(struct_obj) (*((lv_font_t*)mp_write_value_ptr_lv_font_t(struct_obj)))
-
-static inline PyObject *mp_read_ptr_lv_font_t(void *field)
-{
-    return lv_to_mp_struct(&py_lv_font_t_type, field);
-}
-
-#define mp_read_lv_font_t(field) lv_to_mp_struct_own(&py_lv_font_t_type, copy_buffer(&field, sizeof(lv_font_t)))
-#define mp_read_byref_lv_font_t(field) mp_read_ptr_lv_font_t(&field)
-
-
-/*
- * lvgl extension definition for:
- * inline static const lv_font_t *lv_obj_get_style_text_font_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_text_font_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    const lv_font_t * _res;
-    lvpy_lock();
-    _res = ((const lv_font_t *(*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_text_font_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_ptr_lv_font_t((void*)_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_text_font_internal_def = {
-    "lv_obj_get_style_text_font_internal",
-    (PyCFunction)py_lv_obj_get_style_text_font_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_text_letter_space_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_text_letter_space_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_text_letter_space_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_text_letter_space_internal_def = {
-    "lv_obj_get_style_text_letter_space_internal",
-    (PyCFunction)py_lv_obj_get_style_text_letter_space_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_text_line_space_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_text_line_space_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_text_line_space_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_text_line_space_internal_def = {
-    "lv_obj_get_style_text_line_space_internal",
-    (PyCFunction)py_lv_obj_get_style_text_line_space_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_text_decor_t lv_obj_get_style_text_decor_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_text_decor_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_text_decor_t _res;
-    lvpy_lock();
-    _res = ((lv_text_decor_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_text_decor_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_text_decor_internal_def = {
-    "lv_obj_get_style_text_decor_internal",
-    (PyCFunction)py_lv_obj_get_style_text_decor_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_text_align_t lv_obj_get_style_text_align_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_text_align_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_text_align_t _res;
-    lvpy_lock();
-    _res = ((lv_text_align_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_text_align_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_text_align_internal_def = {
-    "lv_obj_get_style_text_align_internal",
-    (PyCFunction)py_lv_obj_get_style_text_align_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_text_outline_stroke_color_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_text_outline_stroke_color_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_text_outline_stroke_color_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_text_outline_stroke_color_internal_def = {
-    "lv_obj_get_style_text_outline_stroke_color_internal",
-    (PyCFunction)py_lv_obj_get_style_text_outline_stroke_color_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_text_outline_stroke_color_filtered_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_text_outline_stroke_color_filtered_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_text_outline_stroke_color_filtered_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_text_outline_stroke_color_filtered_internal_def = {
-    "lv_obj_get_style_text_outline_stroke_color_filtered_internal",
-    (PyCFunction)py_lv_obj_get_style_text_outline_stroke_color_filtered_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_text_outline_stroke_width_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_text_outline_stroke_width_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_text_outline_stroke_width_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_text_outline_stroke_width_internal_def = {
-    "lv_obj_get_style_text_outline_stroke_width_internal",
-    (PyCFunction)py_lv_obj_get_style_text_outline_stroke_width_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_opa_t lv_obj_get_style_text_outline_stroke_opa_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_text_outline_stroke_opa_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_opa_t _res;
-    lvpy_lock();
-    _res = ((lv_opa_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_text_outline_stroke_opa_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_text_outline_stroke_opa_internal_def = {
-    "lv_obj_get_style_text_outline_stroke_opa_internal",
-    (PyCFunction)py_lv_obj_get_style_text_outline_stroke_opa_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_text_leading_trim_t lv_obj_get_style_text_leading_trim_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_text_leading_trim_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_text_leading_trim_t _res;
-    lvpy_lock();
-    _res = ((lv_text_leading_trim_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_text_leading_trim_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_text_leading_trim_internal_def = {
-    "lv_obj_get_style_text_leading_trim_internal",
-    (PyCFunction)py_lv_obj_get_style_text_leading_trim_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_blur_radius_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_blur_radius_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_blur_radius_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_blur_radius_internal_def = {
-    "lv_obj_get_style_blur_radius_internal",
-    (PyCFunction)py_lv_obj_get_style_blur_radius_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static bool lv_obj_get_style_blur_backdrop_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_blur_backdrop_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    bool _res;
-    lvpy_lock();
-    _res = ((bool (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_blur_backdrop_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return convert_to_bool(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_blur_backdrop_internal_def = {
-    "lv_obj_get_style_blur_backdrop_internal",
-    (PyCFunction)py_lv_obj_get_style_blur_backdrop_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_blur_quality_t lv_obj_get_style_blur_quality_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_blur_quality_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_blur_quality_t _res;
-    lvpy_lock();
-    _res = ((lv_blur_quality_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_blur_quality_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_blur_quality_internal_def = {
-    "lv_obj_get_style_blur_quality_internal",
-    (PyCFunction)py_lv_obj_get_style_blur_quality_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_drop_shadow_radius_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_drop_shadow_radius_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_drop_shadow_radius_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_drop_shadow_radius_internal_def = {
-    "lv_obj_get_style_drop_shadow_radius_internal",
-    (PyCFunction)py_lv_obj_get_style_drop_shadow_radius_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_drop_shadow_offset_x_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_drop_shadow_offset_x_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_drop_shadow_offset_x_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_drop_shadow_offset_x_internal_def = {
-    "lv_obj_get_style_drop_shadow_offset_x_internal",
-    (PyCFunction)py_lv_obj_get_style_drop_shadow_offset_x_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_drop_shadow_offset_y_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_drop_shadow_offset_y_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_drop_shadow_offset_y_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_drop_shadow_offset_y_internal_def = {
-    "lv_obj_get_style_drop_shadow_offset_y_internal",
-    (PyCFunction)py_lv_obj_get_style_drop_shadow_offset_y_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_drop_shadow_color_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_drop_shadow_color_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_drop_shadow_color_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_drop_shadow_color_internal_def = {
-    "lv_obj_get_style_drop_shadow_color_internal",
-    (PyCFunction)py_lv_obj_get_style_drop_shadow_color_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_drop_shadow_color_filtered_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_drop_shadow_color_filtered_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_drop_shadow_color_filtered_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_drop_shadow_color_filtered_internal_def = {
-    "lv_obj_get_style_drop_shadow_color_filtered_internal",
-    (PyCFunction)py_lv_obj_get_style_drop_shadow_color_filtered_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_opa_t lv_obj_get_style_drop_shadow_opa_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_drop_shadow_opa_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_opa_t _res;
-    lvpy_lock();
-    _res = ((lv_opa_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_drop_shadow_opa_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_drop_shadow_opa_internal_def = {
-    "lv_obj_get_style_drop_shadow_opa_internal",
-    (PyCFunction)py_lv_obj_get_style_drop_shadow_opa_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_blur_quality_t lv_obj_get_style_drop_shadow_quality_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_drop_shadow_quality_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_blur_quality_t _res;
-    lvpy_lock();
-    _res = ((lv_blur_quality_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_drop_shadow_quality_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_drop_shadow_quality_internal_def = {
-    "lv_obj_get_style_drop_shadow_quality_internal",
-    (PyCFunction)py_lv_obj_get_style_drop_shadow_quality_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_radius_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_radius_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_radius_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_radius_internal_def = {
-    "lv_obj_get_style_radius_internal",
-    (PyCFunction)py_lv_obj_get_style_radius_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_radial_offset_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_radial_offset_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_radial_offset_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
 
-static PyMethodDef py_lv_obj_get_style_radial_offset_internal_def = {
-    "lv_obj_get_style_radial_offset_internal",
-    (PyCFunction)py_lv_obj_get_style_radial_offset_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static bool lv_obj_get_style_clip_corner_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_clip_corner_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    bool _res;
-    lvpy_lock();
-    _res = ((bool (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_clip_corner_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return convert_to_bool(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_clip_corner_internal_def = {
-    "lv_obj_get_style_clip_corner_internal",
-    (PyCFunction)py_lv_obj_get_style_clip_corner_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_opa_t lv_obj_get_style_opa_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_opa_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_opa_t _res;
-    lvpy_lock();
-    _res = ((lv_opa_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_opa_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_opa_internal_def = {
-    "lv_obj_get_style_opa_internal",
-    (PyCFunction)py_lv_obj_get_style_opa_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_opa_t lv_obj_get_style_opa_layered_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_opa_layered_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_opa_t _res;
-    lvpy_lock();
-    _res = ((lv_opa_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_opa_layered_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_opa_layered_internal_def = {
-    "lv_obj_get_style_opa_layered_internal",
-    (PyCFunction)py_lv_obj_get_style_opa_layered_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-#define funcptr_lv_color_filter_cb_t NULL
-
-static inline PyObject *mp_lv_funcptr_lv_color_filter_cb_t(void *func){ return mp_lv_funcptr(NULL, func, NULL, "", NULL); }
-
-static lv_color_t lv_color_filter_dsc_t_filter_cb_callback(const struct _lv_color_filter_dsc_t *, lv_color_t, lv_opa_t);
-
-/*
- * Struct lv_color_filter_dsc_t (CPython)
- */
-
-extern PyMethodDef py_lv_color_filter_dsc_t_methods[];
-
-static PyObject *py_lv_color_filter_dsc_t_getattro(PyObject *self, PyObject *name)
-{
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_color_filter_dsc_t *data = (lv_color_filter_dsc_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return NULL;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return NULL;
-    if (strcmp(attr, "filter_cb") == 0) return mp_lv_funcptr(NULL, data->filter_cb, lv_color_filter_dsc_t_filter_cb_callback, "lv_color_filter_dsc_t_filter_cb", data->user_data);
-    if (strcmp(attr, "user_data") == 0) return ptr_to_mp((void*)data->user_data);
-    for (PyMethodDef *m = py_lv_color_filter_dsc_t_methods; m->ml_name != NULL; m++) {
-        if (strcmp(attr, m->ml_name) == 0)
-            return PyCFunction_NewEx(m, self, NULL);
-    }
-    return PyObject_GenericGetAttr((PyObject *)self, name);
-}
-
-static const char *const py_lv_color_filter_dsc_t_field_names[] = {"filter_cb", "user_data", NULL};
-
-static PyObject *py_lv_color_filter_dsc_t_dir(PyObject *self, PyObject *unused)
-{
-    (void)unused;
-    return lvpy_struct_dir(self, py_lv_color_filter_dsc_t_field_names, py_lv_color_filter_dsc_t_methods);
-}
-
-static PyMethodDef py_lv_color_filter_dsc_t_type_methods[] = {
-    {"__dir__", py_lv_color_filter_dsc_t_dir, METH_NOARGS, NULL},
-    {NULL}
-};
-
-static int py_lv_color_filter_dsc_t_setattro(PyObject *self, PyObject *name, PyObject *value)
-{
-    if (value == NULL) {
-        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
-        return -1;
-    }
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_color_filter_dsc_t *data = (lv_color_filter_dsc_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return -1;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return -1;
-    int result = -1;
-    lv_color_filter_dsc_t saved;
-    memcpy(&saved, data, sizeof(saved));
-    if (strcmp(attr, "filter_cb") == 0) { data->filter_cb = mp_lv_callback(value, lv_color_filter_dsc_t_filter_cb_callback, "lv_color_filter_dsc_t_filter_cb", &data->user_data, data, NULL, NULL); result = 0; }
-    if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
-    if (PyErr_Occurred()) {
-        memcpy(data, &saved, sizeof(saved));
-        return -1;
-    }
-    if (result < 0) {
-        PyErr_Format(PyExc_AttributeError, "'lv_color_filter_dsc_t' object has no attribute '%s'", attr);
-    }
-    return result;
-}
-
-static PyObject *py_lv_color_filter_dsc_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-    return make_new_lv_struct(type, args, kwds, sizeof(lv_color_filter_dsc_t));
-}
-
-static void py_lv_color_filter_dsc_t_dealloc(py_lv_struct_t *self)
-{
-    py_lv_struct_dealloc(self);
-}
-
-PyTypeObject py_lv_color_filter_dsc_t_type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "lvgl.lv_color_filter_dsc_t",
-    .tp_basicsize = sizeof(py_lv_struct_t),
-    .tp_dealloc = (destructor)py_lv_color_filter_dsc_t_dealloc,
-    .tp_getattro = (getter)py_lv_color_filter_dsc_t_getattro,
-    .tp_setattro = (setter)py_lv_color_filter_dsc_t_setattro,
-    .tp_new = py_lv_color_filter_dsc_t_new,
-    .tp_methods = py_lv_color_filter_dsc_t_type_methods,
-    .tp_base = &py_lv_base_struct_type,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-};
-
-static inline void* mp_write_ptr_lv_color_filter_dsc_t(PyObject *self_in)
-{
-    if (!self_in || self_in == Py_None) return NULL;
-    if (!PyObject_TypeCheck(self_in, &py_lv_color_filter_dsc_t_type)) {
-        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_color_filter_dsc_t, got '%s'", Py_TYPE(self_in)->tp_name);
-        return NULL;
-    }
-    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
-    return (lv_color_filter_dsc_t*)self->data;
-}
-
-static lv_color_filter_dsc_t mp_write_scratch_lv_color_filter_dsc_t;
-
-static inline void* mp_write_value_ptr_lv_color_filter_dsc_t(PyObject *value)
-{
-    if (value != NULL && PyDict_Check(value)) {
-        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_color_filter_dsc_t_type, value);
-        if (tmp != NULL) {
-            memcpy(&mp_write_scratch_lv_color_filter_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_color_filter_dsc_t));
-            Py_DECREF(tmp);
-            return &mp_write_scratch_lv_color_filter_dsc_t;
-        }
-    } else if (value != NULL && value != Py_None) {
-        void *p = mp_write_ptr_lv_color_filter_dsc_t(value);
-        if (p != NULL) return p;
-    } else {
-        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_color_filter_dsc_t or dict, got None");
-    }
-    memset(&mp_write_scratch_lv_color_filter_dsc_t, 0, sizeof(lv_color_filter_dsc_t));
-    return &mp_write_scratch_lv_color_filter_dsc_t;
-}
-
-#define mp_write_lv_color_filter_dsc_t(struct_obj) (*((lv_color_filter_dsc_t*)mp_write_value_ptr_lv_color_filter_dsc_t(struct_obj)))
-
-static inline PyObject *mp_read_ptr_lv_color_filter_dsc_t(void *field)
-{
-    return lv_to_mp_struct(&py_lv_color_filter_dsc_t_type, field);
-}
-
-#define mp_read_lv_color_filter_dsc_t(field) lv_to_mp_struct_own(&py_lv_color_filter_dsc_t_type, copy_buffer(&field, sizeof(lv_color_filter_dsc_t)))
-#define mp_read_byref_lv_color_filter_dsc_t(field) mp_read_ptr_lv_color_filter_dsc_t(&field)
-
-
-/*
- * lvgl extension definition for:
- * inline static const lv_color_filter_dsc_t *lv_obj_get_style_color_filter_dsc_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_color_filter_dsc_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
     lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
-    const lv_color_filter_dsc_t * _res;
     lvpy_lock();
-    _res = ((const lv_color_filter_dsc_t *(*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_color_filter_dsc_internal)(obj, part);
+    ((void (*)(lv_obj_t *))lv_obj_delete)(obj);
     lvpy_unlock();
     
     PyGILState_Release(gstate);
-    return mp_read_ptr_lv_color_filter_dsc_t((void*)_res);
+    Py_RETURN_NONE;
 }
 
-static PyMethodDef py_lv_obj_get_style_color_filter_dsc_internal_def = {
-    "lv_obj_get_style_color_filter_dsc_internal",
-    (PyCFunction)py_lv_obj_get_style_color_filter_dsc_internal,
+static PyMethodDef py_lv_obj_delete_def = {
+    "lv_obj_delete",
+    (PyCFunction)py_lv_obj_delete,
     METH_VARARGS | METH_KEYWORDS,
     NULL
 };
@@ -11508,61 +6621,27 @@ static PyMethodDef py_lv_obj_get_style_color_filter_dsc_internal_def = {
 
 /*
  * lvgl extension definition for:
- * inline static lv_opa_t lv_obj_get_style_color_filter_opa_internal(const lv_obj_t *obj, lv_part_t part)
+ * void lv_obj_clean(lv_obj_t *obj)
  */
-static PyObject *py_lv_obj_get_style_color_filter_opa_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+static PyObject *py_lv_obj_clean(PyObject *self, PyObject *py_args, PyObject *py_kwds)
 {
     PyGILState_STATE gstate = PyGILState_Ensure();
     (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_opa_t _res;
-    lvpy_lock();
-    _res = ((lv_opa_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_color_filter_opa_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_color_filter_opa_internal_def = {
-    "lv_obj_get_style_color_filter_opa_internal",
-    (PyCFunction)py_lv_obj_get_style_color_filter_opa_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
 
-
-/*
- * lvgl extension definition for:
- * inline static lv_color_t lv_obj_get_style_recolor_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_recolor_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
     lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
-    lv_color_t _res;
     lvpy_lock();
-    _res = ((lv_color_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_recolor_internal)(obj, part);
+    ((void (*)(lv_obj_t *))lv_obj_clean)(obj);
     lvpy_unlock();
     
     PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
+    Py_RETURN_NONE;
 }
 
-static PyMethodDef py_lv_obj_get_style_recolor_internal_def = {
-    "lv_obj_get_style_recolor_internal",
-    (PyCFunction)py_lv_obj_get_style_recolor_internal,
+static PyMethodDef py_lv_obj_clean_def = {
+    "lv_obj_clean",
+    (PyCFunction)py_lv_obj_clean,
     METH_VARARGS | METH_KEYWORDS,
     NULL
 };
@@ -11570,30 +6649,29 @@ static PyMethodDef py_lv_obj_get_style_recolor_internal_def = {
 
 /*
  * lvgl extension definition for:
- * inline static lv_opa_t lv_obj_get_style_recolor_opa_internal(const lv_obj_t *obj, lv_part_t part)
+ * void lv_obj_delete_delayed(lv_obj_t *obj, uint32_t delay_ms)
  */
-static PyObject *py_lv_obj_get_style_recolor_opa_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+static PyObject *py_lv_obj_delete_delayed(PyObject *self, PyObject *py_args, PyObject *py_kwds)
 {
     PyGILState_STATE gstate = PyGILState_Ensure();
     (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
+    long delay_ms_val;
+    if (!PyArg_ParseTuple(py_args, "l", &delay_ms_val)) { PyGILState_Release(gstate); return NULL; }
     lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
+    uint32_t delay_ms = (uint32_t)delay_ms_val;
     if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
     
-    lv_opa_t _res;
     lvpy_lock();
-    _res = ((lv_opa_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_recolor_opa_internal)(obj, part);
+    ((void (*)(lv_obj_t *, uint32_t))lv_obj_delete_delayed)(obj, delay_ms);
     lvpy_unlock();
     
     PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
+    Py_RETURN_NONE;
 }
 
-static PyMethodDef py_lv_obj_get_style_recolor_opa_internal_def = {
-    "lv_obj_get_style_recolor_opa_internal",
-    (PyCFunction)py_lv_obj_get_style_recolor_opa_internal,
+static PyMethodDef py_lv_obj_delete_delayed_def = {
+    "lv_obj_delete_delayed",
+    (PyCFunction)py_lv_obj_delete_delayed,
     METH_VARARGS | METH_KEYWORDS,
     NULL
 };
@@ -12078,1358 +7156,6 @@ static inline PyObject *mp_read_ptr_lv_anim_t(void *field)
 
 #define mp_read_lv_anim_t(field) lv_to_mp_struct_own(&py_lv_anim_t_type, copy_buffer(&field, sizeof(lv_anim_t)))
 #define mp_read_byref_lv_anim_t(field) mp_read_ptr_lv_anim_t(&field)
-
-
-/*
- * lvgl extension definition for:
- * inline static const lv_anim_t *lv_obj_get_style_anim_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_anim_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    const lv_anim_t * _res;
-    lvpy_lock();
-    _res = ((const lv_anim_t *(*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_anim_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_ptr_lv_anim_t((void*)_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_anim_internal_def = {
-    "lv_obj_get_style_anim_internal",
-    (PyCFunction)py_lv_obj_get_style_anim_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static uint32_t lv_obj_get_style_anim_duration_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_anim_duration_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    uint32_t _res;
-    lvpy_lock();
-    _res = ((uint32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_anim_duration_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_anim_duration_internal_def = {
-    "lv_obj_get_style_anim_duration_internal",
-    (PyCFunction)py_lv_obj_get_style_anim_duration_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * Function NOT generated:
- * Missing 'user_data' field for callback 'lv_style_transition_dsc_t_path_xcb'
- * lv_anim_path_cb_t path_xcb
- */
-    
-
-/*
- * Struct lv_style_transition_dsc_t (CPython)
- */
-
-extern PyMethodDef py_lv_style_transition_dsc_t_methods[];
-
-static PyObject *py_lv_style_transition_dsc_t_getattro(PyObject *self, PyObject *name)
-{
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_style_transition_dsc_t *data = (lv_style_transition_dsc_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return NULL;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return NULL;
-    if (strcmp(attr, "props") == 0) return ptr_to_mp((void*)data->props);
-    if (strcmp(attr, "user_data") == 0) return ptr_to_mp((void*)data->user_data);
-    if (strcmp(attr, "path_xcb") == 0) return mp_lv_funcptr(NULL, data->path_xcb, NULL, "lv_style_transition_dsc_t_path_xcb", NULL);
-    if (strcmp(attr, "time") == 0) return mp_obj_new_int_from_uint(data->time);
-    if (strcmp(attr, "delay") == 0) return mp_obj_new_int_from_uint(data->delay);
-    for (PyMethodDef *m = py_lv_style_transition_dsc_t_methods; m->ml_name != NULL; m++) {
-        if (strcmp(attr, m->ml_name) == 0)
-            return PyCFunction_NewEx(m, self, NULL);
-    }
-    return PyObject_GenericGetAttr((PyObject *)self, name);
-}
-
-static const char *const py_lv_style_transition_dsc_t_field_names[] = {"props", "user_data", "path_xcb", "time", "delay", NULL};
-
-static PyObject *py_lv_style_transition_dsc_t_dir(PyObject *self, PyObject *unused)
-{
-    (void)unused;
-    return lvpy_struct_dir(self, py_lv_style_transition_dsc_t_field_names, py_lv_style_transition_dsc_t_methods);
-}
-
-static PyMethodDef py_lv_style_transition_dsc_t_type_methods[] = {
-    {"__dir__", py_lv_style_transition_dsc_t_dir, METH_NOARGS, NULL},
-    {NULL}
-};
-
-static int py_lv_style_transition_dsc_t_setattro(PyObject *self, PyObject *name, PyObject *value)
-{
-    if (value == NULL) {
-        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
-        return -1;
-    }
-    py_lv_struct_t *inst = (py_lv_struct_t *)self;
-    lv_style_transition_dsc_t *data = (lv_style_transition_dsc_t*)inst->data;
-    if (data == NULL) {
-        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
-        return -1;
-    }
-    const char *attr = PyUnicode_AsUTF8(name);
-    if (attr == NULL) return -1;
-    int result = -1;
-    lv_style_transition_dsc_t saved;
-    memcpy(&saved, data, sizeof(saved));
-    if (strcmp(attr, "props") == 0) { data->props = (void*)mp_to_ptr(value); result = 0; }
-    if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
-    if (strcmp(attr, "path_xcb") == 0) { data->path_xcb = mp_lv_callback(value, NULL, "lv_style_transition_dsc_t_path_xcb", NULL, NULL, NULL, NULL); result = 0; }
-    if (strcmp(attr, "time") == 0) { data->time = (uint32_t)mp_obj_get_int(value); result = 0; }
-    if (strcmp(attr, "delay") == 0) { data->delay = (uint32_t)mp_obj_get_int(value); result = 0; }
-    if (PyErr_Occurred()) {
-        memcpy(data, &saved, sizeof(saved));
-        return -1;
-    }
-    if (result < 0) {
-        PyErr_Format(PyExc_AttributeError, "'lv_style_transition_dsc_t' object has no attribute '%s'", attr);
-    }
-    return result;
-}
-
-static PyObject *py_lv_style_transition_dsc_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-    return make_new_lv_struct(type, args, kwds, sizeof(lv_style_transition_dsc_t));
-}
-
-static void py_lv_style_transition_dsc_t_dealloc(py_lv_struct_t *self)
-{
-    py_lv_struct_dealloc(self);
-}
-
-PyTypeObject py_lv_style_transition_dsc_t_type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "lvgl.lv_style_transition_dsc_t",
-    .tp_basicsize = sizeof(py_lv_struct_t),
-    .tp_dealloc = (destructor)py_lv_style_transition_dsc_t_dealloc,
-    .tp_getattro = (getter)py_lv_style_transition_dsc_t_getattro,
-    .tp_setattro = (setter)py_lv_style_transition_dsc_t_setattro,
-    .tp_new = py_lv_style_transition_dsc_t_new,
-    .tp_methods = py_lv_style_transition_dsc_t_type_methods,
-    .tp_base = &py_lv_base_struct_type,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-};
-
-static inline void* mp_write_ptr_lv_style_transition_dsc_t(PyObject *self_in)
-{
-    if (!self_in || self_in == Py_None) return NULL;
-    if (!PyObject_TypeCheck(self_in, &py_lv_style_transition_dsc_t_type)) {
-        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_style_transition_dsc_t, got '%s'", Py_TYPE(self_in)->tp_name);
-        return NULL;
-    }
-    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
-    return (lv_style_transition_dsc_t*)self->data;
-}
-
-static lv_style_transition_dsc_t mp_write_scratch_lv_style_transition_dsc_t;
-
-static inline void* mp_write_value_ptr_lv_style_transition_dsc_t(PyObject *value)
-{
-    if (value != NULL && PyDict_Check(value)) {
-        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_style_transition_dsc_t_type, value);
-        if (tmp != NULL) {
-            memcpy(&mp_write_scratch_lv_style_transition_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_style_transition_dsc_t));
-            Py_DECREF(tmp);
-            return &mp_write_scratch_lv_style_transition_dsc_t;
-        }
-    } else if (value != NULL && value != Py_None) {
-        void *p = mp_write_ptr_lv_style_transition_dsc_t(value);
-        if (p != NULL) return p;
-    } else {
-        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_style_transition_dsc_t or dict, got None");
-    }
-    memset(&mp_write_scratch_lv_style_transition_dsc_t, 0, sizeof(lv_style_transition_dsc_t));
-    return &mp_write_scratch_lv_style_transition_dsc_t;
-}
-
-#define mp_write_lv_style_transition_dsc_t(struct_obj) (*((lv_style_transition_dsc_t*)mp_write_value_ptr_lv_style_transition_dsc_t(struct_obj)))
-
-static inline PyObject *mp_read_ptr_lv_style_transition_dsc_t(void *field)
-{
-    return lv_to_mp_struct(&py_lv_style_transition_dsc_t_type, field);
-}
-
-#define mp_read_lv_style_transition_dsc_t(field) lv_to_mp_struct_own(&py_lv_style_transition_dsc_t_type, copy_buffer(&field, sizeof(lv_style_transition_dsc_t)))
-#define mp_read_byref_lv_style_transition_dsc_t(field) mp_read_ptr_lv_style_transition_dsc_t(&field)
-
-
-/*
- * lvgl extension definition for:
- * inline static const lv_style_transition_dsc_t *lv_obj_get_style_transition_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_transition_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    const lv_style_transition_dsc_t * _res;
-    lvpy_lock();
-    _res = ((const lv_style_transition_dsc_t *(*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_transition_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_ptr_lv_style_transition_dsc_t((void*)_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_transition_internal_def = {
-    "lv_obj_get_style_transition_internal",
-    (PyCFunction)py_lv_obj_get_style_transition_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_blend_mode_t lv_obj_get_style_blend_mode_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_blend_mode_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_blend_mode_t _res;
-    lvpy_lock();
-    _res = ((lv_blend_mode_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_blend_mode_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_blend_mode_internal_def = {
-    "lv_obj_get_style_blend_mode_internal",
-    (PyCFunction)py_lv_obj_get_style_blend_mode_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static uint16_t lv_obj_get_style_layout_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_layout_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    uint16_t _res;
-    lvpy_lock();
-    _res = ((uint16_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_layout_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_layout_internal_def = {
-    "lv_obj_get_style_layout_internal",
-    (PyCFunction)py_lv_obj_get_style_layout_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_base_dir_t lv_obj_get_style_base_dir_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_base_dir_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_base_dir_t _res;
-    lvpy_lock();
-    _res = ((lv_base_dir_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_base_dir_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_base_dir_internal_def = {
-    "lv_obj_get_style_base_dir_internal",
-    (PyCFunction)py_lv_obj_get_style_base_dir_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static const void *lv_obj_get_style_bitmap_mask_src_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_bitmap_mask_src_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    const void * _res;
-    lvpy_lock();
-    _res = ((const void *(*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_bitmap_mask_src_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return ptr_to_mp((void*)_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_bitmap_mask_src_internal_def = {
-    "lv_obj_get_style_bitmap_mask_src_internal",
-    (PyCFunction)py_lv_obj_get_style_bitmap_mask_src_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static uint32_t lv_obj_get_style_rotary_sensitivity_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_rotary_sensitivity_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    uint32_t _res;
-    lvpy_lock();
-    _res = ((uint32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_rotary_sensitivity_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_rotary_sensitivity_internal_def = {
-    "lv_obj_get_style_rotary_sensitivity_internal",
-    (PyCFunction)py_lv_obj_get_style_rotary_sensitivity_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_flex_flow_t lv_obj_get_style_flex_flow_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_flex_flow_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_flex_flow_t _res;
-    lvpy_lock();
-    _res = ((lv_flex_flow_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_flex_flow_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_flex_flow_internal_def = {
-    "lv_obj_get_style_flex_flow_internal",
-    (PyCFunction)py_lv_obj_get_style_flex_flow_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_flex_align_t lv_obj_get_style_flex_main_place_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_flex_main_place_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_flex_align_t _res;
-    lvpy_lock();
-    _res = ((lv_flex_align_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_flex_main_place_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_flex_main_place_internal_def = {
-    "lv_obj_get_style_flex_main_place_internal",
-    (PyCFunction)py_lv_obj_get_style_flex_main_place_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_flex_align_t lv_obj_get_style_flex_cross_place_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_flex_cross_place_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_flex_align_t _res;
-    lvpy_lock();
-    _res = ((lv_flex_align_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_flex_cross_place_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_flex_cross_place_internal_def = {
-    "lv_obj_get_style_flex_cross_place_internal",
-    (PyCFunction)py_lv_obj_get_style_flex_cross_place_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_flex_align_t lv_obj_get_style_flex_track_place_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_flex_track_place_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_flex_align_t _res;
-    lvpy_lock();
-    _res = ((lv_flex_align_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_flex_track_place_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_flex_track_place_internal_def = {
-    "lv_obj_get_style_flex_track_place_internal",
-    (PyCFunction)py_lv_obj_get_style_flex_track_place_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static uint8_t lv_obj_get_style_flex_grow_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_flex_grow_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    uint8_t _res;
-    lvpy_lock();
-    _res = ((uint8_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_flex_grow_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_flex_grow_internal_def = {
-    "lv_obj_get_style_flex_grow_internal",
-    (PyCFunction)py_lv_obj_get_style_flex_grow_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static const int32_t *lv_obj_get_style_grid_column_dsc_array_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_grid_column_dsc_array_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    const int32_t * _res;
-    lvpy_lock();
-    _res = ((const int32_t *(*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_grid_column_dsc_array_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_array_from_i32ptr((void*)_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_grid_column_dsc_array_internal_def = {
-    "lv_obj_get_style_grid_column_dsc_array_internal",
-    (PyCFunction)py_lv_obj_get_style_grid_column_dsc_array_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_grid_align_t lv_obj_get_style_grid_column_align_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_grid_column_align_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_grid_align_t _res;
-    lvpy_lock();
-    _res = ((lv_grid_align_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_grid_column_align_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_grid_column_align_internal_def = {
-    "lv_obj_get_style_grid_column_align_internal",
-    (PyCFunction)py_lv_obj_get_style_grid_column_align_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static const int32_t *lv_obj_get_style_grid_row_dsc_array_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_grid_row_dsc_array_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    const int32_t * _res;
-    lvpy_lock();
-    _res = ((const int32_t *(*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_grid_row_dsc_array_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_array_from_i32ptr((void*)_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_grid_row_dsc_array_internal_def = {
-    "lv_obj_get_style_grid_row_dsc_array_internal",
-    (PyCFunction)py_lv_obj_get_style_grid_row_dsc_array_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_grid_align_t lv_obj_get_style_grid_row_align_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_grid_row_align_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_grid_align_t _res;
-    lvpy_lock();
-    _res = ((lv_grid_align_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_grid_row_align_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_grid_row_align_internal_def = {
-    "lv_obj_get_style_grid_row_align_internal",
-    (PyCFunction)py_lv_obj_get_style_grid_row_align_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_grid_cell_column_pos_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_grid_cell_column_pos_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_grid_cell_column_pos_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_grid_cell_column_pos_internal_def = {
-    "lv_obj_get_style_grid_cell_column_pos_internal",
-    (PyCFunction)py_lv_obj_get_style_grid_cell_column_pos_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_grid_align_t lv_obj_get_style_grid_cell_x_align_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_grid_cell_x_align_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_grid_align_t _res;
-    lvpy_lock();
-    _res = ((lv_grid_align_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_grid_cell_x_align_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_grid_cell_x_align_internal_def = {
-    "lv_obj_get_style_grid_cell_x_align_internal",
-    (PyCFunction)py_lv_obj_get_style_grid_cell_x_align_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_grid_cell_column_span_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_grid_cell_column_span_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_grid_cell_column_span_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_grid_cell_column_span_internal_def = {
-    "lv_obj_get_style_grid_cell_column_span_internal",
-    (PyCFunction)py_lv_obj_get_style_grid_cell_column_span_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_grid_cell_row_pos_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_grid_cell_row_pos_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_grid_cell_row_pos_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_grid_cell_row_pos_internal_def = {
-    "lv_obj_get_style_grid_cell_row_pos_internal",
-    (PyCFunction)py_lv_obj_get_style_grid_cell_row_pos_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_grid_align_t lv_obj_get_style_grid_cell_y_align_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_grid_cell_y_align_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_grid_align_t _res;
-    lvpy_lock();
-    _res = ((lv_grid_align_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_grid_cell_y_align_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_grid_cell_y_align_internal_def = {
-    "lv_obj_get_style_grid_cell_y_align_internal",
-    (PyCFunction)py_lv_obj_get_style_grid_cell_y_align_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_grid_cell_row_span_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_grid_cell_row_span_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_grid_cell_row_span_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_grid_cell_row_span_internal_def = {
-    "lv_obj_get_style_grid_cell_row_span_internal",
-    (PyCFunction)py_lv_obj_get_style_grid_cell_row_span_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static lv_text_align_t lv_obj_calculate_style_text_align_internal(const lv_obj_t *obj, lv_part_t part, const char *txt)
- */
-static PyObject *py_lv_obj_calculate_style_text_align_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py; PyObject *txt_py;
-    if (!PyArg_ParseTuple(py_args, "OO", &part_py, &txt_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    const char *txt = (const char *)(char*)convert_from_str(txt_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_text_align_t _res;
-    lvpy_lock();
-    _res = ((lv_text_align_t (*)(const lv_obj_t *, lv_part_t, const char *))lv_obj_calculate_style_text_align_internal)(obj, part, txt);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_calculate_style_text_align_internal_def = {
-    "lv_obj_calculate_style_text_align_internal",
-    (PyCFunction)py_lv_obj_calculate_style_text_align_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_space_left_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_space_left_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_space_left_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_space_left_internal_def = {
-    "lv_obj_get_style_space_left_internal",
-    (PyCFunction)py_lv_obj_get_style_space_left_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_space_right_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_space_right_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_space_right_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_space_right_internal_def = {
-    "lv_obj_get_style_space_right_internal",
-    (PyCFunction)py_lv_obj_get_style_space_right_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_space_top_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_space_top_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_space_top_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_space_top_internal_def = {
-    "lv_obj_get_style_space_top_internal",
-    (PyCFunction)py_lv_obj_get_style_space_top_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_space_bottom_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_space_bottom_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_space_bottom_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_space_bottom_internal_def = {
-    "lv_obj_get_style_space_bottom_internal",
-    (PyCFunction)py_lv_obj_get_style_space_bottom_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_transform_scale_x_safe_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_transform_scale_x_safe_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_transform_scale_x_safe_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_transform_scale_x_safe_internal_def = {
-    "lv_obj_get_style_transform_scale_x_safe_internal",
-    (PyCFunction)py_lv_obj_get_style_transform_scale_x_safe_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_obj_get_style_transform_scale_y_safe_internal(const lv_obj_t *obj, lv_part_t part)
- */
-static PyObject *py_lv_obj_get_style_transform_scale_y_safe_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py;
-    if (!PyArg_ParseTuple(py_args, "O", &part_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_obj_t *, lv_part_t))lv_obj_get_style_transform_scale_y_safe_internal)(obj, part);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_transform_scale_y_safe_internal_def = {
-    "lv_obj_get_style_transform_scale_y_safe_internal",
-    (PyCFunction)py_lv_obj_get_style_transform_scale_y_safe_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * void lv_obj_set_flex_flow(lv_obj_t *obj, lv_flex_flow_t flow)
- */
-static PyObject *py_lv_obj_set_flex_flow(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *flow_py;
-    if (!PyArg_ParseTuple(py_args, "O", &flow_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_flex_flow_t flow = (int)mp_obj_get_int(flow_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_obj_t *, lv_flex_flow_t))lv_obj_set_flex_flow)(obj, flow);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_obj_set_flex_flow_def = {
-    "lv_obj_set_flex_flow",
-    (PyCFunction)py_lv_obj_set_flex_flow,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * void lv_obj_set_flex_align(lv_obj_t *obj, lv_flex_align_t main_place, lv_flex_align_t cross_place, lv_flex_align_t track_cross_place)
- */
-static PyObject *py_lv_obj_set_flex_align(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *main_place_py; PyObject *cross_place_py; PyObject *track_cross_place_py;
-    if (!PyArg_ParseTuple(py_args, "OOO", &main_place_py, &cross_place_py, &track_cross_place_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_flex_align_t main_place = (int)mp_obj_get_int(main_place_py);
-    lv_flex_align_t cross_place = (int)mp_obj_get_int(cross_place_py);
-    lv_flex_align_t track_cross_place = (int)mp_obj_get_int(track_cross_place_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_obj_t *, lv_flex_align_t, lv_flex_align_t, lv_flex_align_t))lv_obj_set_flex_align)(obj, main_place, cross_place, track_cross_place);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_obj_set_flex_align_def = {
-    "lv_obj_set_flex_align",
-    (PyCFunction)py_lv_obj_set_flex_align,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * void lv_obj_set_flex_grow(lv_obj_t *obj, uint8_t grow)
- */
-static PyObject *py_lv_obj_set_flex_grow(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    long grow_val;
-    if (!PyArg_ParseTuple(py_args, "l", &grow_val)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    uint8_t grow = (uint8_t)grow_val;
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_obj_t *, uint8_t))lv_obj_set_flex_grow)(obj, grow);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_obj_set_flex_grow_def = {
-    "lv_obj_set_flex_grow",
-    (PyCFunction)py_lv_obj_set_flex_grow,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * void lv_obj_set_grid_dsc_array(lv_obj_t *obj, const int32_t col_dsc[], const int32_t row_dsc[])
- */
-static PyObject *py_lv_obj_set_grid_dsc_array(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *col_dsc_py; PyObject *row_dsc_py;
-    if (!PyArg_ParseTuple(py_args, "OO", &col_dsc_py, &row_dsc_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    const int32_t *col_dsc = (const int32_t *)mp_to_ptr(col_dsc_py);
-    const int32_t *row_dsc = (const int32_t *)mp_to_ptr(row_dsc_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_obj_t *, const int32_t [], const int32_t []))lv_obj_set_grid_dsc_array)(obj, col_dsc, row_dsc);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_obj_set_grid_dsc_array_def = {
-    "lv_obj_set_grid_dsc_array",
-    (PyCFunction)py_lv_obj_set_grid_dsc_array,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * void lv_obj_set_grid_align(lv_obj_t *obj, lv_grid_align_t column_align, lv_grid_align_t row_align)
- */
-static PyObject *py_lv_obj_set_grid_align(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *column_align_py; PyObject *row_align_py;
-    if (!PyArg_ParseTuple(py_args, "OO", &column_align_py, &row_align_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_grid_align_t column_align = (int)mp_obj_get_int(column_align_py);
-    lv_grid_align_t row_align = (int)mp_obj_get_int(row_align_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_obj_t *, lv_grid_align_t, lv_grid_align_t))lv_obj_set_grid_align)(obj, column_align, row_align);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_obj_set_grid_align_def = {
-    "lv_obj_set_grid_align",
-    (PyCFunction)py_lv_obj_set_grid_align,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * void lv_obj_set_grid_cell(lv_obj_t *obj, lv_grid_align_t column_align, int32_t col_pos, int32_t col_span, lv_grid_align_t row_align, int32_t row_pos, int32_t row_span)
- */
-static PyObject *py_lv_obj_set_grid_cell(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *column_align_py; long col_pos_val; long col_span_val; PyObject *row_align_py; long row_pos_val; long row_span_val;
-    if (!PyArg_ParseTuple(py_args, "OllOll", &column_align_py, &col_pos_val, &col_span_val, &row_align_py, &row_pos_val, &row_span_val)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_grid_align_t column_align = (int)mp_obj_get_int(column_align_py);
-    int32_t col_pos = (int32_t)col_pos_val;
-    int32_t col_span = (int32_t)col_span_val;
-    lv_grid_align_t row_align = (int)mp_obj_get_int(row_align_py);
-    int32_t row_pos = (int32_t)row_pos_val;
-    int32_t row_span = (int32_t)row_span_val;
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_obj_t *, lv_grid_align_t, int32_t, int32_t, lv_grid_align_t, int32_t, int32_t))lv_obj_set_grid_cell)(obj, column_align, col_pos, col_span, row_align, row_pos, row_span);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_obj_set_grid_cell_def = {
-    "lv_obj_set_grid_cell",
-    (PyCFunction)py_lv_obj_set_grid_cell,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * void lv_obj_delete(lv_obj_t *obj)
- */
-static PyObject *py_lv_obj_delete(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-
-    lv_obj_t *obj = mp_to_lv(self);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_obj_t *))lv_obj_delete)(obj);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_obj_delete_def = {
-    "lv_obj_delete",
-    (PyCFunction)py_lv_obj_delete,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * void lv_obj_clean(lv_obj_t *obj)
- */
-static PyObject *py_lv_obj_clean(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-
-    lv_obj_t *obj = mp_to_lv(self);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_obj_t *))lv_obj_clean)(obj);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_obj_clean_def = {
-    "lv_obj_clean",
-    (PyCFunction)py_lv_obj_clean,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * void lv_obj_delete_delayed(lv_obj_t *obj, uint32_t delay_ms)
- */
-static PyObject *py_lv_obj_delete_delayed(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    long delay_ms_val;
-    if (!PyArg_ParseTuple(py_args, "l", &delay_ms_val)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    uint32_t delay_ms = (uint32_t)delay_ms_val;
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_obj_t *, uint32_t))lv_obj_delete_delayed)(obj, delay_ms);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_obj_delete_delayed_def = {
-    "lv_obj_delete_delayed",
-    (PyCFunction)py_lv_obj_delete_delayed,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
 
 
 /*
@@ -15331,6 +9057,321 @@ static inline PyObject *mp_read_ptr_lv_event_list_t(void *field)
 static inline PyObject *mp_lv_funcptr_lv_theme_apply_cb_t(void *func){ return mp_lv_funcptr(NULL, func, NULL, "", NULL); }
 
 static void lv_theme_t_apply_cb_callback(lv_theme_t *, lv_obj_t *);
+
+/*
+ * Struct lv_color_t (CPython)
+ */
+
+extern PyMethodDef py_lv_color_t_methods[];
+
+static PyObject *py_lv_color_t_getattro(PyObject *self, PyObject *name)
+{
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_color_t *data = (lv_color_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return NULL;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return NULL;
+    if (strcmp(attr, "blue") == 0) return mp_obj_new_int_from_uint(data->blue);
+    if (strcmp(attr, "green") == 0) return mp_obj_new_int_from_uint(data->green);
+    if (strcmp(attr, "red") == 0) return mp_obj_new_int_from_uint(data->red);
+    for (PyMethodDef *m = py_lv_color_t_methods; m->ml_name != NULL; m++) {
+        if (strcmp(attr, m->ml_name) == 0)
+            return PyCFunction_NewEx(m, self, NULL);
+    }
+    return PyObject_GenericGetAttr((PyObject *)self, name);
+}
+
+static const char *const py_lv_color_t_field_names[] = {"blue", "green", "red", NULL};
+
+static PyObject *py_lv_color_t_dir(PyObject *self, PyObject *unused)
+{
+    (void)unused;
+    return lvpy_struct_dir(self, py_lv_color_t_field_names, py_lv_color_t_methods);
+}
+
+static PyMethodDef py_lv_color_t_type_methods[] = {
+    {"__dir__", py_lv_color_t_dir, METH_NOARGS, NULL},
+    {NULL}
+};
+
+static int py_lv_color_t_setattro(PyObject *self, PyObject *name, PyObject *value)
+{
+    if (value == NULL) {
+        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
+        return -1;
+    }
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_color_t *data = (lv_color_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return -1;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return -1;
+    int result = -1;
+    lv_color_t saved;
+    memcpy(&saved, data, sizeof(saved));
+    if (strcmp(attr, "blue") == 0) { data->blue = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (strcmp(attr, "green") == 0) { data->green = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (strcmp(attr, "red") == 0) { data->red = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
+    if (result < 0) {
+        PyErr_Format(PyExc_AttributeError, "'lv_color_t' object has no attribute '%s'", attr);
+    }
+    return result;
+}
+
+static PyObject *py_lv_color_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    return make_new_lv_struct(type, args, kwds, sizeof(lv_color_t));
+}
+
+static void py_lv_color_t_dealloc(py_lv_struct_t *self)
+{
+    py_lv_struct_dealloc(self);
+}
+
+PyTypeObject py_lv_color_t_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "lvgl.lv_color_t",
+    .tp_basicsize = sizeof(py_lv_struct_t),
+    .tp_dealloc = (destructor)py_lv_color_t_dealloc,
+    .tp_getattro = (getter)py_lv_color_t_getattro,
+    .tp_setattro = (setter)py_lv_color_t_setattro,
+    .tp_new = py_lv_color_t_new,
+    .tp_methods = py_lv_color_t_type_methods,
+    .tp_base = &py_lv_base_struct_type,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+};
+
+static inline void* mp_write_ptr_lv_color_t(PyObject *self_in)
+{
+    if (!self_in || self_in == Py_None) return NULL;
+    if (!PyObject_TypeCheck(self_in, &py_lv_color_t_type)) {
+        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_color_t, got '%s'", Py_TYPE(self_in)->tp_name);
+        return NULL;
+    }
+    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
+    return (lv_color_t*)self->data;
+}
+
+static lv_color_t mp_write_scratch_lv_color_t;
+
+static inline void* mp_write_value_ptr_lv_color_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_color_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_color_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_color_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_color_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_color_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_color_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_color_t, 0, sizeof(lv_color_t));
+    return &mp_write_scratch_lv_color_t;
+}
+
+#define mp_write_lv_color_t(struct_obj) (*((lv_color_t*)mp_write_value_ptr_lv_color_t(struct_obj)))
+
+static inline PyObject *mp_read_ptr_lv_color_t(void *field)
+{
+    return lv_to_mp_struct(&py_lv_color_t_type, field);
+}
+
+#define mp_read_lv_color_t(field) lv_to_mp_struct_own(&py_lv_color_t_type, copy_buffer(&field, sizeof(lv_color_t)))
+#define mp_read_byref_lv_color_t(field) mp_read_ptr_lv_color_t(&field)
+
+#define funcptr_get_glyph_dsc NULL
+
+static inline PyObject *mp_lv_funcptr_get_glyph_dsc(void *func){ return mp_lv_funcptr(NULL, func, NULL, "", NULL); }
+
+static bool lv_font_t_get_glyph_dsc_callback(const lv_font_t *font, lv_font_glyph_dsc_t *dsc_out, uint32_t letter, uint32_t letter_next);
+#define funcptr_get_glyph_bitmap NULL
+
+static inline PyObject *mp_lv_funcptr_get_glyph_bitmap(void *func){ return mp_lv_funcptr(NULL, func, NULL, "", NULL); }
+
+
+/*
+ * Function NOT generated:
+ * Missing 'user_data' field for callback 'lv_font_t_get_glyph_bitmap'
+ * const void *(*get_glyph_bitmap)(lv_font_glyph_dsc_t *g_dsc, lv_draw_buf_t *draw_buf)
+ */
+    
+#define funcptr_release_glyph NULL
+
+static inline PyObject *mp_lv_funcptr_release_glyph(void *func){ return mp_lv_funcptr(NULL, func, NULL, "", NULL); }
+
+static void lv_font_t_release_glyph_callback(const lv_font_t *font, lv_font_glyph_dsc_t *g_dsc);
+
+/*
+ * Struct lv_font_t (CPython)
+ */
+
+extern PyMethodDef py_lv_font_t_methods[];
+
+static PyObject *py_lv_font_t_getattro(PyObject *self, PyObject *name)
+{
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_font_t *data = (lv_font_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return NULL;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return NULL;
+    if (strcmp(attr, "dsc") == 0) return ptr_to_mp((void*)data->dsc);
+    if (strcmp(attr, "fallback") == 0) return ptr_to_mp((void*)data->fallback);
+    if (strcmp(attr, "user_data") == 0) return ptr_to_mp((void*)data->user_data);
+    if (strcmp(attr, "get_glyph_dsc") == 0) return mp_lv_funcptr(NULL, (void*)data->get_glyph_dsc, lv_font_t_get_glyph_dsc_callback, "lv_font_t_get_glyph_dsc", data->user_data);
+    if (strcmp(attr, "get_glyph_bitmap") == 0) return mp_lv_funcptr(NULL, (void*)data->get_glyph_bitmap, NULL, "lv_font_t_get_glyph_bitmap", NULL);
+    if (strcmp(attr, "release_glyph") == 0) return mp_lv_funcptr(NULL, (void*)data->release_glyph, lv_font_t_release_glyph_callback, "lv_font_t_release_glyph", data->user_data);
+    if (strcmp(attr, "line_height") == 0) return mp_obj_new_int(data->line_height);
+    if (strcmp(attr, "base_line") == 0) return mp_obj_new_int(data->base_line);
+    if (strcmp(attr, "cap_height") == 0) return mp_obj_new_int(data->cap_height);
+    if (strcmp(attr, "x_height") == 0) return mp_obj_new_int(data->x_height);
+    if (strcmp(attr, "subpx") == 0) return mp_obj_new_int_from_uint(data->subpx);
+    if (strcmp(attr, "kerning") == 0) return mp_obj_new_int_from_uint(data->kerning);
+    if (strcmp(attr, "static_bitmap") == 0) return mp_obj_new_int_from_uint(data->static_bitmap);
+    if (strcmp(attr, "underline_position") == 0) return mp_obj_new_int(data->underline_position);
+    if (strcmp(attr, "underline_thickness") == 0) return mp_obj_new_int(data->underline_thickness);
+    for (PyMethodDef *m = py_lv_font_t_methods; m->ml_name != NULL; m++) {
+        if (strcmp(attr, m->ml_name) == 0)
+            return PyCFunction_NewEx(m, self, NULL);
+    }
+    return PyObject_GenericGetAttr((PyObject *)self, name);
+}
+
+static const char *const py_lv_font_t_field_names[] = {"dsc", "fallback", "user_data", "get_glyph_dsc", "get_glyph_bitmap", "release_glyph", "line_height", "base_line", "cap_height", "x_height", "subpx", "kerning", "static_bitmap", "underline_position", "underline_thickness", NULL};
+
+static PyObject *py_lv_font_t_dir(PyObject *self, PyObject *unused)
+{
+    (void)unused;
+    return lvpy_struct_dir(self, py_lv_font_t_field_names, py_lv_font_t_methods);
+}
+
+static PyMethodDef py_lv_font_t_type_methods[] = {
+    {"__dir__", py_lv_font_t_dir, METH_NOARGS, NULL},
+    {NULL}
+};
+
+static int py_lv_font_t_setattro(PyObject *self, PyObject *name, PyObject *value)
+{
+    if (value == NULL) {
+        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
+        return -1;
+    }
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_font_t *data = (lv_font_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return -1;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return -1;
+    int result = -1;
+    lv_font_t saved;
+    memcpy(&saved, data, sizeof(saved));
+    if (strcmp(attr, "dsc") == 0) { data->dsc = (void*)mp_to_ptr(value); result = 0; }
+    if (strcmp(attr, "fallback") == 0) { data->fallback = (void*)mp_to_ptr(value); result = 0; }
+    if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
+    if (strcmp(attr, "get_glyph_dsc") == 0) { data->get_glyph_dsc = (void*)mp_lv_callback(value, lv_font_t_get_glyph_dsc_callback, "lv_font_t_get_glyph_dsc", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "get_glyph_bitmap") == 0) { data->get_glyph_bitmap = (void*)mp_lv_callback(value, NULL, "lv_font_t_get_glyph_bitmap", NULL, NULL, NULL, NULL); result = 0; }
+    if (strcmp(attr, "release_glyph") == 0) { data->release_glyph = (void*)mp_lv_callback(value, lv_font_t_release_glyph_callback, "lv_font_t_release_glyph", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "line_height") == 0) { data->line_height = (int32_t)mp_obj_get_int(value); result = 0; }
+    if (strcmp(attr, "base_line") == 0) { data->base_line = (int32_t)mp_obj_get_int(value); result = 0; }
+    if (strcmp(attr, "cap_height") == 0) { data->cap_height = (int32_t)mp_obj_get_int(value); result = 0; }
+    if (strcmp(attr, "x_height") == 0) { data->x_height = (int32_t)mp_obj_get_int(value); result = 0; }
+    if (strcmp(attr, "subpx") == 0) { data->subpx = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (strcmp(attr, "kerning") == 0) { data->kerning = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (strcmp(attr, "static_bitmap") == 0) { data->static_bitmap = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (strcmp(attr, "underline_position") == 0) { data->underline_position = (int8_t)mp_obj_get_int(value); result = 0; }
+    if (strcmp(attr, "underline_thickness") == 0) { data->underline_thickness = (int8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
+    if (result < 0) {
+        PyErr_Format(PyExc_AttributeError, "'lv_font_t' object has no attribute '%s'", attr);
+    }
+    return result;
+}
+
+static PyObject *py_lv_font_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    return make_new_lv_struct(type, args, kwds, sizeof(lv_font_t));
+}
+
+static void py_lv_font_t_dealloc(py_lv_struct_t *self)
+{
+    py_lv_struct_dealloc(self);
+}
+
+PyTypeObject py_lv_font_t_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "lvgl.lv_font_t",
+    .tp_basicsize = sizeof(py_lv_struct_t),
+    .tp_dealloc = (destructor)py_lv_font_t_dealloc,
+    .tp_getattro = (getter)py_lv_font_t_getattro,
+    .tp_setattro = (setter)py_lv_font_t_setattro,
+    .tp_new = py_lv_font_t_new,
+    .tp_methods = py_lv_font_t_type_methods,
+    .tp_base = &py_lv_base_struct_type,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+};
+
+static inline void* mp_write_ptr_lv_font_t(PyObject *self_in)
+{
+    if (!self_in || self_in == Py_None) return NULL;
+    if (!PyObject_TypeCheck(self_in, &py_lv_font_t_type)) {
+        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_font_t, got '%s'", Py_TYPE(self_in)->tp_name);
+        return NULL;
+    }
+    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
+    return (lv_font_t*)self->data;
+}
+
+static lv_font_t mp_write_scratch_lv_font_t;
+
+static inline void* mp_write_value_ptr_lv_font_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_font_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_font_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_font_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_font_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_font_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_font_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_font_t, 0, sizeof(lv_font_t));
+    return &mp_write_scratch_lv_font_t;
+}
+
+#define mp_write_lv_font_t(struct_obj) (*((lv_font_t*)mp_write_value_ptr_lv_font_t(struct_obj)))
+
+static inline PyObject *mp_read_ptr_lv_font_t(void *field)
+{
+    return lv_to_mp_struct(&py_lv_font_t_type, field);
+}
+
+#define mp_read_lv_font_t(field) lv_to_mp_struct_own(&py_lv_font_t_type, copy_buffer(&field, sizeof(lv_font_t)))
+#define mp_read_byref_lv_font_t(field) mp_read_ptr_lv_font_t(&field)
+
 
 /*
  * Struct lv_theme_t (CPython)
@@ -17893,6 +11934,139 @@ static PyMethodDef py_lv_obj_get_transform_def = {
     METH_VARARGS | METH_KEYWORDS,
     NULL
 };
+
+
+/*
+ * Struct lv_point_t (CPython)
+ */
+
+extern PyMethodDef py_lv_point_t_methods[];
+
+static PyObject *py_lv_point_t_getattro(PyObject *self, PyObject *name)
+{
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_point_t *data = (lv_point_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return NULL;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return NULL;
+    if (strcmp(attr, "x") == 0) return mp_obj_new_int(data->x);
+    if (strcmp(attr, "y") == 0) return mp_obj_new_int(data->y);
+    for (PyMethodDef *m = py_lv_point_t_methods; m->ml_name != NULL; m++) {
+        if (strcmp(attr, m->ml_name) == 0)
+            return PyCFunction_NewEx(m, self, NULL);
+    }
+    return PyObject_GenericGetAttr((PyObject *)self, name);
+}
+
+static const char *const py_lv_point_t_field_names[] = {"x", "y", NULL};
+
+static PyObject *py_lv_point_t_dir(PyObject *self, PyObject *unused)
+{
+    (void)unused;
+    return lvpy_struct_dir(self, py_lv_point_t_field_names, py_lv_point_t_methods);
+}
+
+static PyMethodDef py_lv_point_t_type_methods[] = {
+    {"__dir__", py_lv_point_t_dir, METH_NOARGS, NULL},
+    {NULL}
+};
+
+static int py_lv_point_t_setattro(PyObject *self, PyObject *name, PyObject *value)
+{
+    if (value == NULL) {
+        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
+        return -1;
+    }
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_point_t *data = (lv_point_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return -1;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return -1;
+    int result = -1;
+    lv_point_t saved;
+    memcpy(&saved, data, sizeof(saved));
+    if (strcmp(attr, "x") == 0) { data->x = (int32_t)mp_obj_get_int(value); result = 0; }
+    if (strcmp(attr, "y") == 0) { data->y = (int32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
+    if (result < 0) {
+        PyErr_Format(PyExc_AttributeError, "'lv_point_t' object has no attribute '%s'", attr);
+    }
+    return result;
+}
+
+static PyObject *py_lv_point_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    return make_new_lv_struct(type, args, kwds, sizeof(lv_point_t));
+}
+
+static void py_lv_point_t_dealloc(py_lv_struct_t *self)
+{
+    py_lv_struct_dealloc(self);
+}
+
+PyTypeObject py_lv_point_t_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "lvgl.lv_point_t",
+    .tp_basicsize = sizeof(py_lv_struct_t),
+    .tp_dealloc = (destructor)py_lv_point_t_dealloc,
+    .tp_getattro = (getter)py_lv_point_t_getattro,
+    .tp_setattro = (setter)py_lv_point_t_setattro,
+    .tp_new = py_lv_point_t_new,
+    .tp_methods = py_lv_point_t_type_methods,
+    .tp_base = &py_lv_base_struct_type,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+};
+
+static inline void* mp_write_ptr_lv_point_t(PyObject *self_in)
+{
+    if (!self_in || self_in == Py_None) return NULL;
+    if (!PyObject_TypeCheck(self_in, &py_lv_point_t_type)) {
+        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_point_t, got '%s'", Py_TYPE(self_in)->tp_name);
+        return NULL;
+    }
+    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
+    return (lv_point_t*)self->data;
+}
+
+static lv_point_t mp_write_scratch_lv_point_t;
+
+static inline void* mp_write_value_ptr_lv_point_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_point_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_point_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_point_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_point_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_point_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_point_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_point_t, 0, sizeof(lv_point_t));
+    return &mp_write_scratch_lv_point_t;
+}
+
+#define mp_write_lv_point_t(struct_obj) (*((lv_point_t*)mp_write_value_ptr_lv_point_t(struct_obj)))
+
+static inline PyObject *mp_read_ptr_lv_point_t(void *field)
+{
+    return lv_to_mp_struct(&py_lv_point_t_type, field);
+}
+
+#define mp_read_lv_point_t(field) lv_to_mp_struct_own(&py_lv_point_t_type, copy_buffer(&field, sizeof(lv_point_t)))
+#define mp_read_byref_lv_point_t(field) mp_read_ptr_lv_point_t(&field)
 
 
 /*
@@ -21327,6 +15501,826 @@ static PyMethodDef py_lv_obj_get_style_bg_grad_opa_def = {
 
 
 /*
+ * Struct lv_grad_stop_t (CPython)
+ */
+
+extern PyMethodDef py_lv_grad_stop_t_methods[];
+
+static PyObject *py_lv_grad_stop_t_getattro(PyObject *self, PyObject *name)
+{
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_grad_stop_t *data = (lv_grad_stop_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return NULL;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return NULL;
+    if (strcmp(attr, "color") == 0) return mp_read_byref_lv_color_t(data->color);
+    if (strcmp(attr, "opa") == 0) return mp_obj_new_int_from_uint(data->opa);
+    if (strcmp(attr, "frac") == 0) return mp_obj_new_int_from_uint(data->frac);
+    for (PyMethodDef *m = py_lv_grad_stop_t_methods; m->ml_name != NULL; m++) {
+        if (strcmp(attr, m->ml_name) == 0)
+            return PyCFunction_NewEx(m, self, NULL);
+    }
+    return PyObject_GenericGetAttr((PyObject *)self, name);
+}
+
+static const char *const py_lv_grad_stop_t_field_names[] = {"color", "opa", "frac", NULL};
+
+static PyObject *py_lv_grad_stop_t_dir(PyObject *self, PyObject *unused)
+{
+    (void)unused;
+    return lvpy_struct_dir(self, py_lv_grad_stop_t_field_names, py_lv_grad_stop_t_methods);
+}
+
+static PyMethodDef py_lv_grad_stop_t_type_methods[] = {
+    {"__dir__", py_lv_grad_stop_t_dir, METH_NOARGS, NULL},
+    {NULL}
+};
+
+static int py_lv_grad_stop_t_setattro(PyObject *self, PyObject *name, PyObject *value)
+{
+    if (value == NULL) {
+        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
+        return -1;
+    }
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_grad_stop_t *data = (lv_grad_stop_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return -1;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return -1;
+    int result = -1;
+    lv_grad_stop_t saved;
+    memcpy(&saved, data, sizeof(saved));
+    if (strcmp(attr, "color") == 0) { data->color = mp_write_lv_color_t(value); result = 0; }
+    if (strcmp(attr, "opa") == 0) { data->opa = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (strcmp(attr, "frac") == 0) { data->frac = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
+    if (result < 0) {
+        PyErr_Format(PyExc_AttributeError, "'lv_grad_stop_t' object has no attribute '%s'", attr);
+    }
+    return result;
+}
+
+static PyObject *py_lv_grad_stop_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    return make_new_lv_struct(type, args, kwds, sizeof(lv_grad_stop_t));
+}
+
+static void py_lv_grad_stop_t_dealloc(py_lv_struct_t *self)
+{
+    py_lv_struct_dealloc(self);
+}
+
+PyTypeObject py_lv_grad_stop_t_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "lvgl.lv_grad_stop_t",
+    .tp_basicsize = sizeof(py_lv_struct_t),
+    .tp_dealloc = (destructor)py_lv_grad_stop_t_dealloc,
+    .tp_getattro = (getter)py_lv_grad_stop_t_getattro,
+    .tp_setattro = (setter)py_lv_grad_stop_t_setattro,
+    .tp_new = py_lv_grad_stop_t_new,
+    .tp_methods = py_lv_grad_stop_t_type_methods,
+    .tp_base = &py_lv_base_struct_type,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+};
+
+static inline void* mp_write_ptr_lv_grad_stop_t(PyObject *self_in)
+{
+    if (!self_in || self_in == Py_None) return NULL;
+    if (!PyObject_TypeCheck(self_in, &py_lv_grad_stop_t_type)) {
+        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_grad_stop_t, got '%s'", Py_TYPE(self_in)->tp_name);
+        return NULL;
+    }
+    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
+    return (lv_grad_stop_t*)self->data;
+}
+
+static lv_grad_stop_t mp_write_scratch_lv_grad_stop_t;
+
+static inline void* mp_write_value_ptr_lv_grad_stop_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_grad_stop_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_grad_stop_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_grad_stop_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_grad_stop_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_grad_stop_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_grad_stop_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_grad_stop_t, 0, sizeof(lv_grad_stop_t));
+    return &mp_write_scratch_lv_grad_stop_t;
+}
+
+#define mp_write_lv_grad_stop_t(struct_obj) (*((lv_grad_stop_t*)mp_write_value_ptr_lv_grad_stop_t(struct_obj)))
+
+static inline PyObject *mp_read_ptr_lv_grad_stop_t(void *field)
+{
+    return lv_to_mp_struct(&py_lv_grad_stop_t_type, field);
+}
+
+#define mp_read_lv_grad_stop_t(field) lv_to_mp_struct_own(&py_lv_grad_stop_t_type, copy_buffer(&field, sizeof(lv_grad_stop_t)))
+#define mp_read_byref_lv_grad_stop_t(field) mp_read_ptr_lv_grad_stop_t(&field)
+
+typedef __typeof__( ((lv_grad_dsc_t*)(0))->params ) lv_grad_dsc_params_t;
+typedef __typeof__( ((lv_grad_dsc_params_t*)(0))->linear ) lv_grad_dsc_params_linear_t;
+
+/*
+ * Struct lv_grad_dsc_params_linear_t (CPython)
+ */
+
+extern PyMethodDef py_lv_grad_dsc_params_linear_t_methods[];
+
+static PyObject *py_lv_grad_dsc_params_linear_t_getattro(PyObject *self, PyObject *name)
+{
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_grad_dsc_params_linear_t *data = (lv_grad_dsc_params_linear_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return NULL;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return NULL;
+    if (strcmp(attr, "start") == 0) return mp_read_byref_lv_point_t(data->start);
+    if (strcmp(attr, "end") == 0) return mp_read_byref_lv_point_t(data->end);
+    for (PyMethodDef *m = py_lv_grad_dsc_params_linear_t_methods; m->ml_name != NULL; m++) {
+        if (strcmp(attr, m->ml_name) == 0)
+            return PyCFunction_NewEx(m, self, NULL);
+    }
+    return PyObject_GenericGetAttr((PyObject *)self, name);
+}
+
+static const char *const py_lv_grad_dsc_params_linear_t_field_names[] = {"start", "end", NULL};
+
+static PyObject *py_lv_grad_dsc_params_linear_t_dir(PyObject *self, PyObject *unused)
+{
+    (void)unused;
+    return lvpy_struct_dir(self, py_lv_grad_dsc_params_linear_t_field_names, py_lv_grad_dsc_params_linear_t_methods);
+}
+
+static PyMethodDef py_lv_grad_dsc_params_linear_t_type_methods[] = {
+    {"__dir__", py_lv_grad_dsc_params_linear_t_dir, METH_NOARGS, NULL},
+    {NULL}
+};
+
+static int py_lv_grad_dsc_params_linear_t_setattro(PyObject *self, PyObject *name, PyObject *value)
+{
+    if (value == NULL) {
+        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
+        return -1;
+    }
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_grad_dsc_params_linear_t *data = (lv_grad_dsc_params_linear_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return -1;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return -1;
+    int result = -1;
+    lv_grad_dsc_params_linear_t saved;
+    memcpy(&saved, data, sizeof(saved));
+    if (strcmp(attr, "start") == 0) { data->start = mp_write_lv_point_t(value); result = 0; }
+    if (strcmp(attr, "end") == 0) { data->end = mp_write_lv_point_t(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
+    if (result < 0) {
+        PyErr_Format(PyExc_AttributeError, "'lv_grad_dsc_params_linear_t' object has no attribute '%s'", attr);
+    }
+    return result;
+}
+
+static PyObject *py_lv_grad_dsc_params_linear_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    return make_new_lv_struct(type, args, kwds, sizeof(lv_grad_dsc_params_linear_t));
+}
+
+static void py_lv_grad_dsc_params_linear_t_dealloc(py_lv_struct_t *self)
+{
+    py_lv_struct_dealloc(self);
+}
+
+PyTypeObject py_lv_grad_dsc_params_linear_t_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "lvgl.lv_grad_dsc_params_linear_t",
+    .tp_basicsize = sizeof(py_lv_struct_t),
+    .tp_dealloc = (destructor)py_lv_grad_dsc_params_linear_t_dealloc,
+    .tp_getattro = (getter)py_lv_grad_dsc_params_linear_t_getattro,
+    .tp_setattro = (setter)py_lv_grad_dsc_params_linear_t_setattro,
+    .tp_new = py_lv_grad_dsc_params_linear_t_new,
+    .tp_methods = py_lv_grad_dsc_params_linear_t_type_methods,
+    .tp_base = &py_lv_base_struct_type,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+};
+
+static inline void* mp_write_ptr_lv_grad_dsc_params_linear_t(PyObject *self_in)
+{
+    if (!self_in || self_in == Py_None) return NULL;
+    if (!PyObject_TypeCheck(self_in, &py_lv_grad_dsc_params_linear_t_type)) {
+        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_params_linear_t, got '%s'", Py_TYPE(self_in)->tp_name);
+        return NULL;
+    }
+    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
+    return (lv_grad_dsc_params_linear_t*)self->data;
+}
+
+static lv_grad_dsc_params_linear_t mp_write_scratch_lv_grad_dsc_params_linear_t;
+
+static inline void* mp_write_value_ptr_lv_grad_dsc_params_linear_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_grad_dsc_params_linear_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_grad_dsc_params_linear_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_grad_dsc_params_linear_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_grad_dsc_params_linear_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_grad_dsc_params_linear_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_params_linear_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_grad_dsc_params_linear_t, 0, sizeof(lv_grad_dsc_params_linear_t));
+    return &mp_write_scratch_lv_grad_dsc_params_linear_t;
+}
+
+#define mp_write_lv_grad_dsc_params_linear_t(struct_obj) (*((lv_grad_dsc_params_linear_t*)mp_write_value_ptr_lv_grad_dsc_params_linear_t(struct_obj)))
+
+static inline PyObject *mp_read_ptr_lv_grad_dsc_params_linear_t(void *field)
+{
+    return lv_to_mp_struct(&py_lv_grad_dsc_params_linear_t_type, field);
+}
+
+#define mp_read_lv_grad_dsc_params_linear_t(field) lv_to_mp_struct_own(&py_lv_grad_dsc_params_linear_t_type, copy_buffer(&field, sizeof(lv_grad_dsc_params_linear_t)))
+#define mp_read_byref_lv_grad_dsc_params_linear_t(field) mp_read_ptr_lv_grad_dsc_params_linear_t(&field)
+
+typedef __typeof__( ((lv_grad_dsc_params_t*)(0))->radial ) lv_grad_dsc_params_radial_t;
+
+/*
+ * Struct lv_grad_dsc_params_radial_t (CPython)
+ */
+
+extern PyMethodDef py_lv_grad_dsc_params_radial_t_methods[];
+
+static PyObject *py_lv_grad_dsc_params_radial_t_getattro(PyObject *self, PyObject *name)
+{
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_grad_dsc_params_radial_t *data = (lv_grad_dsc_params_radial_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return NULL;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return NULL;
+    if (strcmp(attr, "focal") == 0) return mp_read_byref_lv_point_t(data->focal);
+    if (strcmp(attr, "focal_extent") == 0) return mp_read_byref_lv_point_t(data->focal_extent);
+    if (strcmp(attr, "end") == 0) return mp_read_byref_lv_point_t(data->end);
+    if (strcmp(attr, "end_extent") == 0) return mp_read_byref_lv_point_t(data->end_extent);
+    for (PyMethodDef *m = py_lv_grad_dsc_params_radial_t_methods; m->ml_name != NULL; m++) {
+        if (strcmp(attr, m->ml_name) == 0)
+            return PyCFunction_NewEx(m, self, NULL);
+    }
+    return PyObject_GenericGetAttr((PyObject *)self, name);
+}
+
+static const char *const py_lv_grad_dsc_params_radial_t_field_names[] = {"focal", "focal_extent", "end", "end_extent", NULL};
+
+static PyObject *py_lv_grad_dsc_params_radial_t_dir(PyObject *self, PyObject *unused)
+{
+    (void)unused;
+    return lvpy_struct_dir(self, py_lv_grad_dsc_params_radial_t_field_names, py_lv_grad_dsc_params_radial_t_methods);
+}
+
+static PyMethodDef py_lv_grad_dsc_params_radial_t_type_methods[] = {
+    {"__dir__", py_lv_grad_dsc_params_radial_t_dir, METH_NOARGS, NULL},
+    {NULL}
+};
+
+static int py_lv_grad_dsc_params_radial_t_setattro(PyObject *self, PyObject *name, PyObject *value)
+{
+    if (value == NULL) {
+        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
+        return -1;
+    }
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_grad_dsc_params_radial_t *data = (lv_grad_dsc_params_radial_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return -1;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return -1;
+    int result = -1;
+    lv_grad_dsc_params_radial_t saved;
+    memcpy(&saved, data, sizeof(saved));
+    if (strcmp(attr, "focal") == 0) { data->focal = mp_write_lv_point_t(value); result = 0; }
+    if (strcmp(attr, "focal_extent") == 0) { data->focal_extent = mp_write_lv_point_t(value); result = 0; }
+    if (strcmp(attr, "end") == 0) { data->end = mp_write_lv_point_t(value); result = 0; }
+    if (strcmp(attr, "end_extent") == 0) { data->end_extent = mp_write_lv_point_t(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
+    if (result < 0) {
+        PyErr_Format(PyExc_AttributeError, "'lv_grad_dsc_params_radial_t' object has no attribute '%s'", attr);
+    }
+    return result;
+}
+
+static PyObject *py_lv_grad_dsc_params_radial_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    return make_new_lv_struct(type, args, kwds, sizeof(lv_grad_dsc_params_radial_t));
+}
+
+static void py_lv_grad_dsc_params_radial_t_dealloc(py_lv_struct_t *self)
+{
+    py_lv_struct_dealloc(self);
+}
+
+PyTypeObject py_lv_grad_dsc_params_radial_t_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "lvgl.lv_grad_dsc_params_radial_t",
+    .tp_basicsize = sizeof(py_lv_struct_t),
+    .tp_dealloc = (destructor)py_lv_grad_dsc_params_radial_t_dealloc,
+    .tp_getattro = (getter)py_lv_grad_dsc_params_radial_t_getattro,
+    .tp_setattro = (setter)py_lv_grad_dsc_params_radial_t_setattro,
+    .tp_new = py_lv_grad_dsc_params_radial_t_new,
+    .tp_methods = py_lv_grad_dsc_params_radial_t_type_methods,
+    .tp_base = &py_lv_base_struct_type,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+};
+
+static inline void* mp_write_ptr_lv_grad_dsc_params_radial_t(PyObject *self_in)
+{
+    if (!self_in || self_in == Py_None) return NULL;
+    if (!PyObject_TypeCheck(self_in, &py_lv_grad_dsc_params_radial_t_type)) {
+        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_params_radial_t, got '%s'", Py_TYPE(self_in)->tp_name);
+        return NULL;
+    }
+    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
+    return (lv_grad_dsc_params_radial_t*)self->data;
+}
+
+static lv_grad_dsc_params_radial_t mp_write_scratch_lv_grad_dsc_params_radial_t;
+
+static inline void* mp_write_value_ptr_lv_grad_dsc_params_radial_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_grad_dsc_params_radial_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_grad_dsc_params_radial_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_grad_dsc_params_radial_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_grad_dsc_params_radial_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_grad_dsc_params_radial_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_params_radial_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_grad_dsc_params_radial_t, 0, sizeof(lv_grad_dsc_params_radial_t));
+    return &mp_write_scratch_lv_grad_dsc_params_radial_t;
+}
+
+#define mp_write_lv_grad_dsc_params_radial_t(struct_obj) (*((lv_grad_dsc_params_radial_t*)mp_write_value_ptr_lv_grad_dsc_params_radial_t(struct_obj)))
+
+static inline PyObject *mp_read_ptr_lv_grad_dsc_params_radial_t(void *field)
+{
+    return lv_to_mp_struct(&py_lv_grad_dsc_params_radial_t_type, field);
+}
+
+#define mp_read_lv_grad_dsc_params_radial_t(field) lv_to_mp_struct_own(&py_lv_grad_dsc_params_radial_t_type, copy_buffer(&field, sizeof(lv_grad_dsc_params_radial_t)))
+#define mp_read_byref_lv_grad_dsc_params_radial_t(field) mp_read_ptr_lv_grad_dsc_params_radial_t(&field)
+
+typedef __typeof__( ((lv_grad_dsc_params_t*)(0))->conical ) lv_grad_dsc_params_conical_t;
+
+/*
+ * Struct lv_grad_dsc_params_conical_t (CPython)
+ */
+
+extern PyMethodDef py_lv_grad_dsc_params_conical_t_methods[];
+
+static PyObject *py_lv_grad_dsc_params_conical_t_getattro(PyObject *self, PyObject *name)
+{
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_grad_dsc_params_conical_t *data = (lv_grad_dsc_params_conical_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return NULL;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return NULL;
+    if (strcmp(attr, "center") == 0) return mp_read_byref_lv_point_t(data->center);
+    if (strcmp(attr, "start_angle") == 0) return mp_obj_new_int(data->start_angle);
+    if (strcmp(attr, "end_angle") == 0) return mp_obj_new_int(data->end_angle);
+    for (PyMethodDef *m = py_lv_grad_dsc_params_conical_t_methods; m->ml_name != NULL; m++) {
+        if (strcmp(attr, m->ml_name) == 0)
+            return PyCFunction_NewEx(m, self, NULL);
+    }
+    return PyObject_GenericGetAttr((PyObject *)self, name);
+}
+
+static const char *const py_lv_grad_dsc_params_conical_t_field_names[] = {"center", "start_angle", "end_angle", NULL};
+
+static PyObject *py_lv_grad_dsc_params_conical_t_dir(PyObject *self, PyObject *unused)
+{
+    (void)unused;
+    return lvpy_struct_dir(self, py_lv_grad_dsc_params_conical_t_field_names, py_lv_grad_dsc_params_conical_t_methods);
+}
+
+static PyMethodDef py_lv_grad_dsc_params_conical_t_type_methods[] = {
+    {"__dir__", py_lv_grad_dsc_params_conical_t_dir, METH_NOARGS, NULL},
+    {NULL}
+};
+
+static int py_lv_grad_dsc_params_conical_t_setattro(PyObject *self, PyObject *name, PyObject *value)
+{
+    if (value == NULL) {
+        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
+        return -1;
+    }
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_grad_dsc_params_conical_t *data = (lv_grad_dsc_params_conical_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return -1;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return -1;
+    int result = -1;
+    lv_grad_dsc_params_conical_t saved;
+    memcpy(&saved, data, sizeof(saved));
+    if (strcmp(attr, "center") == 0) { data->center = mp_write_lv_point_t(value); result = 0; }
+    if (strcmp(attr, "start_angle") == 0) { data->start_angle = (int16_t)mp_obj_get_int(value); result = 0; }
+    if (strcmp(attr, "end_angle") == 0) { data->end_angle = (int16_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
+    if (result < 0) {
+        PyErr_Format(PyExc_AttributeError, "'lv_grad_dsc_params_conical_t' object has no attribute '%s'", attr);
+    }
+    return result;
+}
+
+static PyObject *py_lv_grad_dsc_params_conical_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    return make_new_lv_struct(type, args, kwds, sizeof(lv_grad_dsc_params_conical_t));
+}
+
+static void py_lv_grad_dsc_params_conical_t_dealloc(py_lv_struct_t *self)
+{
+    py_lv_struct_dealloc(self);
+}
+
+PyTypeObject py_lv_grad_dsc_params_conical_t_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "lvgl.lv_grad_dsc_params_conical_t",
+    .tp_basicsize = sizeof(py_lv_struct_t),
+    .tp_dealloc = (destructor)py_lv_grad_dsc_params_conical_t_dealloc,
+    .tp_getattro = (getter)py_lv_grad_dsc_params_conical_t_getattro,
+    .tp_setattro = (setter)py_lv_grad_dsc_params_conical_t_setattro,
+    .tp_new = py_lv_grad_dsc_params_conical_t_new,
+    .tp_methods = py_lv_grad_dsc_params_conical_t_type_methods,
+    .tp_base = &py_lv_base_struct_type,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+};
+
+static inline void* mp_write_ptr_lv_grad_dsc_params_conical_t(PyObject *self_in)
+{
+    if (!self_in || self_in == Py_None) return NULL;
+    if (!PyObject_TypeCheck(self_in, &py_lv_grad_dsc_params_conical_t_type)) {
+        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_params_conical_t, got '%s'", Py_TYPE(self_in)->tp_name);
+        return NULL;
+    }
+    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
+    return (lv_grad_dsc_params_conical_t*)self->data;
+}
+
+static lv_grad_dsc_params_conical_t mp_write_scratch_lv_grad_dsc_params_conical_t;
+
+static inline void* mp_write_value_ptr_lv_grad_dsc_params_conical_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_grad_dsc_params_conical_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_grad_dsc_params_conical_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_grad_dsc_params_conical_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_grad_dsc_params_conical_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_grad_dsc_params_conical_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_params_conical_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_grad_dsc_params_conical_t, 0, sizeof(lv_grad_dsc_params_conical_t));
+    return &mp_write_scratch_lv_grad_dsc_params_conical_t;
+}
+
+#define mp_write_lv_grad_dsc_params_conical_t(struct_obj) (*((lv_grad_dsc_params_conical_t*)mp_write_value_ptr_lv_grad_dsc_params_conical_t(struct_obj)))
+
+static inline PyObject *mp_read_ptr_lv_grad_dsc_params_conical_t(void *field)
+{
+    return lv_to_mp_struct(&py_lv_grad_dsc_params_conical_t_type, field);
+}
+
+#define mp_read_lv_grad_dsc_params_conical_t(field) lv_to_mp_struct_own(&py_lv_grad_dsc_params_conical_t_type, copy_buffer(&field, sizeof(lv_grad_dsc_params_conical_t)))
+#define mp_read_byref_lv_grad_dsc_params_conical_t(field) mp_read_ptr_lv_grad_dsc_params_conical_t(&field)
+
+
+/*
+ * Struct lv_grad_dsc_params_t (CPython)
+ */
+
+extern PyMethodDef py_lv_grad_dsc_params_t_methods[];
+
+static PyObject *py_lv_grad_dsc_params_t_getattro(PyObject *self, PyObject *name)
+{
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_grad_dsc_params_t *data = (lv_grad_dsc_params_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return NULL;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return NULL;
+    if (strcmp(attr, "linear") == 0) return mp_read_byref_lv_grad_dsc_params_linear_t(data->linear);
+    if (strcmp(attr, "radial") == 0) return mp_read_byref_lv_grad_dsc_params_radial_t(data->radial);
+    if (strcmp(attr, "conical") == 0) return mp_read_byref_lv_grad_dsc_params_conical_t(data->conical);
+    for (PyMethodDef *m = py_lv_grad_dsc_params_t_methods; m->ml_name != NULL; m++) {
+        if (strcmp(attr, m->ml_name) == 0)
+            return PyCFunction_NewEx(m, self, NULL);
+    }
+    return PyObject_GenericGetAttr((PyObject *)self, name);
+}
+
+static const char *const py_lv_grad_dsc_params_t_field_names[] = {"linear", "radial", "conical", NULL};
+
+static PyObject *py_lv_grad_dsc_params_t_dir(PyObject *self, PyObject *unused)
+{
+    (void)unused;
+    return lvpy_struct_dir(self, py_lv_grad_dsc_params_t_field_names, py_lv_grad_dsc_params_t_methods);
+}
+
+static PyMethodDef py_lv_grad_dsc_params_t_type_methods[] = {
+    {"__dir__", py_lv_grad_dsc_params_t_dir, METH_NOARGS, NULL},
+    {NULL}
+};
+
+static int py_lv_grad_dsc_params_t_setattro(PyObject *self, PyObject *name, PyObject *value)
+{
+    if (value == NULL) {
+        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
+        return -1;
+    }
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_grad_dsc_params_t *data = (lv_grad_dsc_params_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return -1;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return -1;
+    int result = -1;
+    lv_grad_dsc_params_t saved;
+    memcpy(&saved, data, sizeof(saved));
+    if (strcmp(attr, "linear") == 0) { data->linear = mp_write_lv_grad_dsc_params_linear_t(value); result = 0; }
+    if (strcmp(attr, "radial") == 0) { data->radial = mp_write_lv_grad_dsc_params_radial_t(value); result = 0; }
+    if (strcmp(attr, "conical") == 0) { data->conical = mp_write_lv_grad_dsc_params_conical_t(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
+    if (result < 0) {
+        PyErr_Format(PyExc_AttributeError, "'lv_grad_dsc_params_t' object has no attribute '%s'", attr);
+    }
+    return result;
+}
+
+static PyObject *py_lv_grad_dsc_params_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    return make_new_lv_struct(type, args, kwds, sizeof(lv_grad_dsc_params_t));
+}
+
+static void py_lv_grad_dsc_params_t_dealloc(py_lv_struct_t *self)
+{
+    py_lv_struct_dealloc(self);
+}
+
+PyTypeObject py_lv_grad_dsc_params_t_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "lvgl.lv_grad_dsc_params_t",
+    .tp_basicsize = sizeof(py_lv_struct_t),
+    .tp_dealloc = (destructor)py_lv_grad_dsc_params_t_dealloc,
+    .tp_getattro = (getter)py_lv_grad_dsc_params_t_getattro,
+    .tp_setattro = (setter)py_lv_grad_dsc_params_t_setattro,
+    .tp_new = py_lv_grad_dsc_params_t_new,
+    .tp_methods = py_lv_grad_dsc_params_t_type_methods,
+    .tp_base = &py_lv_base_struct_type,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+};
+
+static inline void* mp_write_ptr_lv_grad_dsc_params_t(PyObject *self_in)
+{
+    if (!self_in || self_in == Py_None) return NULL;
+    if (!PyObject_TypeCheck(self_in, &py_lv_grad_dsc_params_t_type)) {
+        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_params_t, got '%s'", Py_TYPE(self_in)->tp_name);
+        return NULL;
+    }
+    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
+    return (lv_grad_dsc_params_t*)self->data;
+}
+
+static lv_grad_dsc_params_t mp_write_scratch_lv_grad_dsc_params_t;
+
+static inline void* mp_write_value_ptr_lv_grad_dsc_params_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_grad_dsc_params_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_grad_dsc_params_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_grad_dsc_params_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_grad_dsc_params_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_grad_dsc_params_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_params_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_grad_dsc_params_t, 0, sizeof(lv_grad_dsc_params_t));
+    return &mp_write_scratch_lv_grad_dsc_params_t;
+}
+
+#define mp_write_lv_grad_dsc_params_t(struct_obj) (*((lv_grad_dsc_params_t*)mp_write_value_ptr_lv_grad_dsc_params_t(struct_obj)))
+
+static inline PyObject *mp_read_ptr_lv_grad_dsc_params_t(void *field)
+{
+    return lv_to_mp_struct(&py_lv_grad_dsc_params_t_type, field);
+}
+
+#define mp_read_lv_grad_dsc_params_t(field) lv_to_mp_struct_own(&py_lv_grad_dsc_params_t_type, copy_buffer(&field, sizeof(lv_grad_dsc_params_t)))
+#define mp_read_byref_lv_grad_dsc_params_t(field) mp_read_ptr_lv_grad_dsc_params_t(&field)
+
+
+/*
+ * Struct lv_grad_dsc_t (CPython)
+ */
+
+extern PyMethodDef py_lv_grad_dsc_t_methods[];
+
+static PyObject *py_lv_grad_dsc_t_getattro(PyObject *self, PyObject *name)
+{
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_grad_dsc_t *data = (lv_grad_dsc_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return NULL;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return NULL;
+    if (strcmp(attr, "stops") == 0) return lvpy_struct_array_new(self, data->stops, 2, sizeof(lv_grad_stop_t), mp_read_ptr_lv_grad_stop_t, mp_write_value_ptr_lv_grad_stop_t);
+    if (strcmp(attr, "stops_count") == 0) return mp_obj_new_int_from_uint(data->stops_count);
+    if (strcmp(attr, "dir") == 0) return mp_obj_new_int(data->dir);
+    if (strcmp(attr, "extend") == 0) return mp_obj_new_int(data->extend);
+    if (strcmp(attr, "params") == 0) return mp_read_byref_lv_grad_dsc_params_t(data->params);
+    if (strcmp(attr, "state") == 0) return ptr_to_mp((void*)data->state);
+    for (PyMethodDef *m = py_lv_grad_dsc_t_methods; m->ml_name != NULL; m++) {
+        if (strcmp(attr, m->ml_name) == 0)
+            return PyCFunction_NewEx(m, self, NULL);
+    }
+    return PyObject_GenericGetAttr((PyObject *)self, name);
+}
+
+static const char *const py_lv_grad_dsc_t_field_names[] = {"stops", "stops_count", "dir", "extend", "params", "state", NULL};
+
+static PyObject *py_lv_grad_dsc_t_dir(PyObject *self, PyObject *unused)
+{
+    (void)unused;
+    return lvpy_struct_dir(self, py_lv_grad_dsc_t_field_names, py_lv_grad_dsc_t_methods);
+}
+
+static PyMethodDef py_lv_grad_dsc_t_type_methods[] = {
+    {"__dir__", py_lv_grad_dsc_t_dir, METH_NOARGS, NULL},
+    {NULL}
+};
+
+static int py_lv_grad_dsc_t_setattro(PyObject *self, PyObject *name, PyObject *value)
+{
+    if (value == NULL) {
+        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
+        return -1;
+    }
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_grad_dsc_t *data = (lv_grad_dsc_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return -1;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return -1;
+    int result = -1;
+    lv_grad_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
+    if (strcmp(attr, "stops") == 0) { lvpy_struct_array_assign(data->stops, 2, sizeof(lv_grad_stop_t), mp_write_value_ptr_lv_grad_stop_t, value); result = 0; }
+    if (strcmp(attr, "stops_count") == 0) { data->stops_count = (uint8_t)mp_obj_get_int(value); result = 0; }
+    if (strcmp(attr, "dir") == 0) { data->dir = (int)mp_obj_get_int(value); result = 0; }
+    if (strcmp(attr, "extend") == 0) { data->extend = (int)mp_obj_get_int(value); result = 0; }
+    if (strcmp(attr, "params") == 0) { data->params = mp_write_lv_grad_dsc_params_t(value); result = 0; }
+    if (strcmp(attr, "state") == 0) { data->state = (void*)mp_to_ptr(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
+    if (result < 0) {
+        PyErr_Format(PyExc_AttributeError, "'lv_grad_dsc_t' object has no attribute '%s'", attr);
+    }
+    return result;
+}
+
+static PyObject *py_lv_grad_dsc_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    return make_new_lv_struct(type, args, kwds, sizeof(lv_grad_dsc_t));
+}
+
+static void py_lv_grad_dsc_t_dealloc(py_lv_struct_t *self)
+{
+    py_lv_struct_dealloc(self);
+}
+
+PyTypeObject py_lv_grad_dsc_t_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "lvgl.lv_grad_dsc_t",
+    .tp_basicsize = sizeof(py_lv_struct_t),
+    .tp_dealloc = (destructor)py_lv_grad_dsc_t_dealloc,
+    .tp_getattro = (getter)py_lv_grad_dsc_t_getattro,
+    .tp_setattro = (setter)py_lv_grad_dsc_t_setattro,
+    .tp_new = py_lv_grad_dsc_t_new,
+    .tp_methods = py_lv_grad_dsc_t_type_methods,
+    .tp_base = &py_lv_base_struct_type,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+};
+
+static inline void* mp_write_ptr_lv_grad_dsc_t(PyObject *self_in)
+{
+    if (!self_in || self_in == Py_None) return NULL;
+    if (!PyObject_TypeCheck(self_in, &py_lv_grad_dsc_t_type)) {
+        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_t, got '%s'", Py_TYPE(self_in)->tp_name);
+        return NULL;
+    }
+    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
+    return (lv_grad_dsc_t*)self->data;
+}
+
+static lv_grad_dsc_t mp_write_scratch_lv_grad_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_grad_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_grad_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_grad_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_grad_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_grad_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_grad_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_grad_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_grad_dsc_t, 0, sizeof(lv_grad_dsc_t));
+    return &mp_write_scratch_lv_grad_dsc_t;
+}
+
+#define mp_write_lv_grad_dsc_t(struct_obj) (*((lv_grad_dsc_t*)mp_write_value_ptr_lv_grad_dsc_t(struct_obj)))
+
+static inline PyObject *mp_read_ptr_lv_grad_dsc_t(void *field)
+{
+    return lv_to_mp_struct(&py_lv_grad_dsc_t_type, field);
+}
+
+#define mp_read_lv_grad_dsc_t(field) lv_to_mp_struct_own(&py_lv_grad_dsc_t_type, copy_buffer(&field, sizeof(lv_grad_dsc_t)))
+#define mp_read_byref_lv_grad_dsc_t(field) mp_read_ptr_lv_grad_dsc_t(&field)
+
+
+/*
  * lvgl extension definition for:
  * const lv_grad_dsc_t *lv_obj_get_style_bg_grad(const lv_obj_t *obj, lv_part_t part)
  */
@@ -22223,6 +17217,139 @@ static PyMethodDef py_lv_obj_get_style_image_recolor_opa_def = {
     METH_VARARGS | METH_KEYWORDS,
     NULL
 };
+
+
+/*
+ * Struct lv_image_colorkey_t (CPython)
+ */
+
+extern PyMethodDef py_lv_image_colorkey_t_methods[];
+
+static PyObject *py_lv_image_colorkey_t_getattro(PyObject *self, PyObject *name)
+{
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_image_colorkey_t *data = (lv_image_colorkey_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return NULL;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return NULL;
+    if (strcmp(attr, "low") == 0) return mp_read_byref_lv_color_t(data->low);
+    if (strcmp(attr, "high") == 0) return mp_read_byref_lv_color_t(data->high);
+    for (PyMethodDef *m = py_lv_image_colorkey_t_methods; m->ml_name != NULL; m++) {
+        if (strcmp(attr, m->ml_name) == 0)
+            return PyCFunction_NewEx(m, self, NULL);
+    }
+    return PyObject_GenericGetAttr((PyObject *)self, name);
+}
+
+static const char *const py_lv_image_colorkey_t_field_names[] = {"low", "high", NULL};
+
+static PyObject *py_lv_image_colorkey_t_dir(PyObject *self, PyObject *unused)
+{
+    (void)unused;
+    return lvpy_struct_dir(self, py_lv_image_colorkey_t_field_names, py_lv_image_colorkey_t_methods);
+}
+
+static PyMethodDef py_lv_image_colorkey_t_type_methods[] = {
+    {"__dir__", py_lv_image_colorkey_t_dir, METH_NOARGS, NULL},
+    {NULL}
+};
+
+static int py_lv_image_colorkey_t_setattro(PyObject *self, PyObject *name, PyObject *value)
+{
+    if (value == NULL) {
+        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
+        return -1;
+    }
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_image_colorkey_t *data = (lv_image_colorkey_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return -1;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return -1;
+    int result = -1;
+    lv_image_colorkey_t saved;
+    memcpy(&saved, data, sizeof(saved));
+    if (strcmp(attr, "low") == 0) { data->low = mp_write_lv_color_t(value); result = 0; }
+    if (strcmp(attr, "high") == 0) { data->high = mp_write_lv_color_t(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
+    if (result < 0) {
+        PyErr_Format(PyExc_AttributeError, "'lv_image_colorkey_t' object has no attribute '%s'", attr);
+    }
+    return result;
+}
+
+static PyObject *py_lv_image_colorkey_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    return make_new_lv_struct(type, args, kwds, sizeof(lv_image_colorkey_t));
+}
+
+static void py_lv_image_colorkey_t_dealloc(py_lv_struct_t *self)
+{
+    py_lv_struct_dealloc(self);
+}
+
+PyTypeObject py_lv_image_colorkey_t_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "lvgl.lv_image_colorkey_t",
+    .tp_basicsize = sizeof(py_lv_struct_t),
+    .tp_dealloc = (destructor)py_lv_image_colorkey_t_dealloc,
+    .tp_getattro = (getter)py_lv_image_colorkey_t_getattro,
+    .tp_setattro = (setter)py_lv_image_colorkey_t_setattro,
+    .tp_new = py_lv_image_colorkey_t_new,
+    .tp_methods = py_lv_image_colorkey_t_type_methods,
+    .tp_base = &py_lv_base_struct_type,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+};
+
+static inline void* mp_write_ptr_lv_image_colorkey_t(PyObject *self_in)
+{
+    if (!self_in || self_in == Py_None) return NULL;
+    if (!PyObject_TypeCheck(self_in, &py_lv_image_colorkey_t_type)) {
+        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_image_colorkey_t, got '%s'", Py_TYPE(self_in)->tp_name);
+        return NULL;
+    }
+    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
+    return (lv_image_colorkey_t*)self->data;
+}
+
+static lv_image_colorkey_t mp_write_scratch_lv_image_colorkey_t;
+
+static inline void* mp_write_value_ptr_lv_image_colorkey_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_image_colorkey_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_image_colorkey_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_image_colorkey_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_image_colorkey_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_image_colorkey_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_image_colorkey_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_image_colorkey_t, 0, sizeof(lv_image_colorkey_t));
+    return &mp_write_scratch_lv_image_colorkey_t;
+}
+
+#define mp_write_lv_image_colorkey_t(struct_obj) (*((lv_image_colorkey_t*)mp_write_value_ptr_lv_image_colorkey_t(struct_obj)))
+
+static inline PyObject *mp_read_ptr_lv_image_colorkey_t(void *field)
+{
+    return lv_to_mp_struct(&py_lv_image_colorkey_t_type, field);
+}
+
+#define mp_read_lv_image_colorkey_t(field) lv_to_mp_struct_own(&py_lv_image_colorkey_t_type, copy_buffer(&field, sizeof(lv_image_colorkey_t)))
+#define mp_read_byref_lv_image_colorkey_t(field) mp_read_ptr_lv_image_colorkey_t(&field)
 
 
 /*
@@ -23526,6 +18653,144 @@ static PyMethodDef py_lv_obj_get_style_opa_layered_def = {
     NULL
 };
 
+#define funcptr_lv_color_filter_cb_t NULL
+
+static inline PyObject *mp_lv_funcptr_lv_color_filter_cb_t(void *func){ return mp_lv_funcptr(NULL, func, NULL, "", NULL); }
+
+static lv_color_t lv_color_filter_dsc_t_filter_cb_callback(const struct _lv_color_filter_dsc_t *, lv_color_t, lv_opa_t);
+
+/*
+ * Struct lv_color_filter_dsc_t (CPython)
+ */
+
+extern PyMethodDef py_lv_color_filter_dsc_t_methods[];
+
+static PyObject *py_lv_color_filter_dsc_t_getattro(PyObject *self, PyObject *name)
+{
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_color_filter_dsc_t *data = (lv_color_filter_dsc_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return NULL;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return NULL;
+    if (strcmp(attr, "filter_cb") == 0) return mp_lv_funcptr(NULL, data->filter_cb, lv_color_filter_dsc_t_filter_cb_callback, "lv_color_filter_dsc_t_filter_cb", data->user_data);
+    if (strcmp(attr, "user_data") == 0) return ptr_to_mp((void*)data->user_data);
+    for (PyMethodDef *m = py_lv_color_filter_dsc_t_methods; m->ml_name != NULL; m++) {
+        if (strcmp(attr, m->ml_name) == 0)
+            return PyCFunction_NewEx(m, self, NULL);
+    }
+    return PyObject_GenericGetAttr((PyObject *)self, name);
+}
+
+static const char *const py_lv_color_filter_dsc_t_field_names[] = {"filter_cb", "user_data", NULL};
+
+static PyObject *py_lv_color_filter_dsc_t_dir(PyObject *self, PyObject *unused)
+{
+    (void)unused;
+    return lvpy_struct_dir(self, py_lv_color_filter_dsc_t_field_names, py_lv_color_filter_dsc_t_methods);
+}
+
+static PyMethodDef py_lv_color_filter_dsc_t_type_methods[] = {
+    {"__dir__", py_lv_color_filter_dsc_t_dir, METH_NOARGS, NULL},
+    {NULL}
+};
+
+static int py_lv_color_filter_dsc_t_setattro(PyObject *self, PyObject *name, PyObject *value)
+{
+    if (value == NULL) {
+        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
+        return -1;
+    }
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_color_filter_dsc_t *data = (lv_color_filter_dsc_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return -1;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return -1;
+    int result = -1;
+    lv_color_filter_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
+    if (strcmp(attr, "filter_cb") == 0) { data->filter_cb = mp_lv_callback(value, lv_color_filter_dsc_t_filter_cb_callback, "lv_color_filter_dsc_t_filter_cb", &data->user_data, data, NULL, NULL); result = 0; }
+    if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
+    if (result < 0) {
+        PyErr_Format(PyExc_AttributeError, "'lv_color_filter_dsc_t' object has no attribute '%s'", attr);
+    }
+    return result;
+}
+
+static PyObject *py_lv_color_filter_dsc_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    return make_new_lv_struct(type, args, kwds, sizeof(lv_color_filter_dsc_t));
+}
+
+static void py_lv_color_filter_dsc_t_dealloc(py_lv_struct_t *self)
+{
+    py_lv_struct_dealloc(self);
+}
+
+PyTypeObject py_lv_color_filter_dsc_t_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "lvgl.lv_color_filter_dsc_t",
+    .tp_basicsize = sizeof(py_lv_struct_t),
+    .tp_dealloc = (destructor)py_lv_color_filter_dsc_t_dealloc,
+    .tp_getattro = (getter)py_lv_color_filter_dsc_t_getattro,
+    .tp_setattro = (setter)py_lv_color_filter_dsc_t_setattro,
+    .tp_new = py_lv_color_filter_dsc_t_new,
+    .tp_methods = py_lv_color_filter_dsc_t_type_methods,
+    .tp_base = &py_lv_base_struct_type,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+};
+
+static inline void* mp_write_ptr_lv_color_filter_dsc_t(PyObject *self_in)
+{
+    if (!self_in || self_in == Py_None) return NULL;
+    if (!PyObject_TypeCheck(self_in, &py_lv_color_filter_dsc_t_type)) {
+        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_color_filter_dsc_t, got '%s'", Py_TYPE(self_in)->tp_name);
+        return NULL;
+    }
+    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
+    return (lv_color_filter_dsc_t*)self->data;
+}
+
+static lv_color_filter_dsc_t mp_write_scratch_lv_color_filter_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_color_filter_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_color_filter_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_color_filter_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_color_filter_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_color_filter_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_color_filter_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_color_filter_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_color_filter_dsc_t, 0, sizeof(lv_color_filter_dsc_t));
+    return &mp_write_scratch_lv_color_filter_dsc_t;
+}
+
+#define mp_write_lv_color_filter_dsc_t(struct_obj) (*((lv_color_filter_dsc_t*)mp_write_value_ptr_lv_color_filter_dsc_t(struct_obj)))
+
+static inline PyObject *mp_read_ptr_lv_color_filter_dsc_t(void *field)
+{
+    return lv_to_mp_struct(&py_lv_color_filter_dsc_t_type, field);
+}
+
+#define mp_read_lv_color_filter_dsc_t(field) lv_to_mp_struct_own(&py_lv_color_filter_dsc_t_type, copy_buffer(&field, sizeof(lv_color_filter_dsc_t)))
+#define mp_read_byref_lv_color_filter_dsc_t(field) mp_read_ptr_lv_color_filter_dsc_t(&field)
+
 
 /*
  * lvgl extension definition for:
@@ -23711,6 +18976,152 @@ static PyMethodDef py_lv_obj_get_style_anim_duration_def = {
     METH_VARARGS | METH_KEYWORDS,
     NULL
 };
+
+
+/*
+ * Function NOT generated:
+ * Missing 'user_data' field for callback 'lv_style_transition_dsc_t_path_xcb'
+ * lv_anim_path_cb_t path_xcb
+ */
+    
+
+/*
+ * Struct lv_style_transition_dsc_t (CPython)
+ */
+
+extern PyMethodDef py_lv_style_transition_dsc_t_methods[];
+
+static PyObject *py_lv_style_transition_dsc_t_getattro(PyObject *self, PyObject *name)
+{
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_style_transition_dsc_t *data = (lv_style_transition_dsc_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return NULL;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return NULL;
+    if (strcmp(attr, "props") == 0) return mp_array_from_u8ptr((void*)data->props);
+    if (strcmp(attr, "user_data") == 0) return ptr_to_mp((void*)data->user_data);
+    if (strcmp(attr, "path_xcb") == 0) return mp_lv_funcptr(NULL, data->path_xcb, NULL, "lv_style_transition_dsc_t_path_xcb", NULL);
+    if (strcmp(attr, "time") == 0) return mp_obj_new_int_from_uint(data->time);
+    if (strcmp(attr, "delay") == 0) return mp_obj_new_int_from_uint(data->delay);
+    for (PyMethodDef *m = py_lv_style_transition_dsc_t_methods; m->ml_name != NULL; m++) {
+        if (strcmp(attr, m->ml_name) == 0)
+            return PyCFunction_NewEx(m, self, NULL);
+    }
+    return PyObject_GenericGetAttr((PyObject *)self, name);
+}
+
+static const char *const py_lv_style_transition_dsc_t_field_names[] = {"props", "user_data", "path_xcb", "time", "delay", NULL};
+
+static PyObject *py_lv_style_transition_dsc_t_dir(PyObject *self, PyObject *unused)
+{
+    (void)unused;
+    return lvpy_struct_dir(self, py_lv_style_transition_dsc_t_field_names, py_lv_style_transition_dsc_t_methods);
+}
+
+static PyMethodDef py_lv_style_transition_dsc_t_type_methods[] = {
+    {"__dir__", py_lv_style_transition_dsc_t_dir, METH_NOARGS, NULL},
+    {NULL}
+};
+
+static int py_lv_style_transition_dsc_t_setattro(PyObject *self, PyObject *name, PyObject *value)
+{
+    if (value == NULL) {
+        PyErr_SetString(PyExc_AttributeError, "cannot delete struct fields");
+        return -1;
+    }
+    py_lv_struct_t *inst = (py_lv_struct_t *)self;
+    lv_style_transition_dsc_t *data = (lv_style_transition_dsc_t*)inst->data;
+    if (data == NULL) {
+        PyErr_SetString(PyLvReferenceError, "struct data is NULL");
+        return -1;
+    }
+    const char *attr = PyUnicode_AsUTF8(name);
+    if (attr == NULL) return -1;
+    int result = -1;
+    lv_style_transition_dsc_t saved;
+    memcpy(&saved, data, sizeof(saved));
+    if (strcmp(attr, "props") == 0) { data->props = (void*)mp_array_to_u8ptr(value); result = 0; }
+    if (strcmp(attr, "user_data") == 0) { data->user_data = (void*)mp_to_ptr(value); result = 0; }
+    if (strcmp(attr, "path_xcb") == 0) { data->path_xcb = mp_lv_callback(value, NULL, "lv_style_transition_dsc_t_path_xcb", NULL, NULL, NULL, NULL); result = 0; }
+    if (strcmp(attr, "time") == 0) { data->time = (uint32_t)mp_obj_get_int(value); result = 0; }
+    if (strcmp(attr, "delay") == 0) { data->delay = (uint32_t)mp_obj_get_int(value); result = 0; }
+    if (PyErr_Occurred()) {
+        memcpy(data, &saved, sizeof(saved));
+        return -1;
+    }
+    if (result < 0) {
+        PyErr_Format(PyExc_AttributeError, "'lv_style_transition_dsc_t' object has no attribute '%s'", attr);
+    }
+    return result;
+}
+
+static PyObject *py_lv_style_transition_dsc_t_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    return make_new_lv_struct(type, args, kwds, sizeof(lv_style_transition_dsc_t));
+}
+
+static void py_lv_style_transition_dsc_t_dealloc(py_lv_struct_t *self)
+{
+    py_lv_struct_dealloc(self);
+}
+
+PyTypeObject py_lv_style_transition_dsc_t_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "lvgl.lv_style_transition_dsc_t",
+    .tp_basicsize = sizeof(py_lv_struct_t),
+    .tp_dealloc = (destructor)py_lv_style_transition_dsc_t_dealloc,
+    .tp_getattro = (getter)py_lv_style_transition_dsc_t_getattro,
+    .tp_setattro = (setter)py_lv_style_transition_dsc_t_setattro,
+    .tp_new = py_lv_style_transition_dsc_t_new,
+    .tp_methods = py_lv_style_transition_dsc_t_type_methods,
+    .tp_base = &py_lv_base_struct_type,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+};
+
+static inline void* mp_write_ptr_lv_style_transition_dsc_t(PyObject *self_in)
+{
+    if (!self_in || self_in == Py_None) return NULL;
+    if (!PyObject_TypeCheck(self_in, &py_lv_style_transition_dsc_t_type)) {
+        PyErr_Format(PyExc_TypeError, "Expected lvgl.lv_style_transition_dsc_t, got '%s'", Py_TYPE(self_in)->tp_name);
+        return NULL;
+    }
+    py_lv_struct_t *self = (py_lv_struct_t *)self_in;
+    return (lv_style_transition_dsc_t*)self->data;
+}
+
+static lv_style_transition_dsc_t mp_write_scratch_lv_style_transition_dsc_t;
+
+static inline void* mp_write_value_ptr_lv_style_transition_dsc_t(PyObject *value)
+{
+    if (value != NULL && PyDict_Check(value)) {
+        PyObject *tmp = PyObject_CallOneArg((PyObject *)&py_lv_style_transition_dsc_t_type, value);
+        if (tmp != NULL) {
+            memcpy(&mp_write_scratch_lv_style_transition_dsc_t, ((py_lv_struct_t *)tmp)->data, sizeof(lv_style_transition_dsc_t));
+            Py_DECREF(tmp);
+            return &mp_write_scratch_lv_style_transition_dsc_t;
+        }
+    } else if (value != NULL && value != Py_None) {
+        void *p = mp_write_ptr_lv_style_transition_dsc_t(value);
+        if (p != NULL) return p;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Expected lvgl.lv_style_transition_dsc_t or dict, got None");
+    }
+    memset(&mp_write_scratch_lv_style_transition_dsc_t, 0, sizeof(lv_style_transition_dsc_t));
+    return &mp_write_scratch_lv_style_transition_dsc_t;
+}
+
+#define mp_write_lv_style_transition_dsc_t(struct_obj) (*((lv_style_transition_dsc_t*)mp_write_value_ptr_lv_style_transition_dsc_t(struct_obj)))
+
+static inline PyObject *mp_read_ptr_lv_style_transition_dsc_t(void *field)
+{
+    return lv_to_mp_struct(&py_lv_style_transition_dsc_t_type, field);
+}
+
+#define mp_read_lv_style_transition_dsc_t(field) lv_to_mp_struct_own(&py_lv_style_transition_dsc_t_type, copy_buffer(&field, sizeof(lv_style_transition_dsc_t)))
+#define mp_read_byref_lv_style_transition_dsc_t(field) mp_read_ptr_lv_style_transition_dsc_t(&field)
 
 
 /*
@@ -37794,70 +33205,6 @@ static PyMethodDef py_lv_obj_update_layer_type_def = {
 
 /*
  * lvgl extension definition for:
- * lv_style_value_t lv_obj_get_style_prop_internal(const lv_obj_t *obj, lv_part_t part, lv_style_prop_t prop)
- */
-static PyObject *py_lv_obj_get_style_prop_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py; PyObject *prop_py;
-    if (!PyArg_ParseTuple(py_args, "OO", &part_py, &prop_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    lv_style_prop_t prop = (uint8_t)mp_obj_get_int(prop_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_style_value_t _res;
-    lvpy_lock();
-    _res = ((lv_style_value_t (*)(const lv_obj_t *, lv_part_t, lv_style_prop_t))lv_obj_get_style_prop_internal)(obj, part, prop);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_style_value_t(_res);
-}
-
-static PyMethodDef py_lv_obj_get_style_prop_internal_def = {
-    "lv_obj_get_style_prop_internal",
-    (PyCFunction)py_lv_obj_get_style_prop_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * lv_style_value_t lv_obj_style_apply_color_filter_internal(const lv_obj_t *obj, lv_part_t part, lv_style_value_t v)
- */
-static PyObject *py_lv_obj_style_apply_color_filter_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *part_py; PyObject *v_py;
-    if (!PyArg_ParseTuple(py_args, "OO", &part_py, &v_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_obj_t *obj = mp_to_lv(self);
-    lv_part_t part = (int)mp_obj_get_int(part_py);
-    lv_style_value_t v = mp_write_lv_style_value_t(v_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_style_value_t _res;
-    lvpy_lock();
-    _res = ((lv_style_value_t (*)(const lv_obj_t *, lv_part_t, lv_style_value_t))lv_obj_style_apply_color_filter_internal)(obj, part, v);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_style_value_t(_res);
-}
-
-static PyMethodDef py_lv_obj_style_apply_color_filter_internal_def = {
-    "lv_obj_style_apply_color_filter_internal",
-    (PyCFunction)py_lv_obj_style_apply_color_filter_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
  * void lv_obj_update_blur_status(lv_obj_t *obj)
  */
 static PyObject *py_lv_obj_update_blur_status(PyObject *self, PyObject *py_args, PyObject *py_kwds)
@@ -37974,154 +33321,6 @@ static PyMethodDef py_lv_obj_methods[] = {
     {"style_get_selector_part", (PyCFunction)py_lv_obj_style_get_selector_part, METH_VARARGS | METH_KEYWORDS, NULL},
     {"move_foreground", (PyCFunction)py_lv_obj_move_foreground, METH_VARARGS | METH_KEYWORDS, NULL},
     {"move_background", (PyCFunction)py_lv_obj_move_background, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_width_internal", (PyCFunction)py_lv_obj_get_style_width_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_min_width_internal", (PyCFunction)py_lv_obj_get_style_min_width_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_max_width_internal", (PyCFunction)py_lv_obj_get_style_max_width_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_height_internal", (PyCFunction)py_lv_obj_get_style_height_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_min_height_internal", (PyCFunction)py_lv_obj_get_style_min_height_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_max_height_internal", (PyCFunction)py_lv_obj_get_style_max_height_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_length_internal", (PyCFunction)py_lv_obj_get_style_length_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_x_internal", (PyCFunction)py_lv_obj_get_style_x_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_y_internal", (PyCFunction)py_lv_obj_get_style_y_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_align_internal", (PyCFunction)py_lv_obj_get_style_align_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_transform_width_internal", (PyCFunction)py_lv_obj_get_style_transform_width_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_transform_height_internal", (PyCFunction)py_lv_obj_get_style_transform_height_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_translate_x_internal", (PyCFunction)py_lv_obj_get_style_translate_x_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_translate_y_internal", (PyCFunction)py_lv_obj_get_style_translate_y_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_translate_radial_internal", (PyCFunction)py_lv_obj_get_style_translate_radial_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_transform_scale_x_internal", (PyCFunction)py_lv_obj_get_style_transform_scale_x_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_transform_scale_y_internal", (PyCFunction)py_lv_obj_get_style_transform_scale_y_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_transform_rotation_internal", (PyCFunction)py_lv_obj_get_style_transform_rotation_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_transform_pivot_x_internal", (PyCFunction)py_lv_obj_get_style_transform_pivot_x_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_transform_pivot_y_internal", (PyCFunction)py_lv_obj_get_style_transform_pivot_y_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_transform_skew_x_internal", (PyCFunction)py_lv_obj_get_style_transform_skew_x_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_transform_skew_y_internal", (PyCFunction)py_lv_obj_get_style_transform_skew_y_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_pad_top_internal", (PyCFunction)py_lv_obj_get_style_pad_top_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_pad_bottom_internal", (PyCFunction)py_lv_obj_get_style_pad_bottom_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_pad_left_internal", (PyCFunction)py_lv_obj_get_style_pad_left_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_pad_right_internal", (PyCFunction)py_lv_obj_get_style_pad_right_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_pad_row_internal", (PyCFunction)py_lv_obj_get_style_pad_row_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_pad_column_internal", (PyCFunction)py_lv_obj_get_style_pad_column_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_pad_radial_internal", (PyCFunction)py_lv_obj_get_style_pad_radial_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_margin_top_internal", (PyCFunction)py_lv_obj_get_style_margin_top_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_margin_bottom_internal", (PyCFunction)py_lv_obj_get_style_margin_bottom_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_margin_left_internal", (PyCFunction)py_lv_obj_get_style_margin_left_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_margin_right_internal", (PyCFunction)py_lv_obj_get_style_margin_right_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_bg_color_internal", (PyCFunction)py_lv_obj_get_style_bg_color_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_bg_color_filtered_internal", (PyCFunction)py_lv_obj_get_style_bg_color_filtered_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_bg_opa_internal", (PyCFunction)py_lv_obj_get_style_bg_opa_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_bg_grad_color_internal", (PyCFunction)py_lv_obj_get_style_bg_grad_color_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_bg_grad_color_filtered_internal", (PyCFunction)py_lv_obj_get_style_bg_grad_color_filtered_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_bg_grad_dir_internal", (PyCFunction)py_lv_obj_get_style_bg_grad_dir_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_bg_main_stop_internal", (PyCFunction)py_lv_obj_get_style_bg_main_stop_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_bg_grad_stop_internal", (PyCFunction)py_lv_obj_get_style_bg_grad_stop_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_bg_main_opa_internal", (PyCFunction)py_lv_obj_get_style_bg_main_opa_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_bg_grad_opa_internal", (PyCFunction)py_lv_obj_get_style_bg_grad_opa_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_bg_grad_internal", (PyCFunction)py_lv_obj_get_style_bg_grad_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_bg_image_src_internal", (PyCFunction)py_lv_obj_get_style_bg_image_src_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_bg_image_opa_internal", (PyCFunction)py_lv_obj_get_style_bg_image_opa_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_bg_image_recolor_internal", (PyCFunction)py_lv_obj_get_style_bg_image_recolor_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_bg_image_recolor_filtered_internal", (PyCFunction)py_lv_obj_get_style_bg_image_recolor_filtered_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_bg_image_recolor_opa_internal", (PyCFunction)py_lv_obj_get_style_bg_image_recolor_opa_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_bg_image_tiled_internal", (PyCFunction)py_lv_obj_get_style_bg_image_tiled_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_border_color_internal", (PyCFunction)py_lv_obj_get_style_border_color_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_border_color_filtered_internal", (PyCFunction)py_lv_obj_get_style_border_color_filtered_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_border_opa_internal", (PyCFunction)py_lv_obj_get_style_border_opa_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_border_width_internal", (PyCFunction)py_lv_obj_get_style_border_width_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_border_side_internal", (PyCFunction)py_lv_obj_get_style_border_side_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_border_post_internal", (PyCFunction)py_lv_obj_get_style_border_post_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_outline_width_internal", (PyCFunction)py_lv_obj_get_style_outline_width_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_outline_color_internal", (PyCFunction)py_lv_obj_get_style_outline_color_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_outline_color_filtered_internal", (PyCFunction)py_lv_obj_get_style_outline_color_filtered_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_outline_opa_internal", (PyCFunction)py_lv_obj_get_style_outline_opa_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_outline_pad_internal", (PyCFunction)py_lv_obj_get_style_outline_pad_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_shadow_width_internal", (PyCFunction)py_lv_obj_get_style_shadow_width_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_shadow_offset_x_internal", (PyCFunction)py_lv_obj_get_style_shadow_offset_x_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_shadow_offset_y_internal", (PyCFunction)py_lv_obj_get_style_shadow_offset_y_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_shadow_spread_internal", (PyCFunction)py_lv_obj_get_style_shadow_spread_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_shadow_color_internal", (PyCFunction)py_lv_obj_get_style_shadow_color_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_shadow_color_filtered_internal", (PyCFunction)py_lv_obj_get_style_shadow_color_filtered_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_shadow_opa_internal", (PyCFunction)py_lv_obj_get_style_shadow_opa_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_image_opa_internal", (PyCFunction)py_lv_obj_get_style_image_opa_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_image_recolor_internal", (PyCFunction)py_lv_obj_get_style_image_recolor_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_image_recolor_filtered_internal", (PyCFunction)py_lv_obj_get_style_image_recolor_filtered_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_image_recolor_opa_internal", (PyCFunction)py_lv_obj_get_style_image_recolor_opa_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_image_colorkey_internal", (PyCFunction)py_lv_obj_get_style_image_colorkey_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_line_width_internal", (PyCFunction)py_lv_obj_get_style_line_width_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_line_dash_width_internal", (PyCFunction)py_lv_obj_get_style_line_dash_width_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_line_dash_gap_internal", (PyCFunction)py_lv_obj_get_style_line_dash_gap_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_line_rounded_internal", (PyCFunction)py_lv_obj_get_style_line_rounded_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_line_color_internal", (PyCFunction)py_lv_obj_get_style_line_color_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_line_color_filtered_internal", (PyCFunction)py_lv_obj_get_style_line_color_filtered_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_line_opa_internal", (PyCFunction)py_lv_obj_get_style_line_opa_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_arc_width_internal", (PyCFunction)py_lv_obj_get_style_arc_width_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_arc_rounded_internal", (PyCFunction)py_lv_obj_get_style_arc_rounded_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_arc_color_internal", (PyCFunction)py_lv_obj_get_style_arc_color_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_arc_color_filtered_internal", (PyCFunction)py_lv_obj_get_style_arc_color_filtered_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_arc_opa_internal", (PyCFunction)py_lv_obj_get_style_arc_opa_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_arc_image_src_internal", (PyCFunction)py_lv_obj_get_style_arc_image_src_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_text_color_internal", (PyCFunction)py_lv_obj_get_style_text_color_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_text_color_filtered_internal", (PyCFunction)py_lv_obj_get_style_text_color_filtered_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_text_opa_internal", (PyCFunction)py_lv_obj_get_style_text_opa_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_text_font_internal", (PyCFunction)py_lv_obj_get_style_text_font_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_text_letter_space_internal", (PyCFunction)py_lv_obj_get_style_text_letter_space_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_text_line_space_internal", (PyCFunction)py_lv_obj_get_style_text_line_space_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_text_decor_internal", (PyCFunction)py_lv_obj_get_style_text_decor_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_text_align_internal", (PyCFunction)py_lv_obj_get_style_text_align_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_text_outline_stroke_color_internal", (PyCFunction)py_lv_obj_get_style_text_outline_stroke_color_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_text_outline_stroke_color_filtered_internal", (PyCFunction)py_lv_obj_get_style_text_outline_stroke_color_filtered_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_text_outline_stroke_width_internal", (PyCFunction)py_lv_obj_get_style_text_outline_stroke_width_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_text_outline_stroke_opa_internal", (PyCFunction)py_lv_obj_get_style_text_outline_stroke_opa_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_text_leading_trim_internal", (PyCFunction)py_lv_obj_get_style_text_leading_trim_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_blur_radius_internal", (PyCFunction)py_lv_obj_get_style_blur_radius_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_blur_backdrop_internal", (PyCFunction)py_lv_obj_get_style_blur_backdrop_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_blur_quality_internal", (PyCFunction)py_lv_obj_get_style_blur_quality_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_drop_shadow_radius_internal", (PyCFunction)py_lv_obj_get_style_drop_shadow_radius_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_drop_shadow_offset_x_internal", (PyCFunction)py_lv_obj_get_style_drop_shadow_offset_x_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_drop_shadow_offset_y_internal", (PyCFunction)py_lv_obj_get_style_drop_shadow_offset_y_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_drop_shadow_color_internal", (PyCFunction)py_lv_obj_get_style_drop_shadow_color_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_drop_shadow_color_filtered_internal", (PyCFunction)py_lv_obj_get_style_drop_shadow_color_filtered_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_drop_shadow_opa_internal", (PyCFunction)py_lv_obj_get_style_drop_shadow_opa_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_drop_shadow_quality_internal", (PyCFunction)py_lv_obj_get_style_drop_shadow_quality_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_radius_internal", (PyCFunction)py_lv_obj_get_style_radius_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_radial_offset_internal", (PyCFunction)py_lv_obj_get_style_radial_offset_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_clip_corner_internal", (PyCFunction)py_lv_obj_get_style_clip_corner_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_opa_internal", (PyCFunction)py_lv_obj_get_style_opa_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_opa_layered_internal", (PyCFunction)py_lv_obj_get_style_opa_layered_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_color_filter_dsc_internal", (PyCFunction)py_lv_obj_get_style_color_filter_dsc_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_color_filter_opa_internal", (PyCFunction)py_lv_obj_get_style_color_filter_opa_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_recolor_internal", (PyCFunction)py_lv_obj_get_style_recolor_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_recolor_opa_internal", (PyCFunction)py_lv_obj_get_style_recolor_opa_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_anim_internal", (PyCFunction)py_lv_obj_get_style_anim_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_anim_duration_internal", (PyCFunction)py_lv_obj_get_style_anim_duration_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_transition_internal", (PyCFunction)py_lv_obj_get_style_transition_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_blend_mode_internal", (PyCFunction)py_lv_obj_get_style_blend_mode_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_layout_internal", (PyCFunction)py_lv_obj_get_style_layout_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_base_dir_internal", (PyCFunction)py_lv_obj_get_style_base_dir_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_bitmap_mask_src_internal", (PyCFunction)py_lv_obj_get_style_bitmap_mask_src_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_rotary_sensitivity_internal", (PyCFunction)py_lv_obj_get_style_rotary_sensitivity_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_flex_flow_internal", (PyCFunction)py_lv_obj_get_style_flex_flow_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_flex_main_place_internal", (PyCFunction)py_lv_obj_get_style_flex_main_place_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_flex_cross_place_internal", (PyCFunction)py_lv_obj_get_style_flex_cross_place_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_flex_track_place_internal", (PyCFunction)py_lv_obj_get_style_flex_track_place_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_flex_grow_internal", (PyCFunction)py_lv_obj_get_style_flex_grow_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_grid_column_dsc_array_internal", (PyCFunction)py_lv_obj_get_style_grid_column_dsc_array_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_grid_column_align_internal", (PyCFunction)py_lv_obj_get_style_grid_column_align_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_grid_row_dsc_array_internal", (PyCFunction)py_lv_obj_get_style_grid_row_dsc_array_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_grid_row_align_internal", (PyCFunction)py_lv_obj_get_style_grid_row_align_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_grid_cell_column_pos_internal", (PyCFunction)py_lv_obj_get_style_grid_cell_column_pos_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_grid_cell_x_align_internal", (PyCFunction)py_lv_obj_get_style_grid_cell_x_align_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_grid_cell_column_span_internal", (PyCFunction)py_lv_obj_get_style_grid_cell_column_span_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_grid_cell_row_pos_internal", (PyCFunction)py_lv_obj_get_style_grid_cell_row_pos_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_grid_cell_y_align_internal", (PyCFunction)py_lv_obj_get_style_grid_cell_y_align_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_grid_cell_row_span_internal", (PyCFunction)py_lv_obj_get_style_grid_cell_row_span_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"calculate_style_text_align_internal", (PyCFunction)py_lv_obj_calculate_style_text_align_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_space_left_internal", (PyCFunction)py_lv_obj_get_style_space_left_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_space_right_internal", (PyCFunction)py_lv_obj_get_style_space_right_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_space_top_internal", (PyCFunction)py_lv_obj_get_style_space_top_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_space_bottom_internal", (PyCFunction)py_lv_obj_get_style_space_bottom_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_transform_scale_x_safe_internal", (PyCFunction)py_lv_obj_get_style_transform_scale_x_safe_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_transform_scale_y_safe_internal", (PyCFunction)py_lv_obj_get_style_transform_scale_y_safe_internal, METH_VARARGS | METH_KEYWORDS, NULL},
     {"set_flex_flow", (PyCFunction)py_lv_obj_set_flex_flow, METH_VARARGS | METH_KEYWORDS, NULL},
     {"set_flex_align", (PyCFunction)py_lv_obj_set_flex_align, METH_VARARGS | METH_KEYWORDS, NULL},
     {"set_flex_grow", (PyCFunction)py_lv_obj_set_flex_grow, METH_VARARGS | METH_KEYWORDS, NULL},
@@ -38712,8 +33911,6 @@ static PyMethodDef py_lv_obj_methods[] = {
     {"style_create_transition", (PyCFunction)py_lv_obj_style_create_transition, METH_VARARGS | METH_KEYWORDS, NULL},
     {"style_state_compare", (PyCFunction)py_lv_obj_style_state_compare, METH_VARARGS | METH_KEYWORDS, NULL},
     {"update_layer_type", (PyCFunction)py_lv_obj_update_layer_type, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_style_prop_internal", (PyCFunction)py_lv_obj_get_style_prop_internal, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"style_apply_color_filter_internal", (PyCFunction)py_lv_obj_style_apply_color_filter_internal, METH_VARARGS | METH_KEYWORDS, NULL},
     {"update_blur_status", (PyCFunction)py_lv_obj_update_blur_status, METH_VARARGS | METH_KEYWORDS, NULL},
     {"refr", (PyCFunction)py_lv_obj_refr, METH_VARARGS | METH_KEYWORDS, NULL},
     {NULL, NULL, 0, NULL}
@@ -70386,38 +65583,6 @@ static PyMethodDef py_lv_color_16_16_mix_inlined_def = {
 
 /*
  * lvgl extension definition for:
- * inline static void lv_bidi_calculate_align_internal(lv_text_align_t *align, lv_base_dir_t *base_dir, const char *txt)
- */
-static PyObject *py_lv_bidi_calculate_align_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)self;
-    (void)py_kwds;
-    PyObject *align_py; PyObject *base_dir_py; PyObject *txt_py;
-    if (!PyArg_ParseTuple(py_args, "OOO", &align_py, &base_dir_py, &txt_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_text_align_t *align = mp_array_to_i32ptr(align_py);
-    lv_base_dir_t *base_dir = mp_array_to_i32ptr(base_dir_py);
-    const char *txt = (const char *)(char*)convert_from_str(txt_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_text_align_t *, lv_base_dir_t *, const char *))lv_bidi_calculate_align_internal)(align, base_dir, txt);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_bidi_calculate_align_internal_def = {
-    "lv_bidi_calculate_align_internal",
-    (PyCFunction)py_lv_bidi_calculate_align_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
  * inline static bool lv_text_is_break_char(uint32_t letter)
  */
 static PyObject *py_lv_text_is_break_char(PyObject *self, PyObject *py_args, PyObject *py_kwds)
@@ -79992,42 +75157,6 @@ static PyMethodDef py_lv_text_encoded_letter_next_2_def = {
 
 
 /*
- * lvgl extension definition for:
- * void lv_text_get_size_internal(lv_point_t *size_res, const char *text, const lv_font_t *font, int32_t letter_space, int32_t line_space, int32_t max_width, lv_text_flag_t flag)
- */
-static PyObject *py_lv_text_get_size_internal(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)self;
-    (void)py_kwds;
-    PyObject *size_res_py; PyObject *text_py; PyObject *font_py; long letter_space_val; long line_space_val; long max_width_val; PyObject *flag_py;
-    if (!PyArg_ParseTuple(py_args, "OOOlllO", &size_res_py, &text_py, &font_py, &letter_space_val, &line_space_val, &max_width_val, &flag_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_point_t *size_res = mp_write_ptr_lv_point_t(size_res_py);
-    const char *text = (const char *)(char*)convert_from_str(text_py);
-    const lv_font_t *font = (const lv_font_t *)mp_write_ptr_lv_font_t(font_py);
-    int32_t letter_space = (int32_t)letter_space_val;
-    int32_t line_space = (int32_t)line_space_val;
-    int32_t max_width = (int32_t)max_width_val;
-    lv_text_flag_t flag = (int)mp_obj_get_int(flag_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_point_t *, const char *, const lv_font_t *, int32_t, int32_t, int32_t, lv_text_flag_t))lv_text_get_size_internal)(size_res, text, font, letter_space, line_space, max_width, flag);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_text_get_size_internal_def = {
-    "lv_text_get_size_internal",
-    (PyCFunction)py_lv_text_get_size_internal,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
  * Function NOT generated:
  * Callback: user_data NOT FOUND! int cmp(const void *pRef, const void *pElement)
  * int (*cmp)(const void *pRef, const void *pElement)
@@ -80066,1320 +75195,6 @@ static PyMethodDef py_lv_utils_bsearch_def = {
     (PyCFunction)py_lv_utils_bsearch,
     METH_VARARGS | METH_KEYWORDS,
     NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static bool lv_color_is_in_range(lv_color_t color, lv_color_t l_color, lv_color_t h_color)
- */
-static PyObject *py_lv_color_is_in_range_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *l_color_py; PyObject *h_color_py;
-    if (!PyArg_ParseTuple(py_args, "OO", &l_color_py, &h_color_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_color_t color = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) color = *p_; }
-    lv_color_t l_color = mp_write_lv_color_t(l_color_py);
-    lv_color_t h_color = mp_write_lv_color_t(h_color_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    bool _res;
-    lvpy_lock();
-    _res = ((bool (*)(lv_color_t, lv_color_t, lv_color_t))lv_color_is_in_range)(color, l_color, h_color);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return convert_to_bool(_res);
-}
-
-static PyMethodDef py_lv_color_is_in_range_struct_method_def = {
-    "lv_color_is_in_range",
-    (PyCFunction)py_lv_color_is_in_range_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * lv_color32_t lv_color_to_32(lv_color_t color, lv_opa_t opa)
- */
-static PyObject *py_lv_color_to_32_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    long opa_val;
-    if (!PyArg_ParseTuple(py_args, "l", &opa_val)) { PyGILState_Release(gstate); return NULL; }
-    lv_color_t color = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) color = *p_; }
-    lv_opa_t opa = (lv_opa_t)opa_val;
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color32_t _res;
-    lvpy_lock();
-    _res = ((lv_color32_t (*)(lv_color_t, lv_opa_t))lv_color_to_32)(color, opa);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color32_t(_res);
-}
-
-static PyMethodDef py_lv_color_to_32_struct_method_def = {
-    "lv_color_to_32",
-    (PyCFunction)py_lv_color_to_32_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * uint32_t lv_color_to_int(lv_color_t c)
- */
-static PyObject *py_lv_color_to_int_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-
-    lv_color_t c = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) c = *p_; }
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    uint32_t _res;
-    lvpy_lock();
-    _res = ((uint32_t (*)(lv_color_t))lv_color_to_int)(c);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_color_to_int_struct_method_def = {
-    "lv_color_to_int",
-    (PyCFunction)py_lv_color_to_int_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * bool lv_color_eq(lv_color_t c1, lv_color_t c2)
- */
-static PyObject *py_lv_color_eq_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *c2_py;
-    if (!PyArg_ParseTuple(py_args, "O", &c2_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_color_t c1 = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) c1 = *p_; }
-    lv_color_t c2 = mp_write_lv_color_t(c2_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    bool _res;
-    lvpy_lock();
-    _res = ((bool (*)(lv_color_t, lv_color_t))lv_color_eq)(c1, c2);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return convert_to_bool(_res);
-}
-
-static PyMethodDef py_lv_color_eq_struct_method_def = {
-    "lv_color_eq",
-    (PyCFunction)py_lv_color_eq_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * uint16_t lv_color_to_u16(lv_color_t color)
- */
-static PyObject *py_lv_color_to_u16_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-
-    lv_color_t color = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) color = *p_; }
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    uint16_t _res;
-    lvpy_lock();
-    _res = ((uint16_t (*)(lv_color_t))lv_color_to_u16)(color);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_color_to_u16_struct_method_def = {
-    "lv_color_to_u16",
-    (PyCFunction)py_lv_color_to_u16_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * uint32_t lv_color_to_u32(lv_color_t color)
- */
-static PyObject *py_lv_color_to_u32_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-
-    lv_color_t color = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) color = *p_; }
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    uint32_t _res;
-    lvpy_lock();
-    _res = ((uint32_t (*)(lv_color_t))lv_color_to_u32)(color);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_color_to_u32_struct_method_def = {
-    "lv_color_to_u32",
-    (PyCFunction)py_lv_color_to_u32_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * lv_color_t lv_color_lighten(lv_color_t c, lv_opa_t lvl)
- */
-static PyObject *py_lv_color_lighten_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    long lvl_val;
-    if (!PyArg_ParseTuple(py_args, "l", &lvl_val)) { PyGILState_Release(gstate); return NULL; }
-    lv_color_t c = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) c = *p_; }
-    lv_opa_t lvl = (lv_opa_t)lvl_val;
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(lv_color_t, lv_opa_t))lv_color_lighten)(c, lvl);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_color_lighten_struct_method_def = {
-    "lv_color_lighten",
-    (PyCFunction)py_lv_color_lighten_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * lv_color_t lv_color_darken(lv_color_t c, lv_opa_t lvl)
- */
-static PyObject *py_lv_color_darken_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    long lvl_val;
-    if (!PyArg_ParseTuple(py_args, "l", &lvl_val)) { PyGILState_Release(gstate); return NULL; }
-    lv_color_t c = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) c = *p_; }
-    lv_opa_t lvl = (lv_opa_t)lvl_val;
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(lv_color_t, lv_opa_t))lv_color_darken)(c, lvl);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_color_darken_struct_method_def = {
-    "lv_color_darken",
-    (PyCFunction)py_lv_color_darken_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * lv_color_hsv_t lv_color_to_hsv(lv_color_t color)
- */
-static PyObject *py_lv_color_to_hsv_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-
-    lv_color_t color = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) color = *p_; }
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_hsv_t _res;
-    lvpy_lock();
-    _res = ((lv_color_hsv_t (*)(lv_color_t))lv_color_to_hsv)(color);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_hsv_t(_res);
-}
-
-static PyMethodDef py_lv_color_to_hsv_struct_method_def = {
-    "lv_color_to_hsv",
-    (PyCFunction)py_lv_color_to_hsv_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * uint8_t lv_color_luminance(lv_color_t c)
- */
-static PyObject *py_lv_color_luminance_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-
-    lv_color_t c = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) c = *p_; }
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    uint8_t _res;
-    lvpy_lock();
-    _res = ((uint8_t (*)(lv_color_t))lv_color_luminance)(c);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_color_luminance_struct_method_def = {
-    "lv_color_luminance",
-    (PyCFunction)py_lv_color_luminance_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * lv_color_t lv_color_mix(lv_color_t c1, lv_color_t c2, uint8_t mix)
- */
-static PyObject *py_lv_color_mix_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *c2_py; long mix_val;
-    if (!PyArg_ParseTuple(py_args, "Ol", &c2_py, &mix_val)) { PyGILState_Release(gstate); return NULL; }
-    lv_color_t c1 = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) c1 = *p_; }
-    lv_color_t c2 = mp_write_lv_color_t(c2_py);
-    uint8_t mix = (uint8_t)mix_val;
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_color_t _res;
-    lvpy_lock();
-    _res = ((lv_color_t (*)(lv_color_t, lv_color_t, uint8_t))lv_color_mix)(c1, c2, mix);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_color_t(_res);
-}
-
-static PyMethodDef py_lv_color_mix_struct_method_def = {
-    "lv_color_mix",
-    (PyCFunction)py_lv_color_mix_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * uint8_t lv_color_brightness(lv_color_t c)
- */
-static PyObject *py_lv_color_brightness_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-
-    lv_color_t c = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) c = *p_; }
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    uint8_t _res;
-    lvpy_lock();
-    _res = ((uint8_t (*)(lv_color_t))lv_color_brightness)(c);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_color_brightness_struct_method_def = {
-    "lv_color_brightness",
-    (PyCFunction)py_lv_color_brightness_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-PyMethodDef py_lv_color_t_methods[] = {
-    {"is_in_range", (PyCFunction)py_lv_color_is_in_range_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"to_32", (PyCFunction)py_lv_color_to_32_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"to_int", (PyCFunction)py_lv_color_to_int_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"eq", (PyCFunction)py_lv_color_eq_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"to_u16", (PyCFunction)py_lv_color_to_u16_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"to_u32", (PyCFunction)py_lv_color_to_u32_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"lighten", (PyCFunction)py_lv_color_lighten_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"darken", (PyCFunction)py_lv_color_darken_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"to_hsv", (PyCFunction)py_lv_color_to_hsv_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"luminance", (PyCFunction)py_lv_color_luminance_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"mix", (PyCFunction)py_lv_color_mix_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"brightness", (PyCFunction)py_lv_color_brightness_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {NULL}
-};
-
-
-/*
- * lvgl extension definition for:
- * void lv_grad_init_stops(lv_grad_dsc_t *grad, const lv_color_t colors[], const lv_opa_t opa[], const uint8_t fracs[], int num_stops)
- */
-static PyObject *py_lv_grad_init_stops_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *colors_py; PyObject *opa_py; PyObject *fracs_py; long num_stops_val;
-    if (!PyArg_ParseTuple(py_args, "OOOl", &colors_py, &opa_py, &fracs_py, &num_stops_val)) { PyGILState_Release(gstate); return NULL; }
-    lv_grad_dsc_t *grad = (lv_grad_dsc_t *)mp_write_ptr_lv_grad_dsc_t(self);
-    const lv_color_t *colors = (const lv_color_t *)lvpy_struct_arr_arg(self, colors_py, "lv_grad_init_stops:colors", sizeof(lv_color_t), mp_write_value_ptr_lv_color_t);
-    const lv_opa_t *opa = (const lv_opa_t *)mp_to_ptr(opa_py);
-    const uint8_t *fracs = (const uint8_t *)mp_to_ptr(fracs_py);
-    int num_stops = (int)num_stops_val;
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_grad_dsc_t *, const lv_color_t [], const lv_opa_t [], const uint8_t [], int))lv_grad_init_stops)(grad, colors, opa, fracs, num_stops);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_grad_init_stops_struct_method_def = {
-    "lv_grad_init_stops",
-    (PyCFunction)py_lv_grad_init_stops_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * void lv_grad_horizontal_init(lv_grad_dsc_t *dsc)
- */
-static PyObject *py_lv_grad_horizontal_init_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-
-    lv_grad_dsc_t *dsc = (lv_grad_dsc_t *)mp_write_ptr_lv_grad_dsc_t(self);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_grad_dsc_t *))lv_grad_horizontal_init)(dsc);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_grad_horizontal_init_struct_method_def = {
-    "lv_grad_horizontal_init",
-    (PyCFunction)py_lv_grad_horizontal_init_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * void lv_grad_vertical_init(lv_grad_dsc_t *dsc)
- */
-static PyObject *py_lv_grad_vertical_init_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-
-    lv_grad_dsc_t *dsc = (lv_grad_dsc_t *)mp_write_ptr_lv_grad_dsc_t(self);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_grad_dsc_t *))lv_grad_vertical_init)(dsc);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_grad_vertical_init_struct_method_def = {
-    "lv_grad_vertical_init",
-    (PyCFunction)py_lv_grad_vertical_init_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * void lv_grad_linear_init(lv_grad_dsc_t *dsc, int32_t from_x, int32_t from_y, int32_t to_x, int32_t to_y, lv_grad_extend_t extend)
- */
-static PyObject *py_lv_grad_linear_init_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    long from_x_val; long from_y_val; long to_x_val; long to_y_val; PyObject *extend_py;
-    if (!PyArg_ParseTuple(py_args, "llllO", &from_x_val, &from_y_val, &to_x_val, &to_y_val, &extend_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_grad_dsc_t *dsc = (lv_grad_dsc_t *)mp_write_ptr_lv_grad_dsc_t(self);
-    int32_t from_x = (int32_t)from_x_val;
-    int32_t from_y = (int32_t)from_y_val;
-    int32_t to_x = (int32_t)to_x_val;
-    int32_t to_y = (int32_t)to_y_val;
-    lv_grad_extend_t extend = (int)mp_obj_get_int(extend_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_grad_dsc_t *, int32_t, int32_t, int32_t, int32_t, lv_grad_extend_t))lv_grad_linear_init)(dsc, from_x, from_y, to_x, to_y, extend);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_grad_linear_init_struct_method_def = {
-    "lv_grad_linear_init",
-    (PyCFunction)py_lv_grad_linear_init_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * void lv_grad_radial_init(lv_grad_dsc_t *dsc, int32_t center_x, int32_t center_y, int32_t to_x, int32_t to_y, lv_grad_extend_t extend)
- */
-static PyObject *py_lv_grad_radial_init_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    long center_x_val; long center_y_val; long to_x_val; long to_y_val; PyObject *extend_py;
-    if (!PyArg_ParseTuple(py_args, "llllO", &center_x_val, &center_y_val, &to_x_val, &to_y_val, &extend_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_grad_dsc_t *dsc = (lv_grad_dsc_t *)mp_write_ptr_lv_grad_dsc_t(self);
-    int32_t center_x = (int32_t)center_x_val;
-    int32_t center_y = (int32_t)center_y_val;
-    int32_t to_x = (int32_t)to_x_val;
-    int32_t to_y = (int32_t)to_y_val;
-    lv_grad_extend_t extend = (int)mp_obj_get_int(extend_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_grad_dsc_t *, int32_t, int32_t, int32_t, int32_t, lv_grad_extend_t))lv_grad_radial_init)(dsc, center_x, center_y, to_x, to_y, extend);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_grad_radial_init_struct_method_def = {
-    "lv_grad_radial_init",
-    (PyCFunction)py_lv_grad_radial_init_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * void lv_grad_radial_set_focal(lv_grad_dsc_t *dsc, int32_t center_x, int32_t center_y, int32_t radius)
- */
-static PyObject *py_lv_grad_radial_set_focal_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    long center_x_val; long center_y_val; long radius_val;
-    if (!PyArg_ParseTuple(py_args, "lll", &center_x_val, &center_y_val, &radius_val)) { PyGILState_Release(gstate); return NULL; }
-    lv_grad_dsc_t *dsc = (lv_grad_dsc_t *)mp_write_ptr_lv_grad_dsc_t(self);
-    int32_t center_x = (int32_t)center_x_val;
-    int32_t center_y = (int32_t)center_y_val;
-    int32_t radius = (int32_t)radius_val;
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_grad_dsc_t *, int32_t, int32_t, int32_t))lv_grad_radial_set_focal)(dsc, center_x, center_y, radius);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_grad_radial_set_focal_struct_method_def = {
-    "lv_grad_radial_set_focal",
-    (PyCFunction)py_lv_grad_radial_set_focal_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * void lv_grad_conical_init(lv_grad_dsc_t *dsc, int32_t center_x, int32_t center_y, int32_t start_angle, int32_t end_angle, lv_grad_extend_t extend)
- */
-static PyObject *py_lv_grad_conical_init_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    long center_x_val; long center_y_val; long start_angle_val; long end_angle_val; PyObject *extend_py;
-    if (!PyArg_ParseTuple(py_args, "llllO", &center_x_val, &center_y_val, &start_angle_val, &end_angle_val, &extend_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_grad_dsc_t *dsc = (lv_grad_dsc_t *)mp_write_ptr_lv_grad_dsc_t(self);
-    int32_t center_x = (int32_t)center_x_val;
-    int32_t center_y = (int32_t)center_y_val;
-    int32_t start_angle = (int32_t)start_angle_val;
-    int32_t end_angle = (int32_t)end_angle_val;
-    lv_grad_extend_t extend = (int)mp_obj_get_int(extend_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_grad_dsc_t *, int32_t, int32_t, int32_t, int32_t, lv_grad_extend_t))lv_grad_conical_init)(dsc, center_x, center_y, start_angle, end_angle, extend);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_grad_conical_init_struct_method_def = {
-    "lv_grad_conical_init",
-    (PyCFunction)py_lv_grad_conical_init_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-PyMethodDef py_lv_grad_dsc_t_methods[] = {
-    {"init_stops", (PyCFunction)py_lv_grad_init_stops_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"horizontal_init", (PyCFunction)py_lv_grad_horizontal_init_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"vertical_init", (PyCFunction)py_lv_grad_vertical_init_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"linear_init", (PyCFunction)py_lv_grad_linear_init_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"radial_init", (PyCFunction)py_lv_grad_radial_init_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"radial_set_focal", (PyCFunction)py_lv_grad_radial_set_focal_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"conical_init", (PyCFunction)py_lv_grad_conical_init_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {NULL}
-};
-
-PyMethodDef py_lv_grad_stop_t_methods[] = {{NULL}};
-PyMethodDef py_lv_grad_dsc_params_t_methods[] = {{NULL}};
-PyMethodDef py_lv_grad_dsc_params_linear_t_methods[] = {{NULL}};
-
-/*
- * lvgl extension definition for:
- * void lv_point_transform(lv_point_t *point, int32_t angle, int32_t scale_x, int32_t scale_y, const lv_point_t *pivot, bool zoom_first)
- */
-static PyObject *py_lv_point_transform_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    long angle_val; long scale_x_val; long scale_y_val; PyObject *pivot_py; long zoom_first_val;
-    if (!PyArg_ParseTuple(py_args, "lllOl", &angle_val, &scale_x_val, &scale_y_val, &pivot_py, &zoom_first_val)) { PyGILState_Release(gstate); return NULL; }
-    lv_point_t *point = (lv_point_t *)mp_write_ptr_lv_point_t(self);
-    int32_t angle = (int32_t)angle_val;
-    int32_t scale_x = (int32_t)scale_x_val;
-    int32_t scale_y = (int32_t)scale_y_val;
-    const lv_point_t *pivot = (const lv_point_t *)mp_write_ptr_lv_point_t(pivot_py);
-    bool zoom_first = (zoom_first_val != 0);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_point_t *, int32_t, int32_t, int32_t, const lv_point_t *, bool))lv_point_transform)(point, angle, scale_x, scale_y, pivot, zoom_first);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_point_transform_struct_method_def = {
-    "lv_point_transform",
-    (PyCFunction)py_lv_point_transform_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * void lv_point_array_transform(lv_point_t *points, size_t count, int32_t angle, int32_t scale_x, int32_t scale_y, const lv_point_t *pivot, bool zoom_first)
- */
-static PyObject *py_lv_point_array_transform_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    long count_val; long angle_val; long scale_x_val; long scale_y_val; PyObject *pivot_py; long zoom_first_val;
-    if (!PyArg_ParseTuple(py_args, "llllOl", &count_val, &angle_val, &scale_x_val, &scale_y_val, &pivot_py, &zoom_first_val)) { PyGILState_Release(gstate); return NULL; }
-    lv_point_t *points = (lv_point_t *)mp_write_ptr_lv_point_t(self);
-    size_t count = (size_t)count_val;
-    int32_t angle = (int32_t)angle_val;
-    int32_t scale_x = (int32_t)scale_x_val;
-    int32_t scale_y = (int32_t)scale_y_val;
-    const lv_point_t *pivot = (const lv_point_t *)mp_write_ptr_lv_point_t(pivot_py);
-    bool zoom_first = (zoom_first_val != 0);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_point_t *, size_t, int32_t, int32_t, int32_t, const lv_point_t *, bool))lv_point_array_transform)(points, count, angle, scale_x, scale_y, pivot, zoom_first);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_point_array_transform_struct_method_def = {
-    "lv_point_array_transform",
-    (PyCFunction)py_lv_point_array_transform_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * lv_point_precise_t lv_point_to_precise(const lv_point_t *p)
- */
-static PyObject *py_lv_point_to_precise_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-
-    const lv_point_t *p = (lv_point_t *)mp_write_ptr_lv_point_t(self);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lv_point_precise_t _res;
-    lvpy_lock();
-    _res = ((lv_point_precise_t (*)(const lv_point_t *))lv_point_to_precise)(p);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_read_lv_point_precise_t(_res);
-}
-
-static PyMethodDef py_lv_point_to_precise_struct_method_def = {
-    "lv_point_to_precise",
-    (PyCFunction)py_lv_point_to_precise_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * void lv_point_set(lv_point_t *p, int32_t x, int32_t y)
- */
-static PyObject *py_lv_point_set_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    long x_val; long y_val;
-    if (!PyArg_ParseTuple(py_args, "ll", &x_val, &y_val)) { PyGILState_Release(gstate); return NULL; }
-    lv_point_t *p = (lv_point_t *)mp_write_ptr_lv_point_t(self);
-    int32_t x = (int32_t)x_val;
-    int32_t y = (int32_t)y_val;
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_point_t *, int32_t, int32_t))lv_point_set)(p, x, y);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_point_set_struct_method_def = {
-    "lv_point_set",
-    (PyCFunction)py_lv_point_set_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * void lv_point_swap(lv_point_t *p1, lv_point_t *p2)
- */
-static PyObject *py_lv_point_swap_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *p2_py;
-    if (!PyArg_ParseTuple(py_args, "O", &p2_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_point_t *p1 = (lv_point_t *)mp_write_ptr_lv_point_t(self);
-    lv_point_t *p2 = mp_write_ptr_lv_point_t(p2_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_point_t *, lv_point_t *))lv_point_swap)(p1, p2);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_point_swap_struct_method_def = {
-    "lv_point_swap",
-    (PyCFunction)py_lv_point_swap_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-PyMethodDef py_lv_point_t_methods[] = {
-    {"transform", (PyCFunction)py_lv_point_transform_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"array_transform", (PyCFunction)py_lv_point_array_transform_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"to_precise", (PyCFunction)py_lv_point_to_precise_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"set", (PyCFunction)py_lv_point_set_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"swap", (PyCFunction)py_lv_point_swap_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {NULL}
-};
-
-PyMethodDef py_lv_grad_dsc_params_radial_t_methods[] = {{NULL}};
-PyMethodDef py_lv_grad_dsc_params_conical_t_methods[] = {{NULL}};
-PyMethodDef py_lv_image_colorkey_t_methods[] = {{NULL}};
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_font_get_line_height_internal(const lv_font_t *font)
- */
-static PyObject *py_lv_font_get_line_height_internal_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-
-    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_font_t *))lv_font_get_line_height_internal)(font);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_font_get_line_height_internal_struct_method_def = {
-    "lv_font_get_line_height_internal",
-    (PyCFunction)py_lv_font_get_line_height_internal_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static bool lv_font_has_static_bitmap_internal(const lv_font_t *font)
- */
-static PyObject *py_lv_font_has_static_bitmap_internal_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-
-    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    bool _res;
-    lvpy_lock();
-    _res = ((bool (*)(const lv_font_t *))lv_font_has_static_bitmap_internal)(font);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return convert_to_bool(_res);
-}
-
-static PyMethodDef py_lv_font_has_static_bitmap_internal_struct_method_def = {
-    "lv_font_has_static_bitmap_internal",
-    (PyCFunction)py_lv_font_has_static_bitmap_internal_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_font_get_bottom_trim_internal(const lv_font_t *font, lv_text_leading_trim_t trim)
- */
-static PyObject *py_lv_font_get_bottom_trim_internal_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *trim_py;
-    if (!PyArg_ParseTuple(py_args, "O", &trim_py)) { PyGILState_Release(gstate); return NULL; }
-    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
-    lv_text_leading_trim_t trim = (int)mp_obj_get_int(trim_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_font_t *, lv_text_leading_trim_t))lv_font_get_bottom_trim_internal)(font, trim);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_font_get_bottom_trim_internal_struct_method_def = {
-    "lv_font_get_bottom_trim_internal",
-    (PyCFunction)py_lv_font_get_bottom_trim_internal_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * inline static int32_t lv_font_get_top_trim_internal(const lv_font_t *font, lv_text_leading_trim_t trim)
- */
-static PyObject *py_lv_font_get_top_trim_internal_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *trim_py;
-    if (!PyArg_ParseTuple(py_args, "O", &trim_py)) { PyGILState_Release(gstate); return NULL; }
-    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
-    lv_text_leading_trim_t trim = (int)mp_obj_get_int(trim_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_font_t *, lv_text_leading_trim_t))lv_font_get_top_trim_internal)(font, trim);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_font_get_top_trim_internal_struct_method_def = {
-    "lv_font_get_top_trim_internal",
-    (PyCFunction)py_lv_font_get_top_trim_internal_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * bool lv_font_get_glyph_dsc(const lv_font_t *font, lv_font_glyph_dsc_t *dsc_out, uint32_t letter, uint32_t letter_next)
- */
-static PyObject *py_lv_font_get_glyph_dsc_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *dsc_out_py; long letter_val; long letter_next_val;
-    if (!PyArg_ParseTuple(py_args, "Oll", &dsc_out_py, &letter_val, &letter_next_val)) { PyGILState_Release(gstate); return NULL; }
-    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
-    lv_font_glyph_dsc_t *dsc_out = mp_write_ptr_lv_font_glyph_dsc_t(dsc_out_py);
-    uint32_t letter = (uint32_t)letter_val;
-    uint32_t letter_next = (uint32_t)letter_next_val;
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    bool _res;
-    lvpy_lock();
-    _res = ((bool (*)(const lv_font_t *, lv_font_glyph_dsc_t *, uint32_t, uint32_t))lv_font_get_glyph_dsc)(font, dsc_out, letter, letter_next);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return convert_to_bool(_res);
-}
-
-static PyMethodDef py_lv_font_get_glyph_dsc_struct_method_def = {
-    "lv_font_get_glyph_dsc",
-    (PyCFunction)py_lv_font_get_glyph_dsc_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * uint16_t lv_font_get_glyph_width(const lv_font_t *font, uint32_t letter, uint32_t letter_next)
- */
-static PyObject *py_lv_font_get_glyph_width_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    long letter_val; long letter_next_val;
-    if (!PyArg_ParseTuple(py_args, "ll", &letter_val, &letter_next_val)) { PyGILState_Release(gstate); return NULL; }
-    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
-    uint32_t letter = (uint32_t)letter_val;
-    uint32_t letter_next = (uint32_t)letter_next_val;
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    uint16_t _res;
-    lvpy_lock();
-    _res = ((uint16_t (*)(const lv_font_t *, uint32_t, uint32_t))lv_font_get_glyph_width)(font, letter, letter_next);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_font_get_glyph_width_struct_method_def = {
-    "lv_font_get_glyph_width",
-    (PyCFunction)py_lv_font_get_glyph_width_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * int32_t lv_font_get_line_height(const lv_font_t *font)
- */
-static PyObject *py_lv_font_get_line_height_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-
-    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_font_t *))lv_font_get_line_height)(font);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_font_get_line_height_struct_method_def = {
-    "lv_font_get_line_height",
-    (PyCFunction)py_lv_font_get_line_height_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * void lv_font_set_kerning(lv_font_t *font, lv_font_kerning_t kerning)
- */
-static PyObject *py_lv_font_set_kerning_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *kerning_py;
-    if (!PyArg_ParseTuple(py_args, "O", &kerning_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
-    lv_font_kerning_t kerning = (int)mp_obj_get_int(kerning_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_font_t *, lv_font_kerning_t))lv_font_set_kerning)(font, kerning);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_font_set_kerning_struct_method_def = {
-    "lv_font_set_kerning",
-    (PyCFunction)py_lv_font_set_kerning_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * bool lv_font_has_static_bitmap(const lv_font_t *font)
- */
-static PyObject *py_lv_font_has_static_bitmap_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-
-    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    bool _res;
-    lvpy_lock();
-    _res = ((bool (*)(const lv_font_t *))lv_font_has_static_bitmap)(font);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return convert_to_bool(_res);
-}
-
-static PyMethodDef py_lv_font_has_static_bitmap_struct_method_def = {
-    "lv_font_has_static_bitmap",
-    (PyCFunction)py_lv_font_has_static_bitmap_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * int32_t lv_font_get_top_trim(const lv_font_t *font, lv_text_leading_trim_t trim)
- */
-static PyObject *py_lv_font_get_top_trim_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *trim_py;
-    if (!PyArg_ParseTuple(py_args, "O", &trim_py)) { PyGILState_Release(gstate); return NULL; }
-    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
-    lv_text_leading_trim_t trim = (int)mp_obj_get_int(trim_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_font_t *, lv_text_leading_trim_t))lv_font_get_top_trim)(font, trim);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_font_get_top_trim_struct_method_def = {
-    "lv_font_get_top_trim",
-    (PyCFunction)py_lv_font_get_top_trim_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * int32_t lv_font_get_bottom_trim(const lv_font_t *font, lv_text_leading_trim_t trim)
- */
-static PyObject *py_lv_font_get_bottom_trim_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *trim_py;
-    if (!PyArg_ParseTuple(py_args, "O", &trim_py)) { PyGILState_Release(gstate); return NULL; }
-    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
-    lv_text_leading_trim_t trim = (int)mp_obj_get_int(trim_py);
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    int32_t _res;
-    lvpy_lock();
-    _res = ((int32_t (*)(const lv_font_t *, lv_text_leading_trim_t))lv_font_get_bottom_trim)(font, trim);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int(_res);
-}
-
-static PyMethodDef py_lv_font_get_bottom_trim_struct_method_def = {
-    "lv_font_get_bottom_trim",
-    (PyCFunction)py_lv_font_get_bottom_trim_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * bool lv_font_get_glyph_dsc_fmt_txt(const lv_font_t *font, lv_font_glyph_dsc_t *dsc_out, uint32_t unicode_letter, uint32_t unicode_letter_next)
- */
-static PyObject *py_lv_font_get_glyph_dsc_fmt_txt_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *dsc_out_py; long unicode_letter_val; long unicode_letter_next_val;
-    if (!PyArg_ParseTuple(py_args, "Oll", &dsc_out_py, &unicode_letter_val, &unicode_letter_next_val)) { PyGILState_Release(gstate); return NULL; }
-    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
-    lv_font_glyph_dsc_t *dsc_out = mp_write_ptr_lv_font_glyph_dsc_t(dsc_out_py);
-    uint32_t unicode_letter = (uint32_t)unicode_letter_val;
-    uint32_t unicode_letter_next = (uint32_t)unicode_letter_next_val;
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    bool _res;
-    lvpy_lock();
-    _res = ((bool (*)(const lv_font_t *, lv_font_glyph_dsc_t *, uint32_t, uint32_t))lv_font_get_glyph_dsc_fmt_txt)(font, dsc_out, unicode_letter, unicode_letter_next);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return convert_to_bool(_res);
-}
-
-static PyMethodDef py_lv_font_get_glyph_dsc_fmt_txt_struct_method_def = {
-    "lv_font_get_glyph_dsc_fmt_txt",
-    (PyCFunction)py_lv_font_get_glyph_dsc_fmt_txt_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * bool lv_font_get_glyph_dsc_internal(const lv_font_t *font, lv_font_glyph_dsc_t *dsc_out, uint32_t letter, uint32_t letter_next)
- */
-static PyObject *py_lv_font_get_glyph_dsc_internal_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *dsc_out_py; long letter_val; long letter_next_val;
-    if (!PyArg_ParseTuple(py_args, "Oll", &dsc_out_py, &letter_val, &letter_next_val)) { PyGILState_Release(gstate); return NULL; }
-    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
-    lv_font_glyph_dsc_t *dsc_out = mp_write_ptr_lv_font_glyph_dsc_t(dsc_out_py);
-    uint32_t letter = (uint32_t)letter_val;
-    uint32_t letter_next = (uint32_t)letter_next_val;
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    bool _res;
-    lvpy_lock();
-    _res = ((bool (*)(const lv_font_t *, lv_font_glyph_dsc_t *, uint32_t, uint32_t))lv_font_get_glyph_dsc_internal)(font, dsc_out, letter, letter_next);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return convert_to_bool(_res);
-}
-
-static PyMethodDef py_lv_font_get_glyph_dsc_internal_struct_method_def = {
-    "lv_font_get_glyph_dsc_internal",
-    (PyCFunction)py_lv_font_get_glyph_dsc_internal_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-/*
- * lvgl extension definition for:
- * uint16_t lv_font_get_glyph_width_internal(const lv_font_t *font, uint32_t letter, uint32_t letter_next)
- */
-static PyObject *py_lv_font_get_glyph_width_internal_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    long letter_val; long letter_next_val;
-    if (!PyArg_ParseTuple(py_args, "ll", &letter_val, &letter_next_val)) { PyGILState_Release(gstate); return NULL; }
-    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
-    uint32_t letter = (uint32_t)letter_val;
-    uint32_t letter_next = (uint32_t)letter_next_val;
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    uint16_t _res;
-    lvpy_lock();
-    _res = ((uint16_t (*)(const lv_font_t *, uint32_t, uint32_t))lv_font_get_glyph_width_internal)(font, letter, letter_next);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    return mp_obj_new_int_from_uint(_res);
-}
-
-static PyMethodDef py_lv_font_get_glyph_width_internal_struct_method_def = {
-    "lv_font_get_glyph_width_internal",
-    (PyCFunction)py_lv_font_get_glyph_width_internal_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-PyMethodDef py_lv_font_t_methods[] = {
-    {"get_line_height_internal", (PyCFunction)py_lv_font_get_line_height_internal_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"has_static_bitmap_internal", (PyCFunction)py_lv_font_has_static_bitmap_internal_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_bottom_trim_internal", (PyCFunction)py_lv_font_get_bottom_trim_internal_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_top_trim_internal", (PyCFunction)py_lv_font_get_top_trim_internal_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_glyph_dsc", (PyCFunction)py_lv_font_get_glyph_dsc_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_glyph_width", (PyCFunction)py_lv_font_get_glyph_width_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_line_height", (PyCFunction)py_lv_font_get_line_height_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"set_kerning", (PyCFunction)py_lv_font_set_kerning_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"has_static_bitmap", (PyCFunction)py_lv_font_has_static_bitmap_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_top_trim", (PyCFunction)py_lv_font_get_top_trim_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_bottom_trim", (PyCFunction)py_lv_font_get_bottom_trim_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_glyph_dsc_fmt_txt", (PyCFunction)py_lv_font_get_glyph_dsc_fmt_txt_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_glyph_dsc_internal", (PyCFunction)py_lv_font_get_glyph_dsc_internal_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"get_glyph_width_internal", (PyCFunction)py_lv_font_get_glyph_width_internal_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {NULL}
-};
-
-
-/*
- * Callback function lv_color_filter_dsc_t_cb (CPython)
- * lv_color_t lv_color_filter_cb_t(const struct _lv_color_filter_dsc_t *, lv_color_t, lv_opa_t)
- */
-static lv_color_t lv_color_filter_dsc_t_cb_callback(const struct _lv_color_filter_dsc_t *arg0, lv_color_t arg1, lv_opa_t arg2)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    PyObject *callbacks = get_callback_dict_from_user_data(arg0->user_data);
-    if (!callbacks) { PyGILState_Release(gstate); return (lv_color_t){0}; }
-    PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_color_filter_dsc_t_cb");
-    if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (lv_color_t){0}; }
-    /* Hold the callback for the whole call: it may replace or remove its
-     * own registration while it runs. */
-    Py_INCREF(py_cb);
-    PyObject *py_arg0 = mp_read_ptr_lv_color_filter_dsc_t((void*)arg0);
-    PyObject *py_arg1 = mp_read_lv_color_t(arg1);
-    PyObject *py_arg2 = mp_obj_new_int_from_uint(arg2);
-    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2) ? PyTuple_Pack(3, py_arg0, py_arg1, py_arg2) : NULL;
-    Py_XDECREF(py_arg0);
-    Py_XDECREF(py_arg1);
-    Py_XDECREF(py_arg2);
-    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (lv_color_t){0}; }
-    lvpy_release_lock_for_python();
-    lvpy_nesting_inc();
-    PyObject *result = PyObject_CallObject(py_cb, py_args);
-    Py_DECREF(py_args);
-    Py_DECREF(py_cb);
-    lvpy_nesting_dec();
-    lvpy_reacquire_lock_after_python();
-    if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (lv_color_t){0}; }
-    lv_color_t _c_res = mp_write_lv_color_t(result);
-    Py_DECREF(result);
-    PyGILState_Release(gstate);
-    return _c_res;
-}
-
-
-/*
- * lvgl extension definition for:
- * void lv_color_filter_dsc_init(lv_color_filter_dsc_t *dsc, lv_color_filter_cb_t cb)
- */
-static PyObject *py_lv_color_filter_dsc_init_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *cb_py;
-    if (!PyArg_ParseTuple(py_args, "O", &cb_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_color_filter_dsc_t *dsc = (lv_color_filter_dsc_t *)mp_write_ptr_lv_color_filter_dsc_t(self);
-    void *cb = mp_lv_callback(cb_py, &lv_color_filter_dsc_t_cb_callback, "lv_color_filter_dsc_t_cb", &dsc->user_data, dsc, (NULL), (NULL));
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_color_filter_dsc_t *, lv_color_filter_cb_t))lv_color_filter_dsc_init)(dsc, cb);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_color_filter_dsc_init_struct_method_def = {
-    "lv_color_filter_dsc_init",
-    (PyCFunction)py_lv_color_filter_dsc_init_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-PyMethodDef py_lv_color_filter_dsc_t_methods[] = {
-    {"init", (PyCFunction)py_lv_color_filter_dsc_init_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {NULL}
 };
 
 
@@ -82813,79 +76628,6 @@ PyMethodDef py_lv_anim_t_methods[] = {
 
 PyMethodDef py_lv_anim_parameter_t_methods[] = {{NULL}};
 PyMethodDef py_lv_anim_bezier3_para_t_methods[] = {{NULL}};
-
-/*
- * Callback function lv_style_transition_dsc_init_path_cb (CPython)
- * int32_t lv_anim_path_cb_t(const lv_anim_t *)
- */
-static int32_t lv_style_transition_dsc_init_path_cb_callback(const lv_anim_t *arg0)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    PyObject *callbacks = get_callback_dict_from_user_data(arg0->user_data);
-    if (!callbacks) { PyGILState_Release(gstate); return (int32_t){0}; }
-    PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_style_transition_dsc_init_path_cb");
-    if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (int32_t){0}; }
-    /* Hold the callback for the whole call: it may replace or remove its
-     * own registration while it runs. */
-    Py_INCREF(py_cb);
-    PyObject *py_arg0 = mp_read_ptr_lv_anim_t((void*)arg0);
-    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
-    Py_XDECREF(py_arg0);
-    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (int32_t){0}; }
-    lvpy_release_lock_for_python();
-    lvpy_nesting_inc();
-    PyObject *result = PyObject_CallObject(py_cb, py_args);
-    Py_DECREF(py_args);
-    Py_DECREF(py_cb);
-    lvpy_nesting_dec();
-    lvpy_reacquire_lock_after_python();
-    if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (int32_t){0}; }
-    int32_t _c_res = (int32_t)mp_obj_get_int(result);
-    Py_DECREF(result);
-    PyGILState_Release(gstate);
-    return _c_res;
-}
-
-
-/*
- * lvgl extension definition for:
- * void lv_style_transition_dsc_init(lv_style_transition_dsc_t *tr, const lv_style_prop_t props[], lv_anim_path_cb_t path_cb, uint32_t time, uint32_t delay, void *user_data)
- */
-static PyObject *py_lv_style_transition_dsc_init_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    (void)py_kwds;
-    PyObject *props_py; PyObject *path_cb_py; long time_val; long delay_val; PyObject *user_data_py;
-    if (!PyArg_ParseTuple(py_args, "OOllO", &props_py, &path_cb_py, &time_val, &delay_val, &user_data_py)) { PyGILState_Release(gstate); return NULL; }
-    lv_style_transition_dsc_t *tr = (lv_style_transition_dsc_t *)mp_write_ptr_lv_style_transition_dsc_t(self);
-    void *user_data = mp_to_ptr(user_data_py);
-    const lv_style_prop_t *props = (const lv_style_prop_t *)mp_to_ptr(props_py);
-    uint32_t time = (uint32_t)time_val;
-    uint32_t delay = (uint32_t)delay_val;
-    void *path_cb = mp_lv_callback(path_cb_py, &lv_style_transition_dsc_init_path_cb_callback, "lv_style_transition_dsc_init_path_cb", &user_data, NULL, (NULL), (NULL));
-    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
-    
-    lvpy_lock();
-    ((void (*)(lv_style_transition_dsc_t *, const lv_style_prop_t [], lv_anim_path_cb_t, uint32_t, uint32_t, void *))lv_style_transition_dsc_init)(tr, props, path_cb, time, delay, user_data);
-    lvpy_unlock();
-    
-    PyGILState_Release(gstate);
-    Py_RETURN_NONE;
-}
-
-static PyMethodDef py_lv_style_transition_dsc_init_struct_method_def = {
-    "lv_style_transition_dsc_init",
-    (PyCFunction)py_lv_style_transition_dsc_init_struct_method,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL
-};
-
-
-PyMethodDef py_lv_style_transition_dsc_t_methods[] = {
-    {"init", (PyCFunction)py_lv_style_transition_dsc_init_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
-    {NULL}
-};
-
 
 /*
  * lvgl extension definition for:
@@ -90320,6 +84062,837 @@ PyMethodDef py_lv_theme_t_methods[] = {
 
 /*
  * lvgl extension definition for:
+ * inline static bool lv_color_is_in_range(lv_color_t color, lv_color_t l_color, lv_color_t h_color)
+ */
+static PyObject *py_lv_color_is_in_range_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    PyObject *l_color_py; PyObject *h_color_py;
+    if (!PyArg_ParseTuple(py_args, "OO", &l_color_py, &h_color_py)) { PyGILState_Release(gstate); return NULL; }
+    lv_color_t color = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) color = *p_; }
+    lv_color_t l_color = mp_write_lv_color_t(l_color_py);
+    lv_color_t h_color = mp_write_lv_color_t(h_color_py);
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    bool _res;
+    lvpy_lock();
+    _res = ((bool (*)(lv_color_t, lv_color_t, lv_color_t))lv_color_is_in_range)(color, l_color, h_color);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return convert_to_bool(_res);
+}
+
+static PyMethodDef py_lv_color_is_in_range_struct_method_def = {
+    "lv_color_is_in_range",
+    (PyCFunction)py_lv_color_is_in_range_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * lv_color32_t lv_color_to_32(lv_color_t color, lv_opa_t opa)
+ */
+static PyObject *py_lv_color_to_32_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    long opa_val;
+    if (!PyArg_ParseTuple(py_args, "l", &opa_val)) { PyGILState_Release(gstate); return NULL; }
+    lv_color_t color = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) color = *p_; }
+    lv_opa_t opa = (lv_opa_t)opa_val;
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lv_color32_t _res;
+    lvpy_lock();
+    _res = ((lv_color32_t (*)(lv_color_t, lv_opa_t))lv_color_to_32)(color, opa);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return mp_read_lv_color32_t(_res);
+}
+
+static PyMethodDef py_lv_color_to_32_struct_method_def = {
+    "lv_color_to_32",
+    (PyCFunction)py_lv_color_to_32_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * uint32_t lv_color_to_int(lv_color_t c)
+ */
+static PyObject *py_lv_color_to_int_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+
+    lv_color_t c = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) c = *p_; }
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    uint32_t _res;
+    lvpy_lock();
+    _res = ((uint32_t (*)(lv_color_t))lv_color_to_int)(c);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return mp_obj_new_int_from_uint(_res);
+}
+
+static PyMethodDef py_lv_color_to_int_struct_method_def = {
+    "lv_color_to_int",
+    (PyCFunction)py_lv_color_to_int_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * bool lv_color_eq(lv_color_t c1, lv_color_t c2)
+ */
+static PyObject *py_lv_color_eq_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    PyObject *c2_py;
+    if (!PyArg_ParseTuple(py_args, "O", &c2_py)) { PyGILState_Release(gstate); return NULL; }
+    lv_color_t c1 = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) c1 = *p_; }
+    lv_color_t c2 = mp_write_lv_color_t(c2_py);
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    bool _res;
+    lvpy_lock();
+    _res = ((bool (*)(lv_color_t, lv_color_t))lv_color_eq)(c1, c2);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return convert_to_bool(_res);
+}
+
+static PyMethodDef py_lv_color_eq_struct_method_def = {
+    "lv_color_eq",
+    (PyCFunction)py_lv_color_eq_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * uint16_t lv_color_to_u16(lv_color_t color)
+ */
+static PyObject *py_lv_color_to_u16_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+
+    lv_color_t color = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) color = *p_; }
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    uint16_t _res;
+    lvpy_lock();
+    _res = ((uint16_t (*)(lv_color_t))lv_color_to_u16)(color);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return mp_obj_new_int_from_uint(_res);
+}
+
+static PyMethodDef py_lv_color_to_u16_struct_method_def = {
+    "lv_color_to_u16",
+    (PyCFunction)py_lv_color_to_u16_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * uint32_t lv_color_to_u32(lv_color_t color)
+ */
+static PyObject *py_lv_color_to_u32_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+
+    lv_color_t color = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) color = *p_; }
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    uint32_t _res;
+    lvpy_lock();
+    _res = ((uint32_t (*)(lv_color_t))lv_color_to_u32)(color);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return mp_obj_new_int_from_uint(_res);
+}
+
+static PyMethodDef py_lv_color_to_u32_struct_method_def = {
+    "lv_color_to_u32",
+    (PyCFunction)py_lv_color_to_u32_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * lv_color_t lv_color_lighten(lv_color_t c, lv_opa_t lvl)
+ */
+static PyObject *py_lv_color_lighten_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    long lvl_val;
+    if (!PyArg_ParseTuple(py_args, "l", &lvl_val)) { PyGILState_Release(gstate); return NULL; }
+    lv_color_t c = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) c = *p_; }
+    lv_opa_t lvl = (lv_opa_t)lvl_val;
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lv_color_t _res;
+    lvpy_lock();
+    _res = ((lv_color_t (*)(lv_color_t, lv_opa_t))lv_color_lighten)(c, lvl);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return mp_read_lv_color_t(_res);
+}
+
+static PyMethodDef py_lv_color_lighten_struct_method_def = {
+    "lv_color_lighten",
+    (PyCFunction)py_lv_color_lighten_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * lv_color_t lv_color_darken(lv_color_t c, lv_opa_t lvl)
+ */
+static PyObject *py_lv_color_darken_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    long lvl_val;
+    if (!PyArg_ParseTuple(py_args, "l", &lvl_val)) { PyGILState_Release(gstate); return NULL; }
+    lv_color_t c = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) c = *p_; }
+    lv_opa_t lvl = (lv_opa_t)lvl_val;
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lv_color_t _res;
+    lvpy_lock();
+    _res = ((lv_color_t (*)(lv_color_t, lv_opa_t))lv_color_darken)(c, lvl);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return mp_read_lv_color_t(_res);
+}
+
+static PyMethodDef py_lv_color_darken_struct_method_def = {
+    "lv_color_darken",
+    (PyCFunction)py_lv_color_darken_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * lv_color_hsv_t lv_color_to_hsv(lv_color_t color)
+ */
+static PyObject *py_lv_color_to_hsv_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+
+    lv_color_t color = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) color = *p_; }
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lv_color_hsv_t _res;
+    lvpy_lock();
+    _res = ((lv_color_hsv_t (*)(lv_color_t))lv_color_to_hsv)(color);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return mp_read_lv_color_hsv_t(_res);
+}
+
+static PyMethodDef py_lv_color_to_hsv_struct_method_def = {
+    "lv_color_to_hsv",
+    (PyCFunction)py_lv_color_to_hsv_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * uint8_t lv_color_luminance(lv_color_t c)
+ */
+static PyObject *py_lv_color_luminance_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+
+    lv_color_t c = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) c = *p_; }
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    uint8_t _res;
+    lvpy_lock();
+    _res = ((uint8_t (*)(lv_color_t))lv_color_luminance)(c);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return mp_obj_new_int_from_uint(_res);
+}
+
+static PyMethodDef py_lv_color_luminance_struct_method_def = {
+    "lv_color_luminance",
+    (PyCFunction)py_lv_color_luminance_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * lv_color_t lv_color_mix(lv_color_t c1, lv_color_t c2, uint8_t mix)
+ */
+static PyObject *py_lv_color_mix_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    PyObject *c2_py; long mix_val;
+    if (!PyArg_ParseTuple(py_args, "Ol", &c2_py, &mix_val)) { PyGILState_Release(gstate); return NULL; }
+    lv_color_t c1 = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) c1 = *p_; }
+    lv_color_t c2 = mp_write_lv_color_t(c2_py);
+    uint8_t mix = (uint8_t)mix_val;
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lv_color_t _res;
+    lvpy_lock();
+    _res = ((lv_color_t (*)(lv_color_t, lv_color_t, uint8_t))lv_color_mix)(c1, c2, mix);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return mp_read_lv_color_t(_res);
+}
+
+static PyMethodDef py_lv_color_mix_struct_method_def = {
+    "lv_color_mix",
+    (PyCFunction)py_lv_color_mix_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * uint8_t lv_color_brightness(lv_color_t c)
+ */
+static PyObject *py_lv_color_brightness_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+
+    lv_color_t c = {0}; { lv_color_t *p_ = (lv_color_t *)mp_write_ptr_lv_color_t(self); if (p_) c = *p_; }
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    uint8_t _res;
+    lvpy_lock();
+    _res = ((uint8_t (*)(lv_color_t))lv_color_brightness)(c);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return mp_obj_new_int_from_uint(_res);
+}
+
+static PyMethodDef py_lv_color_brightness_struct_method_def = {
+    "lv_color_brightness",
+    (PyCFunction)py_lv_color_brightness_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+PyMethodDef py_lv_color_t_methods[] = {
+    {"is_in_range", (PyCFunction)py_lv_color_is_in_range_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"to_32", (PyCFunction)py_lv_color_to_32_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"to_int", (PyCFunction)py_lv_color_to_int_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"eq", (PyCFunction)py_lv_color_eq_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"to_u16", (PyCFunction)py_lv_color_to_u16_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"to_u32", (PyCFunction)py_lv_color_to_u32_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"lighten", (PyCFunction)py_lv_color_lighten_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"darken", (PyCFunction)py_lv_color_darken_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"to_hsv", (PyCFunction)py_lv_color_to_hsv_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"luminance", (PyCFunction)py_lv_color_luminance_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"mix", (PyCFunction)py_lv_color_mix_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"brightness", (PyCFunction)py_lv_color_brightness_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {NULL}
+};
+
+
+/*
+ * lvgl extension definition for:
+ * inline static int32_t lv_font_get_line_height_internal(const lv_font_t *font)
+ */
+static PyObject *py_lv_font_get_line_height_internal_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+
+    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    int32_t _res;
+    lvpy_lock();
+    _res = ((int32_t (*)(const lv_font_t *))lv_font_get_line_height_internal)(font);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return mp_obj_new_int(_res);
+}
+
+static PyMethodDef py_lv_font_get_line_height_internal_struct_method_def = {
+    "lv_font_get_line_height_internal",
+    (PyCFunction)py_lv_font_get_line_height_internal_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * inline static bool lv_font_has_static_bitmap_internal(const lv_font_t *font)
+ */
+static PyObject *py_lv_font_has_static_bitmap_internal_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+
+    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    bool _res;
+    lvpy_lock();
+    _res = ((bool (*)(const lv_font_t *))lv_font_has_static_bitmap_internal)(font);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return convert_to_bool(_res);
+}
+
+static PyMethodDef py_lv_font_has_static_bitmap_internal_struct_method_def = {
+    "lv_font_has_static_bitmap_internal",
+    (PyCFunction)py_lv_font_has_static_bitmap_internal_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * inline static int32_t lv_font_get_bottom_trim_internal(const lv_font_t *font, lv_text_leading_trim_t trim)
+ */
+static PyObject *py_lv_font_get_bottom_trim_internal_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    PyObject *trim_py;
+    if (!PyArg_ParseTuple(py_args, "O", &trim_py)) { PyGILState_Release(gstate); return NULL; }
+    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
+    lv_text_leading_trim_t trim = (int)mp_obj_get_int(trim_py);
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    int32_t _res;
+    lvpy_lock();
+    _res = ((int32_t (*)(const lv_font_t *, lv_text_leading_trim_t))lv_font_get_bottom_trim_internal)(font, trim);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return mp_obj_new_int(_res);
+}
+
+static PyMethodDef py_lv_font_get_bottom_trim_internal_struct_method_def = {
+    "lv_font_get_bottom_trim_internal",
+    (PyCFunction)py_lv_font_get_bottom_trim_internal_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * inline static int32_t lv_font_get_top_trim_internal(const lv_font_t *font, lv_text_leading_trim_t trim)
+ */
+static PyObject *py_lv_font_get_top_trim_internal_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    PyObject *trim_py;
+    if (!PyArg_ParseTuple(py_args, "O", &trim_py)) { PyGILState_Release(gstate); return NULL; }
+    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
+    lv_text_leading_trim_t trim = (int)mp_obj_get_int(trim_py);
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    int32_t _res;
+    lvpy_lock();
+    _res = ((int32_t (*)(const lv_font_t *, lv_text_leading_trim_t))lv_font_get_top_trim_internal)(font, trim);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return mp_obj_new_int(_res);
+}
+
+static PyMethodDef py_lv_font_get_top_trim_internal_struct_method_def = {
+    "lv_font_get_top_trim_internal",
+    (PyCFunction)py_lv_font_get_top_trim_internal_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * bool lv_font_get_glyph_dsc(const lv_font_t *font, lv_font_glyph_dsc_t *dsc_out, uint32_t letter, uint32_t letter_next)
+ */
+static PyObject *py_lv_font_get_glyph_dsc_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    PyObject *dsc_out_py; long letter_val; long letter_next_val;
+    if (!PyArg_ParseTuple(py_args, "Oll", &dsc_out_py, &letter_val, &letter_next_val)) { PyGILState_Release(gstate); return NULL; }
+    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
+    lv_font_glyph_dsc_t *dsc_out = mp_write_ptr_lv_font_glyph_dsc_t(dsc_out_py);
+    uint32_t letter = (uint32_t)letter_val;
+    uint32_t letter_next = (uint32_t)letter_next_val;
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    bool _res;
+    lvpy_lock();
+    _res = ((bool (*)(const lv_font_t *, lv_font_glyph_dsc_t *, uint32_t, uint32_t))lv_font_get_glyph_dsc)(font, dsc_out, letter, letter_next);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return convert_to_bool(_res);
+}
+
+static PyMethodDef py_lv_font_get_glyph_dsc_struct_method_def = {
+    "lv_font_get_glyph_dsc",
+    (PyCFunction)py_lv_font_get_glyph_dsc_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * uint16_t lv_font_get_glyph_width(const lv_font_t *font, uint32_t letter, uint32_t letter_next)
+ */
+static PyObject *py_lv_font_get_glyph_width_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    long letter_val; long letter_next_val;
+    if (!PyArg_ParseTuple(py_args, "ll", &letter_val, &letter_next_val)) { PyGILState_Release(gstate); return NULL; }
+    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
+    uint32_t letter = (uint32_t)letter_val;
+    uint32_t letter_next = (uint32_t)letter_next_val;
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    uint16_t _res;
+    lvpy_lock();
+    _res = ((uint16_t (*)(const lv_font_t *, uint32_t, uint32_t))lv_font_get_glyph_width)(font, letter, letter_next);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return mp_obj_new_int_from_uint(_res);
+}
+
+static PyMethodDef py_lv_font_get_glyph_width_struct_method_def = {
+    "lv_font_get_glyph_width",
+    (PyCFunction)py_lv_font_get_glyph_width_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * int32_t lv_font_get_line_height(const lv_font_t *font)
+ */
+static PyObject *py_lv_font_get_line_height_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+
+    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    int32_t _res;
+    lvpy_lock();
+    _res = ((int32_t (*)(const lv_font_t *))lv_font_get_line_height)(font);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return mp_obj_new_int(_res);
+}
+
+static PyMethodDef py_lv_font_get_line_height_struct_method_def = {
+    "lv_font_get_line_height",
+    (PyCFunction)py_lv_font_get_line_height_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * void lv_font_set_kerning(lv_font_t *font, lv_font_kerning_t kerning)
+ */
+static PyObject *py_lv_font_set_kerning_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    PyObject *kerning_py;
+    if (!PyArg_ParseTuple(py_args, "O", &kerning_py)) { PyGILState_Release(gstate); return NULL; }
+    lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
+    lv_font_kerning_t kerning = (int)mp_obj_get_int(kerning_py);
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lvpy_lock();
+    ((void (*)(lv_font_t *, lv_font_kerning_t))lv_font_set_kerning)(font, kerning);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef py_lv_font_set_kerning_struct_method_def = {
+    "lv_font_set_kerning",
+    (PyCFunction)py_lv_font_set_kerning_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * bool lv_font_has_static_bitmap(const lv_font_t *font)
+ */
+static PyObject *py_lv_font_has_static_bitmap_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+
+    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    bool _res;
+    lvpy_lock();
+    _res = ((bool (*)(const lv_font_t *))lv_font_has_static_bitmap)(font);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return convert_to_bool(_res);
+}
+
+static PyMethodDef py_lv_font_has_static_bitmap_struct_method_def = {
+    "lv_font_has_static_bitmap",
+    (PyCFunction)py_lv_font_has_static_bitmap_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * int32_t lv_font_get_top_trim(const lv_font_t *font, lv_text_leading_trim_t trim)
+ */
+static PyObject *py_lv_font_get_top_trim_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    PyObject *trim_py;
+    if (!PyArg_ParseTuple(py_args, "O", &trim_py)) { PyGILState_Release(gstate); return NULL; }
+    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
+    lv_text_leading_trim_t trim = (int)mp_obj_get_int(trim_py);
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    int32_t _res;
+    lvpy_lock();
+    _res = ((int32_t (*)(const lv_font_t *, lv_text_leading_trim_t))lv_font_get_top_trim)(font, trim);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return mp_obj_new_int(_res);
+}
+
+static PyMethodDef py_lv_font_get_top_trim_struct_method_def = {
+    "lv_font_get_top_trim",
+    (PyCFunction)py_lv_font_get_top_trim_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * int32_t lv_font_get_bottom_trim(const lv_font_t *font, lv_text_leading_trim_t trim)
+ */
+static PyObject *py_lv_font_get_bottom_trim_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    PyObject *trim_py;
+    if (!PyArg_ParseTuple(py_args, "O", &trim_py)) { PyGILState_Release(gstate); return NULL; }
+    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
+    lv_text_leading_trim_t trim = (int)mp_obj_get_int(trim_py);
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    int32_t _res;
+    lvpy_lock();
+    _res = ((int32_t (*)(const lv_font_t *, lv_text_leading_trim_t))lv_font_get_bottom_trim)(font, trim);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return mp_obj_new_int(_res);
+}
+
+static PyMethodDef py_lv_font_get_bottom_trim_struct_method_def = {
+    "lv_font_get_bottom_trim",
+    (PyCFunction)py_lv_font_get_bottom_trim_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * bool lv_font_get_glyph_dsc_fmt_txt(const lv_font_t *font, lv_font_glyph_dsc_t *dsc_out, uint32_t unicode_letter, uint32_t unicode_letter_next)
+ */
+static PyObject *py_lv_font_get_glyph_dsc_fmt_txt_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    PyObject *dsc_out_py; long unicode_letter_val; long unicode_letter_next_val;
+    if (!PyArg_ParseTuple(py_args, "Oll", &dsc_out_py, &unicode_letter_val, &unicode_letter_next_val)) { PyGILState_Release(gstate); return NULL; }
+    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
+    lv_font_glyph_dsc_t *dsc_out = mp_write_ptr_lv_font_glyph_dsc_t(dsc_out_py);
+    uint32_t unicode_letter = (uint32_t)unicode_letter_val;
+    uint32_t unicode_letter_next = (uint32_t)unicode_letter_next_val;
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    bool _res;
+    lvpy_lock();
+    _res = ((bool (*)(const lv_font_t *, lv_font_glyph_dsc_t *, uint32_t, uint32_t))lv_font_get_glyph_dsc_fmt_txt)(font, dsc_out, unicode_letter, unicode_letter_next);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return convert_to_bool(_res);
+}
+
+static PyMethodDef py_lv_font_get_glyph_dsc_fmt_txt_struct_method_def = {
+    "lv_font_get_glyph_dsc_fmt_txt",
+    (PyCFunction)py_lv_font_get_glyph_dsc_fmt_txt_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * bool lv_font_get_glyph_dsc_internal(const lv_font_t *font, lv_font_glyph_dsc_t *dsc_out, uint32_t letter, uint32_t letter_next)
+ */
+static PyObject *py_lv_font_get_glyph_dsc_internal_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    PyObject *dsc_out_py; long letter_val; long letter_next_val;
+    if (!PyArg_ParseTuple(py_args, "Oll", &dsc_out_py, &letter_val, &letter_next_val)) { PyGILState_Release(gstate); return NULL; }
+    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
+    lv_font_glyph_dsc_t *dsc_out = mp_write_ptr_lv_font_glyph_dsc_t(dsc_out_py);
+    uint32_t letter = (uint32_t)letter_val;
+    uint32_t letter_next = (uint32_t)letter_next_val;
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    bool _res;
+    lvpy_lock();
+    _res = ((bool (*)(const lv_font_t *, lv_font_glyph_dsc_t *, uint32_t, uint32_t))lv_font_get_glyph_dsc_internal)(font, dsc_out, letter, letter_next);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return convert_to_bool(_res);
+}
+
+static PyMethodDef py_lv_font_get_glyph_dsc_internal_struct_method_def = {
+    "lv_font_get_glyph_dsc_internal",
+    (PyCFunction)py_lv_font_get_glyph_dsc_internal_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * uint16_t lv_font_get_glyph_width_internal(const lv_font_t *font, uint32_t letter, uint32_t letter_next)
+ */
+static PyObject *py_lv_font_get_glyph_width_internal_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    long letter_val; long letter_next_val;
+    if (!PyArg_ParseTuple(py_args, "ll", &letter_val, &letter_next_val)) { PyGILState_Release(gstate); return NULL; }
+    const lv_font_t *font = (lv_font_t *)mp_write_ptr_lv_font_t(self);
+    uint32_t letter = (uint32_t)letter_val;
+    uint32_t letter_next = (uint32_t)letter_next_val;
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    uint16_t _res;
+    lvpy_lock();
+    _res = ((uint16_t (*)(const lv_font_t *, uint32_t, uint32_t))lv_font_get_glyph_width_internal)(font, letter, letter_next);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return mp_obj_new_int_from_uint(_res);
+}
+
+static PyMethodDef py_lv_font_get_glyph_width_internal_struct_method_def = {
+    "lv_font_get_glyph_width_internal",
+    (PyCFunction)py_lv_font_get_glyph_width_internal_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+PyMethodDef py_lv_font_t_methods[] = {
+    {"get_line_height_internal", (PyCFunction)py_lv_font_get_line_height_internal_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"has_static_bitmap_internal", (PyCFunction)py_lv_font_has_static_bitmap_internal_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"get_bottom_trim_internal", (PyCFunction)py_lv_font_get_bottom_trim_internal_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"get_top_trim_internal", (PyCFunction)py_lv_font_get_top_trim_internal_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"get_glyph_dsc", (PyCFunction)py_lv_font_get_glyph_dsc_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"get_glyph_width", (PyCFunction)py_lv_font_get_glyph_width_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"get_line_height", (PyCFunction)py_lv_font_get_line_height_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"set_kerning", (PyCFunction)py_lv_font_set_kerning_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"has_static_bitmap", (PyCFunction)py_lv_font_has_static_bitmap_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"get_top_trim", (PyCFunction)py_lv_font_get_top_trim_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"get_bottom_trim", (PyCFunction)py_lv_font_get_bottom_trim_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"get_glyph_dsc_fmt_txt", (PyCFunction)py_lv_font_get_glyph_dsc_fmt_txt_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"get_glyph_dsc_internal", (PyCFunction)py_lv_font_get_glyph_dsc_internal_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"get_glyph_width_internal", (PyCFunction)py_lv_font_get_glyph_width_internal_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {NULL}
+};
+
+
+/*
+ * lvgl extension definition for:
  * void lv_timer_delete(lv_timer_t *timer)
  */
 static PyObject *py_lv_timer_delete_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
@@ -90813,6 +85386,175 @@ PyMethodDef py_lv_obj_class_t_methods[] = {
 };
 
 PyMethodDef py_lv_matrix_t_methods[] = {{NULL}};
+
+/*
+ * lvgl extension definition for:
+ * void lv_point_transform(lv_point_t *point, int32_t angle, int32_t scale_x, int32_t scale_y, const lv_point_t *pivot, bool zoom_first)
+ */
+static PyObject *py_lv_point_transform_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    long angle_val; long scale_x_val; long scale_y_val; PyObject *pivot_py; long zoom_first_val;
+    if (!PyArg_ParseTuple(py_args, "lllOl", &angle_val, &scale_x_val, &scale_y_val, &pivot_py, &zoom_first_val)) { PyGILState_Release(gstate); return NULL; }
+    lv_point_t *point = (lv_point_t *)mp_write_ptr_lv_point_t(self);
+    int32_t angle = (int32_t)angle_val;
+    int32_t scale_x = (int32_t)scale_x_val;
+    int32_t scale_y = (int32_t)scale_y_val;
+    const lv_point_t *pivot = (const lv_point_t *)mp_write_ptr_lv_point_t(pivot_py);
+    bool zoom_first = (zoom_first_val != 0);
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lvpy_lock();
+    ((void (*)(lv_point_t *, int32_t, int32_t, int32_t, const lv_point_t *, bool))lv_point_transform)(point, angle, scale_x, scale_y, pivot, zoom_first);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef py_lv_point_transform_struct_method_def = {
+    "lv_point_transform",
+    (PyCFunction)py_lv_point_transform_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * void lv_point_array_transform(lv_point_t *points, size_t count, int32_t angle, int32_t scale_x, int32_t scale_y, const lv_point_t *pivot, bool zoom_first)
+ */
+static PyObject *py_lv_point_array_transform_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    long count_val; long angle_val; long scale_x_val; long scale_y_val; PyObject *pivot_py; long zoom_first_val;
+    if (!PyArg_ParseTuple(py_args, "llllOl", &count_val, &angle_val, &scale_x_val, &scale_y_val, &pivot_py, &zoom_first_val)) { PyGILState_Release(gstate); return NULL; }
+    lv_point_t *points = (lv_point_t *)mp_write_ptr_lv_point_t(self);
+    size_t count = (size_t)count_val;
+    int32_t angle = (int32_t)angle_val;
+    int32_t scale_x = (int32_t)scale_x_val;
+    int32_t scale_y = (int32_t)scale_y_val;
+    const lv_point_t *pivot = (const lv_point_t *)mp_write_ptr_lv_point_t(pivot_py);
+    bool zoom_first = (zoom_first_val != 0);
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lvpy_lock();
+    ((void (*)(lv_point_t *, size_t, int32_t, int32_t, int32_t, const lv_point_t *, bool))lv_point_array_transform)(points, count, angle, scale_x, scale_y, pivot, zoom_first);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef py_lv_point_array_transform_struct_method_def = {
+    "lv_point_array_transform",
+    (PyCFunction)py_lv_point_array_transform_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * lv_point_precise_t lv_point_to_precise(const lv_point_t *p)
+ */
+static PyObject *py_lv_point_to_precise_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+
+    const lv_point_t *p = (lv_point_t *)mp_write_ptr_lv_point_t(self);
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lv_point_precise_t _res;
+    lvpy_lock();
+    _res = ((lv_point_precise_t (*)(const lv_point_t *))lv_point_to_precise)(p);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    return mp_read_lv_point_precise_t(_res);
+}
+
+static PyMethodDef py_lv_point_to_precise_struct_method_def = {
+    "lv_point_to_precise",
+    (PyCFunction)py_lv_point_to_precise_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * void lv_point_set(lv_point_t *p, int32_t x, int32_t y)
+ */
+static PyObject *py_lv_point_set_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    long x_val; long y_val;
+    if (!PyArg_ParseTuple(py_args, "ll", &x_val, &y_val)) { PyGILState_Release(gstate); return NULL; }
+    lv_point_t *p = (lv_point_t *)mp_write_ptr_lv_point_t(self);
+    int32_t x = (int32_t)x_val;
+    int32_t y = (int32_t)y_val;
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lvpy_lock();
+    ((void (*)(lv_point_t *, int32_t, int32_t))lv_point_set)(p, x, y);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef py_lv_point_set_struct_method_def = {
+    "lv_point_set",
+    (PyCFunction)py_lv_point_set_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * void lv_point_swap(lv_point_t *p1, lv_point_t *p2)
+ */
+static PyObject *py_lv_point_swap_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    PyObject *p2_py;
+    if (!PyArg_ParseTuple(py_args, "O", &p2_py)) { PyGILState_Release(gstate); return NULL; }
+    lv_point_t *p1 = (lv_point_t *)mp_write_ptr_lv_point_t(self);
+    lv_point_t *p2 = mp_write_ptr_lv_point_t(p2_py);
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lvpy_lock();
+    ((void (*)(lv_point_t *, lv_point_t *))lv_point_swap)(p1, p2);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef py_lv_point_swap_struct_method_def = {
+    "lv_point_swap",
+    (PyCFunction)py_lv_point_swap_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+PyMethodDef py_lv_point_t_methods[] = {
+    {"transform", (PyCFunction)py_lv_point_transform_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"array_transform", (PyCFunction)py_lv_point_array_transform_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"to_precise", (PyCFunction)py_lv_point_to_precise_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"set", (PyCFunction)py_lv_point_set_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"swap", (PyCFunction)py_lv_point_swap_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {NULL}
+};
+
 
 /*
  * lvgl extension definition for:
@@ -95438,6 +90180,393 @@ PyMethodDef py_lv_style_t_methods[] = {
 };
 
 PyMethodDef py_lv_style_value_t_methods[] = {{NULL}};
+
+/*
+ * lvgl extension definition for:
+ * void lv_grad_init_stops(lv_grad_dsc_t *grad, const lv_color_t colors[], const lv_opa_t opa[], const uint8_t fracs[], int num_stops)
+ */
+static PyObject *py_lv_grad_init_stops_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    PyObject *colors_py; PyObject *opa_py; PyObject *fracs_py; long num_stops_val;
+    if (!PyArg_ParseTuple(py_args, "OOOl", &colors_py, &opa_py, &fracs_py, &num_stops_val)) { PyGILState_Release(gstate); return NULL; }
+    lv_grad_dsc_t *grad = (lv_grad_dsc_t *)mp_write_ptr_lv_grad_dsc_t(self);
+    const lv_color_t *colors = (const lv_color_t *)lvpy_struct_arr_arg(self, colors_py, "lv_grad_init_stops:colors", sizeof(lv_color_t), mp_write_value_ptr_lv_color_t);
+    const lv_opa_t *opa = (const lv_opa_t *)mp_to_ptr(opa_py);
+    const uint8_t *fracs = (const uint8_t *)mp_to_ptr(fracs_py);
+    int num_stops = (int)num_stops_val;
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lvpy_lock();
+    ((void (*)(lv_grad_dsc_t *, const lv_color_t [], const lv_opa_t [], const uint8_t [], int))lv_grad_init_stops)(grad, colors, opa, fracs, num_stops);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef py_lv_grad_init_stops_struct_method_def = {
+    "lv_grad_init_stops",
+    (PyCFunction)py_lv_grad_init_stops_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * void lv_grad_horizontal_init(lv_grad_dsc_t *dsc)
+ */
+static PyObject *py_lv_grad_horizontal_init_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+
+    lv_grad_dsc_t *dsc = (lv_grad_dsc_t *)mp_write_ptr_lv_grad_dsc_t(self);
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lvpy_lock();
+    ((void (*)(lv_grad_dsc_t *))lv_grad_horizontal_init)(dsc);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef py_lv_grad_horizontal_init_struct_method_def = {
+    "lv_grad_horizontal_init",
+    (PyCFunction)py_lv_grad_horizontal_init_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * void lv_grad_vertical_init(lv_grad_dsc_t *dsc)
+ */
+static PyObject *py_lv_grad_vertical_init_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+
+    lv_grad_dsc_t *dsc = (lv_grad_dsc_t *)mp_write_ptr_lv_grad_dsc_t(self);
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lvpy_lock();
+    ((void (*)(lv_grad_dsc_t *))lv_grad_vertical_init)(dsc);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef py_lv_grad_vertical_init_struct_method_def = {
+    "lv_grad_vertical_init",
+    (PyCFunction)py_lv_grad_vertical_init_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * void lv_grad_linear_init(lv_grad_dsc_t *dsc, int32_t from_x, int32_t from_y, int32_t to_x, int32_t to_y, lv_grad_extend_t extend)
+ */
+static PyObject *py_lv_grad_linear_init_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    long from_x_val; long from_y_val; long to_x_val; long to_y_val; PyObject *extend_py;
+    if (!PyArg_ParseTuple(py_args, "llllO", &from_x_val, &from_y_val, &to_x_val, &to_y_val, &extend_py)) { PyGILState_Release(gstate); return NULL; }
+    lv_grad_dsc_t *dsc = (lv_grad_dsc_t *)mp_write_ptr_lv_grad_dsc_t(self);
+    int32_t from_x = (int32_t)from_x_val;
+    int32_t from_y = (int32_t)from_y_val;
+    int32_t to_x = (int32_t)to_x_val;
+    int32_t to_y = (int32_t)to_y_val;
+    lv_grad_extend_t extend = (int)mp_obj_get_int(extend_py);
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lvpy_lock();
+    ((void (*)(lv_grad_dsc_t *, int32_t, int32_t, int32_t, int32_t, lv_grad_extend_t))lv_grad_linear_init)(dsc, from_x, from_y, to_x, to_y, extend);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef py_lv_grad_linear_init_struct_method_def = {
+    "lv_grad_linear_init",
+    (PyCFunction)py_lv_grad_linear_init_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * void lv_grad_radial_init(lv_grad_dsc_t *dsc, int32_t center_x, int32_t center_y, int32_t to_x, int32_t to_y, lv_grad_extend_t extend)
+ */
+static PyObject *py_lv_grad_radial_init_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    long center_x_val; long center_y_val; long to_x_val; long to_y_val; PyObject *extend_py;
+    if (!PyArg_ParseTuple(py_args, "llllO", &center_x_val, &center_y_val, &to_x_val, &to_y_val, &extend_py)) { PyGILState_Release(gstate); return NULL; }
+    lv_grad_dsc_t *dsc = (lv_grad_dsc_t *)mp_write_ptr_lv_grad_dsc_t(self);
+    int32_t center_x = (int32_t)center_x_val;
+    int32_t center_y = (int32_t)center_y_val;
+    int32_t to_x = (int32_t)to_x_val;
+    int32_t to_y = (int32_t)to_y_val;
+    lv_grad_extend_t extend = (int)mp_obj_get_int(extend_py);
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lvpy_lock();
+    ((void (*)(lv_grad_dsc_t *, int32_t, int32_t, int32_t, int32_t, lv_grad_extend_t))lv_grad_radial_init)(dsc, center_x, center_y, to_x, to_y, extend);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef py_lv_grad_radial_init_struct_method_def = {
+    "lv_grad_radial_init",
+    (PyCFunction)py_lv_grad_radial_init_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * void lv_grad_radial_set_focal(lv_grad_dsc_t *dsc, int32_t center_x, int32_t center_y, int32_t radius)
+ */
+static PyObject *py_lv_grad_radial_set_focal_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    long center_x_val; long center_y_val; long radius_val;
+    if (!PyArg_ParseTuple(py_args, "lll", &center_x_val, &center_y_val, &radius_val)) { PyGILState_Release(gstate); return NULL; }
+    lv_grad_dsc_t *dsc = (lv_grad_dsc_t *)mp_write_ptr_lv_grad_dsc_t(self);
+    int32_t center_x = (int32_t)center_x_val;
+    int32_t center_y = (int32_t)center_y_val;
+    int32_t radius = (int32_t)radius_val;
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lvpy_lock();
+    ((void (*)(lv_grad_dsc_t *, int32_t, int32_t, int32_t))lv_grad_radial_set_focal)(dsc, center_x, center_y, radius);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef py_lv_grad_radial_set_focal_struct_method_def = {
+    "lv_grad_radial_set_focal",
+    (PyCFunction)py_lv_grad_radial_set_focal_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+/*
+ * lvgl extension definition for:
+ * void lv_grad_conical_init(lv_grad_dsc_t *dsc, int32_t center_x, int32_t center_y, int32_t start_angle, int32_t end_angle, lv_grad_extend_t extend)
+ */
+static PyObject *py_lv_grad_conical_init_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    long center_x_val; long center_y_val; long start_angle_val; long end_angle_val; PyObject *extend_py;
+    if (!PyArg_ParseTuple(py_args, "llllO", &center_x_val, &center_y_val, &start_angle_val, &end_angle_val, &extend_py)) { PyGILState_Release(gstate); return NULL; }
+    lv_grad_dsc_t *dsc = (lv_grad_dsc_t *)mp_write_ptr_lv_grad_dsc_t(self);
+    int32_t center_x = (int32_t)center_x_val;
+    int32_t center_y = (int32_t)center_y_val;
+    int32_t start_angle = (int32_t)start_angle_val;
+    int32_t end_angle = (int32_t)end_angle_val;
+    lv_grad_extend_t extend = (int)mp_obj_get_int(extend_py);
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lvpy_lock();
+    ((void (*)(lv_grad_dsc_t *, int32_t, int32_t, int32_t, int32_t, lv_grad_extend_t))lv_grad_conical_init)(dsc, center_x, center_y, start_angle, end_angle, extend);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef py_lv_grad_conical_init_struct_method_def = {
+    "lv_grad_conical_init",
+    (PyCFunction)py_lv_grad_conical_init_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+PyMethodDef py_lv_grad_dsc_t_methods[] = {
+    {"init_stops", (PyCFunction)py_lv_grad_init_stops_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"horizontal_init", (PyCFunction)py_lv_grad_horizontal_init_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"vertical_init", (PyCFunction)py_lv_grad_vertical_init_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"linear_init", (PyCFunction)py_lv_grad_linear_init_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"radial_init", (PyCFunction)py_lv_grad_radial_init_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"radial_set_focal", (PyCFunction)py_lv_grad_radial_set_focal_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"conical_init", (PyCFunction)py_lv_grad_conical_init_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {NULL}
+};
+
+PyMethodDef py_lv_grad_stop_t_methods[] = {{NULL}};
+PyMethodDef py_lv_grad_dsc_params_t_methods[] = {{NULL}};
+PyMethodDef py_lv_grad_dsc_params_linear_t_methods[] = {{NULL}};
+PyMethodDef py_lv_grad_dsc_params_radial_t_methods[] = {{NULL}};
+PyMethodDef py_lv_grad_dsc_params_conical_t_methods[] = {{NULL}};
+PyMethodDef py_lv_image_colorkey_t_methods[] = {{NULL}};
+
+/*
+ * Callback function lv_color_filter_dsc_t_cb (CPython)
+ * lv_color_t lv_color_filter_cb_t(const struct _lv_color_filter_dsc_t *, lv_color_t, lv_opa_t)
+ */
+static lv_color_t lv_color_filter_dsc_t_cb_callback(const struct _lv_color_filter_dsc_t *arg0, lv_color_t arg1, lv_opa_t arg2)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    PyObject *callbacks = get_callback_dict_from_user_data(arg0->user_data);
+    if (!callbacks) { PyGILState_Release(gstate); return (lv_color_t){0}; }
+    PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_color_filter_dsc_t_cb");
+    if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (lv_color_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
+    PyObject *py_arg0 = mp_read_ptr_lv_color_filter_dsc_t((void*)arg0);
+    PyObject *py_arg1 = mp_read_lv_color_t(arg1);
+    PyObject *py_arg2 = mp_obj_new_int_from_uint(arg2);
+    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2) ? PyTuple_Pack(3, py_arg0, py_arg1, py_arg2) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    Py_XDECREF(py_arg2);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (lv_color_t){0}; }
+    lvpy_release_lock_for_python();
+    lvpy_nesting_inc();
+    PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
+    lvpy_nesting_dec();
+    lvpy_reacquire_lock_after_python();
+    if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (lv_color_t){0}; }
+    lv_color_t _c_res = mp_write_lv_color_t(result);
+    Py_DECREF(result);
+    PyGILState_Release(gstate);
+    return _c_res;
+}
+
+
+/*
+ * lvgl extension definition for:
+ * void lv_color_filter_dsc_init(lv_color_filter_dsc_t *dsc, lv_color_filter_cb_t cb)
+ */
+static PyObject *py_lv_color_filter_dsc_init_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    PyObject *cb_py;
+    if (!PyArg_ParseTuple(py_args, "O", &cb_py)) { PyGILState_Release(gstate); return NULL; }
+    lv_color_filter_dsc_t *dsc = (lv_color_filter_dsc_t *)mp_write_ptr_lv_color_filter_dsc_t(self);
+    void *cb = mp_lv_callback(cb_py, &lv_color_filter_dsc_t_cb_callback, "lv_color_filter_dsc_t_cb", &dsc->user_data, dsc, (NULL), (NULL));
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lvpy_lock();
+    ((void (*)(lv_color_filter_dsc_t *, lv_color_filter_cb_t))lv_color_filter_dsc_init)(dsc, cb);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef py_lv_color_filter_dsc_init_struct_method_def = {
+    "lv_color_filter_dsc_init",
+    (PyCFunction)py_lv_color_filter_dsc_init_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+PyMethodDef py_lv_color_filter_dsc_t_methods[] = {
+    {"init", (PyCFunction)py_lv_color_filter_dsc_init_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {NULL}
+};
+
+
+/*
+ * Callback function lv_style_transition_dsc_init_path_cb (CPython)
+ * int32_t lv_anim_path_cb_t(const lv_anim_t *)
+ */
+static int32_t lv_style_transition_dsc_init_path_cb_callback(const lv_anim_t *arg0)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    PyObject *callbacks = get_callback_dict_from_user_data(arg0->user_data);
+    if (!callbacks) { PyGILState_Release(gstate); return (int32_t){0}; }
+    PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_style_transition_dsc_init_path_cb");
+    if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (int32_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
+    PyObject *py_arg0 = mp_read_ptr_lv_anim_t((void*)arg0);
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (int32_t){0}; }
+    lvpy_release_lock_for_python();
+    lvpy_nesting_inc();
+    PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
+    lvpy_nesting_dec();
+    lvpy_reacquire_lock_after_python();
+    if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (int32_t){0}; }
+    int32_t _c_res = (int32_t)mp_obj_get_int(result);
+    Py_DECREF(result);
+    PyGILState_Release(gstate);
+    return _c_res;
+}
+
+
+/*
+ * lvgl extension definition for:
+ * void lv_style_transition_dsc_init(lv_style_transition_dsc_t *tr, const lv_style_prop_t props[], lv_anim_path_cb_t path_cb, uint32_t time, uint32_t delay, void *user_data)
+ */
+static PyObject *py_lv_style_transition_dsc_init_struct_method(PyObject *self, PyObject *py_args, PyObject *py_kwds)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    (void)py_kwds;
+    PyObject *props_py; PyObject *path_cb_py; long time_val; long delay_val; PyObject *user_data_py;
+    if (!PyArg_ParseTuple(py_args, "OOllO", &props_py, &path_cb_py, &time_val, &delay_val, &user_data_py)) { PyGILState_Release(gstate); return NULL; }
+    lv_style_transition_dsc_t *tr = (lv_style_transition_dsc_t *)mp_write_ptr_lv_style_transition_dsc_t(self);
+    void *user_data = mp_to_ptr(user_data_py);
+    const lv_style_prop_t *props = (const lv_style_prop_t *)mp_to_ptr(props_py);
+    uint32_t time = (uint32_t)time_val;
+    uint32_t delay = (uint32_t)delay_val;
+    void *path_cb = mp_lv_callback(path_cb_py, &lv_style_transition_dsc_init_path_cb_callback, "lv_style_transition_dsc_init_path_cb", &user_data, NULL, (NULL), (NULL));
+    if (PyErr_Occurred()) { PyGILState_Release(gstate); return NULL; }
+    
+    lvpy_lock();
+    ((void (*)(lv_style_transition_dsc_t *, const lv_style_prop_t [], lv_anim_path_cb_t, uint32_t, uint32_t, void *))lv_style_transition_dsc_init)(tr, props, path_cb, time, delay, user_data);
+    lvpy_unlock();
+    
+    PyGILState_Release(gstate);
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef py_lv_style_transition_dsc_init_struct_method_def = {
+    "lv_style_transition_dsc_init",
+    (PyCFunction)py_lv_style_transition_dsc_init_struct_method,
+    METH_VARARGS | METH_KEYWORDS,
+    NULL
+};
+
+
+PyMethodDef py_lv_style_transition_dsc_t_methods[] = {
+    {"init", (PyCFunction)py_lv_style_transition_dsc_init_struct_method, METH_VARARGS | METH_KEYWORDS, NULL},
+    {NULL}
+};
+
 
 /*
  * lvgl extension definition for:
@@ -107798,6 +102927,154 @@ PyMethodDef py_lv_color_hsv_t_methods[] = {{NULL}};
  * lv_array_clear
  * lv_array_front
  * lv_array_back
+ * lv_obj_get_style_width_internal
+ * lv_obj_get_style_min_width_internal
+ * lv_obj_get_style_max_width_internal
+ * lv_obj_get_style_height_internal
+ * lv_obj_get_style_min_height_internal
+ * lv_obj_get_style_max_height_internal
+ * lv_obj_get_style_length_internal
+ * lv_obj_get_style_x_internal
+ * lv_obj_get_style_y_internal
+ * lv_obj_get_style_align_internal
+ * lv_obj_get_style_transform_width_internal
+ * lv_obj_get_style_transform_height_internal
+ * lv_obj_get_style_translate_x_internal
+ * lv_obj_get_style_translate_y_internal
+ * lv_obj_get_style_translate_radial_internal
+ * lv_obj_get_style_transform_scale_x_internal
+ * lv_obj_get_style_transform_scale_y_internal
+ * lv_obj_get_style_transform_rotation_internal
+ * lv_obj_get_style_transform_pivot_x_internal
+ * lv_obj_get_style_transform_pivot_y_internal
+ * lv_obj_get_style_transform_skew_x_internal
+ * lv_obj_get_style_transform_skew_y_internal
+ * lv_obj_get_style_pad_top_internal
+ * lv_obj_get_style_pad_bottom_internal
+ * lv_obj_get_style_pad_left_internal
+ * lv_obj_get_style_pad_right_internal
+ * lv_obj_get_style_pad_row_internal
+ * lv_obj_get_style_pad_column_internal
+ * lv_obj_get_style_pad_radial_internal
+ * lv_obj_get_style_margin_top_internal
+ * lv_obj_get_style_margin_bottom_internal
+ * lv_obj_get_style_margin_left_internal
+ * lv_obj_get_style_margin_right_internal
+ * lv_obj_get_style_bg_color_internal
+ * lv_obj_get_style_bg_color_filtered_internal
+ * lv_obj_get_style_bg_opa_internal
+ * lv_obj_get_style_bg_grad_color_internal
+ * lv_obj_get_style_bg_grad_color_filtered_internal
+ * lv_obj_get_style_bg_grad_dir_internal
+ * lv_obj_get_style_bg_main_stop_internal
+ * lv_obj_get_style_bg_grad_stop_internal
+ * lv_obj_get_style_bg_main_opa_internal
+ * lv_obj_get_style_bg_grad_opa_internal
+ * lv_obj_get_style_bg_grad_internal
+ * lv_obj_get_style_bg_image_src_internal
+ * lv_obj_get_style_bg_image_opa_internal
+ * lv_obj_get_style_bg_image_recolor_internal
+ * lv_obj_get_style_bg_image_recolor_filtered_internal
+ * lv_obj_get_style_bg_image_recolor_opa_internal
+ * lv_obj_get_style_bg_image_tiled_internal
+ * lv_obj_get_style_border_color_internal
+ * lv_obj_get_style_border_color_filtered_internal
+ * lv_obj_get_style_border_opa_internal
+ * lv_obj_get_style_border_width_internal
+ * lv_obj_get_style_border_side_internal
+ * lv_obj_get_style_border_post_internal
+ * lv_obj_get_style_outline_width_internal
+ * lv_obj_get_style_outline_color_internal
+ * lv_obj_get_style_outline_color_filtered_internal
+ * lv_obj_get_style_outline_opa_internal
+ * lv_obj_get_style_outline_pad_internal
+ * lv_obj_get_style_shadow_width_internal
+ * lv_obj_get_style_shadow_offset_x_internal
+ * lv_obj_get_style_shadow_offset_y_internal
+ * lv_obj_get_style_shadow_spread_internal
+ * lv_obj_get_style_shadow_color_internal
+ * lv_obj_get_style_shadow_color_filtered_internal
+ * lv_obj_get_style_shadow_opa_internal
+ * lv_obj_get_style_image_opa_internal
+ * lv_obj_get_style_image_recolor_internal
+ * lv_obj_get_style_image_recolor_filtered_internal
+ * lv_obj_get_style_image_recolor_opa_internal
+ * lv_obj_get_style_image_colorkey_internal
+ * lv_obj_get_style_line_width_internal
+ * lv_obj_get_style_line_dash_width_internal
+ * lv_obj_get_style_line_dash_gap_internal
+ * lv_obj_get_style_line_rounded_internal
+ * lv_obj_get_style_line_color_internal
+ * lv_obj_get_style_line_color_filtered_internal
+ * lv_obj_get_style_line_opa_internal
+ * lv_obj_get_style_arc_width_internal
+ * lv_obj_get_style_arc_rounded_internal
+ * lv_obj_get_style_arc_color_internal
+ * lv_obj_get_style_arc_color_filtered_internal
+ * lv_obj_get_style_arc_opa_internal
+ * lv_obj_get_style_arc_image_src_internal
+ * lv_obj_get_style_text_color_internal
+ * lv_obj_get_style_text_color_filtered_internal
+ * lv_obj_get_style_text_opa_internal
+ * lv_obj_get_style_text_font_internal
+ * lv_obj_get_style_text_letter_space_internal
+ * lv_obj_get_style_text_line_space_internal
+ * lv_obj_get_style_text_decor_internal
+ * lv_obj_get_style_text_align_internal
+ * lv_obj_get_style_text_outline_stroke_color_internal
+ * lv_obj_get_style_text_outline_stroke_color_filtered_internal
+ * lv_obj_get_style_text_outline_stroke_width_internal
+ * lv_obj_get_style_text_outline_stroke_opa_internal
+ * lv_obj_get_style_text_leading_trim_internal
+ * lv_obj_get_style_blur_radius_internal
+ * lv_obj_get_style_blur_backdrop_internal
+ * lv_obj_get_style_blur_quality_internal
+ * lv_obj_get_style_drop_shadow_radius_internal
+ * lv_obj_get_style_drop_shadow_offset_x_internal
+ * lv_obj_get_style_drop_shadow_offset_y_internal
+ * lv_obj_get_style_drop_shadow_color_internal
+ * lv_obj_get_style_drop_shadow_color_filtered_internal
+ * lv_obj_get_style_drop_shadow_opa_internal
+ * lv_obj_get_style_drop_shadow_quality_internal
+ * lv_obj_get_style_radius_internal
+ * lv_obj_get_style_radial_offset_internal
+ * lv_obj_get_style_clip_corner_internal
+ * lv_obj_get_style_opa_internal
+ * lv_obj_get_style_opa_layered_internal
+ * lv_obj_get_style_color_filter_dsc_internal
+ * lv_obj_get_style_color_filter_opa_internal
+ * lv_obj_get_style_recolor_internal
+ * lv_obj_get_style_recolor_opa_internal
+ * lv_obj_get_style_anim_internal
+ * lv_obj_get_style_anim_duration_internal
+ * lv_obj_get_style_transition_internal
+ * lv_obj_get_style_blend_mode_internal
+ * lv_obj_get_style_layout_internal
+ * lv_obj_get_style_base_dir_internal
+ * lv_obj_get_style_bitmap_mask_src_internal
+ * lv_obj_get_style_rotary_sensitivity_internal
+ * lv_obj_get_style_flex_flow_internal
+ * lv_obj_get_style_flex_main_place_internal
+ * lv_obj_get_style_flex_cross_place_internal
+ * lv_obj_get_style_flex_track_place_internal
+ * lv_obj_get_style_flex_grow_internal
+ * lv_obj_get_style_grid_column_dsc_array_internal
+ * lv_obj_get_style_grid_column_align_internal
+ * lv_obj_get_style_grid_row_dsc_array_internal
+ * lv_obj_get_style_grid_row_align_internal
+ * lv_obj_get_style_grid_cell_column_pos_internal
+ * lv_obj_get_style_grid_cell_x_align_internal
+ * lv_obj_get_style_grid_cell_column_span_internal
+ * lv_obj_get_style_grid_cell_row_pos_internal
+ * lv_obj_get_style_grid_cell_y_align_internal
+ * lv_obj_get_style_grid_cell_row_span_internal
+ * lv_obj_calculate_style_text_align_internal
+ * lv_obj_get_style_space_left_internal
+ * lv_obj_get_style_space_right_internal
+ * lv_obj_get_style_space_top_internal
+ * lv_obj_get_style_space_bottom_internal
+ * lv_obj_get_style_transform_scale_x_safe_internal
+ * lv_obj_get_style_transform_scale_y_safe_internal
  * lv_color32_unpremultiply
  * lv_color32_lumi_of
  * lv_color_mix32_inlined
@@ -107806,6 +103083,7 @@ PyMethodDef py_lv_color_hsv_t_methods[] = {{NULL}};
  * lv_font_has_static_bitmap_internal
  * lv_style_is_const_internal
  * lv_style_get_prop_internal
+ * lv_bidi_calculate_align_internal
  * lv_font_get_bottom_trim_internal
  * lv_font_get_top_trim_internal
  * mp_lv_init_gc
@@ -108521,6 +103799,8 @@ PyMethodDef py_lv_color_hsv_t_methods[] = {{NULL}};
  * lv_event_push
  * lv_event_pop
  * lv_event_push_and_send
+ * lv_obj_get_style_prop_internal
+ * lv_obj_style_apply_color_filter_internal
  * lv_display_set_draw_buf_handlers
  * lv_draw_buf_convert_premultiply
  * lv_draw_image_normal_helper
@@ -108614,6 +103894,7 @@ PyMethodDef py_lv_color_hsv_t_methods[] = {{NULL}};
  * lv_rb_destroy
  * lv_text_attributes_init
  * lv_text_set_text_vfmt
+ * lv_text_get_size_internal
  * lv_tree_node_create
  * lv_tree_node_delete
  * lv_tree_walk
@@ -108621,122 +103902,6 @@ PyMethodDef py_lv_color_hsv_t_methods[] = {{NULL}};
  *
  */
 
-
-
-/*
- * Callback function lv_font_t_get_glyph_dsc (CPython)
- * bool get_glyph_dsc(const lv_font_t *font, lv_font_glyph_dsc_t *dsc_out, uint32_t letter, uint32_t letter_next)
- */
-static bool lv_font_t_get_glyph_dsc_callback(const lv_font_t *arg0, lv_font_glyph_dsc_t *arg1, uint32_t arg2, uint32_t arg3)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    PyObject *callbacks = get_callback_dict_from_user_data(arg0->user_data);
-    if (!callbacks) { PyGILState_Release(gstate); return (bool){0}; }
-    PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_font_t_get_glyph_dsc");
-    if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (bool){0}; }
-    /* Hold the callback for the whole call: it may replace or remove its
-     * own registration while it runs. */
-    Py_INCREF(py_cb);
-    PyObject *py_arg0 = mp_read_ptr_lv_font_t((void*)arg0);
-    PyObject *py_arg1 = mp_read_ptr_lv_font_glyph_dsc_t((void*)arg1);
-    PyObject *py_arg2 = mp_obj_new_int_from_uint(arg2);
-    PyObject *py_arg3 = mp_obj_new_int_from_uint(arg3);
-    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2 && py_arg3) ? PyTuple_Pack(4, py_arg0, py_arg1, py_arg2, py_arg3) : NULL;
-    Py_XDECREF(py_arg0);
-    Py_XDECREF(py_arg1);
-    Py_XDECREF(py_arg2);
-    Py_XDECREF(py_arg3);
-    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (bool){0}; }
-    lvpy_release_lock_for_python();
-    lvpy_nesting_inc();
-    PyObject *result = PyObject_CallObject(py_cb, py_args);
-    Py_DECREF(py_args);
-    Py_DECREF(py_cb);
-    lvpy_nesting_dec();
-    lvpy_reacquire_lock_after_python();
-    if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (bool){0}; }
-    bool _c_res = mp_obj_is_true(result);
-    Py_DECREF(result);
-    PyGILState_Release(gstate);
-    return _c_res;
-}
-
-
-/*
- * Function NOT generated:
- * Callback: user_data NOT FOUND! const void *get_glyph_bitmap(lv_font_glyph_dsc_t *g_dsc, lv_draw_buf_t *draw_buf)
- * const void *get_glyph_bitmap(lv_font_glyph_dsc_t *g_dsc, lv_draw_buf_t *draw_buf)
- */
-    
-
-/*
- * Callback function lv_font_t_release_glyph (CPython)
- * void release_glyph(const lv_font_t *font, lv_font_glyph_dsc_t *g_dsc)
- */
-static void lv_font_t_release_glyph_callback(const lv_font_t *arg0, lv_font_glyph_dsc_t *arg1)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    PyObject *callbacks = get_callback_dict_from_user_data(arg0->user_data);
-    if (!callbacks) { PyGILState_Release(gstate); return; }
-    PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_font_t_release_glyph");
-    if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
-    /* Hold the callback for the whole call: it may replace or remove its
-     * own registration while it runs. */
-    Py_INCREF(py_cb);
-    PyObject *py_arg0 = mp_read_ptr_lv_font_t((void*)arg0);
-    PyObject *py_arg1 = mp_read_ptr_lv_font_glyph_dsc_t((void*)arg1);
-    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
-    Py_XDECREF(py_arg0);
-    Py_XDECREF(py_arg1);
-    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
-    lvpy_release_lock_for_python();
-    lvpy_nesting_inc();
-    PyObject *result = PyObject_CallObject(py_cb, py_args);
-    Py_DECREF(py_args);
-    Py_DECREF(py_cb);
-    lvpy_nesting_dec();
-    lvpy_reacquire_lock_after_python();
-    if (result) Py_DECREF(result);
-    else PyErr_Clear();
-    PyGILState_Release(gstate);
-}
-
-
-/*
- * Callback function lv_color_filter_dsc_t_filter_cb (CPython)
- * lv_color_t lv_color_filter_cb_t(const struct _lv_color_filter_dsc_t *, lv_color_t, lv_opa_t)
- */
-static lv_color_t lv_color_filter_dsc_t_filter_cb_callback(const struct _lv_color_filter_dsc_t *arg0, lv_color_t arg1, lv_opa_t arg2)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    PyObject *callbacks = get_callback_dict_from_user_data(arg0->user_data);
-    if (!callbacks) { PyGILState_Release(gstate); return (lv_color_t){0}; }
-    PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_color_filter_dsc_t_filter_cb");
-    if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (lv_color_t){0}; }
-    /* Hold the callback for the whole call: it may replace or remove its
-     * own registration while it runs. */
-    Py_INCREF(py_cb);
-    PyObject *py_arg0 = mp_read_ptr_lv_color_filter_dsc_t((void*)arg0);
-    PyObject *py_arg1 = mp_read_lv_color_t(arg1);
-    PyObject *py_arg2 = mp_obj_new_int_from_uint(arg2);
-    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2) ? PyTuple_Pack(3, py_arg0, py_arg1, py_arg2) : NULL;
-    Py_XDECREF(py_arg0);
-    Py_XDECREF(py_arg1);
-    Py_XDECREF(py_arg2);
-    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (lv_color_t){0}; }
-    lvpy_release_lock_for_python();
-    lvpy_nesting_inc();
-    PyObject *result = PyObject_CallObject(py_cb, py_args);
-    Py_DECREF(py_args);
-    Py_DECREF(py_cb);
-    lvpy_nesting_dec();
-    lvpy_reacquire_lock_after_python();
-    if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (lv_color_t){0}; }
-    lv_color_t _c_res = mp_write_lv_color_t(result);
-    Py_DECREF(result);
-    PyGILState_Release(gstate);
-    return _c_res;
-}
 
 
 /*
@@ -108769,39 +103934,6 @@ static void lv_anim_t_custom_exec_cb_callback(lv_anim_t *arg0, int32_t arg1)
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
-}
-
-
-/*
- * Callback function lv_style_transition_dsc_t_path_xcb (CPython)
- * int32_t lv_anim_path_cb_t(const lv_anim_t *)
- */
-static int32_t lv_style_transition_dsc_t_path_xcb_callback(const lv_anim_t *arg0)
-{
-    PyGILState_STATE gstate = PyGILState_Ensure();
-    PyObject *callbacks = get_callback_dict_from_user_data(arg0->user_data);
-    if (!callbacks) { PyGILState_Release(gstate); return (int32_t){0}; }
-    PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_style_transition_dsc_t_path_xcb");
-    if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (int32_t){0}; }
-    /* Hold the callback for the whole call: it may replace or remove its
-     * own registration while it runs. */
-    Py_INCREF(py_cb);
-    PyObject *py_arg0 = mp_read_ptr_lv_anim_t((void*)arg0);
-    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
-    Py_XDECREF(py_arg0);
-    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (int32_t){0}; }
-    lvpy_release_lock_for_python();
-    lvpy_nesting_inc();
-    PyObject *result = PyObject_CallObject(py_cb, py_args);
-    Py_DECREF(py_args);
-    Py_DECREF(py_cb);
-    lvpy_nesting_dec();
-    lvpy_reacquire_lock_after_python();
-    if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (int32_t){0}; }
-    int32_t _c_res = (int32_t)mp_obj_get_int(result);
-    Py_DECREF(result);
-    PyGILState_Release(gstate);
-    return _c_res;
 }
 
 
@@ -108983,6 +104115,85 @@ static void lv_draw_unit_t_event_cb_callback(lv_event_t *arg0)
 
 
 /*
+ * Callback function lv_font_t_get_glyph_dsc (CPython)
+ * bool get_glyph_dsc(const lv_font_t *font, lv_font_glyph_dsc_t *dsc_out, uint32_t letter, uint32_t letter_next)
+ */
+static bool lv_font_t_get_glyph_dsc_callback(const lv_font_t *arg0, lv_font_glyph_dsc_t *arg1, uint32_t arg2, uint32_t arg3)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    PyObject *callbacks = get_callback_dict_from_user_data(arg0->user_data);
+    if (!callbacks) { PyGILState_Release(gstate); return (bool){0}; }
+    PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_font_t_get_glyph_dsc");
+    if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (bool){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
+    PyObject *py_arg0 = mp_read_ptr_lv_font_t((void*)arg0);
+    PyObject *py_arg1 = mp_read_ptr_lv_font_glyph_dsc_t((void*)arg1);
+    PyObject *py_arg2 = mp_obj_new_int_from_uint(arg2);
+    PyObject *py_arg3 = mp_obj_new_int_from_uint(arg3);
+    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2 && py_arg3) ? PyTuple_Pack(4, py_arg0, py_arg1, py_arg2, py_arg3) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    Py_XDECREF(py_arg2);
+    Py_XDECREF(py_arg3);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (bool){0}; }
+    lvpy_release_lock_for_python();
+    lvpy_nesting_inc();
+    PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
+    lvpy_nesting_dec();
+    lvpy_reacquire_lock_after_python();
+    if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (bool){0}; }
+    bool _c_res = mp_obj_is_true(result);
+    Py_DECREF(result);
+    PyGILState_Release(gstate);
+    return _c_res;
+}
+
+
+/*
+ * Function NOT generated:
+ * Callback: user_data NOT FOUND! const void *get_glyph_bitmap(lv_font_glyph_dsc_t *g_dsc, lv_draw_buf_t *draw_buf)
+ * const void *get_glyph_bitmap(lv_font_glyph_dsc_t *g_dsc, lv_draw_buf_t *draw_buf)
+ */
+    
+
+/*
+ * Callback function lv_font_t_release_glyph (CPython)
+ * void release_glyph(const lv_font_t *font, lv_font_glyph_dsc_t *g_dsc)
+ */
+static void lv_font_t_release_glyph_callback(const lv_font_t *arg0, lv_font_glyph_dsc_t *arg1)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    PyObject *callbacks = get_callback_dict_from_user_data(arg0->user_data);
+    if (!callbacks) { PyGILState_Release(gstate); return; }
+    PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_font_t_release_glyph");
+    if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
+    PyObject *py_arg0 = mp_read_ptr_lv_font_t((void*)arg0);
+    PyObject *py_arg1 = mp_read_ptr_lv_font_glyph_dsc_t((void*)arg1);
+    PyObject *py_args = (py_arg0 && py_arg1) ? PyTuple_Pack(2, py_arg0, py_arg1) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return; }
+    lvpy_release_lock_for_python();
+    lvpy_nesting_inc();
+    PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
+    lvpy_nesting_dec();
+    lvpy_reacquire_lock_after_python();
+    if (result) Py_DECREF(result);
+    else PyErr_Clear();
+    PyGILState_Release(gstate);
+}
+
+
+/*
  * Callback function lv_obj_class_t_constructor_cb (CPython)
  * void constructor_cb(const lv_obj_class_t *class_p, lv_obj_t *obj)
  */
@@ -109078,6 +104289,76 @@ static void lv_obj_class_t_event_cb_callback(const lv_obj_class_t *arg0, lv_even
     if (result) Py_DECREF(result);
     else PyErr_Clear();
     PyGILState_Release(gstate);
+}
+
+
+/*
+ * Callback function lv_color_filter_dsc_t_filter_cb (CPython)
+ * lv_color_t lv_color_filter_cb_t(const struct _lv_color_filter_dsc_t *, lv_color_t, lv_opa_t)
+ */
+static lv_color_t lv_color_filter_dsc_t_filter_cb_callback(const struct _lv_color_filter_dsc_t *arg0, lv_color_t arg1, lv_opa_t arg2)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    PyObject *callbacks = get_callback_dict_from_user_data(arg0->user_data);
+    if (!callbacks) { PyGILState_Release(gstate); return (lv_color_t){0}; }
+    PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_color_filter_dsc_t_filter_cb");
+    if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (lv_color_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
+    PyObject *py_arg0 = mp_read_ptr_lv_color_filter_dsc_t((void*)arg0);
+    PyObject *py_arg1 = mp_read_lv_color_t(arg1);
+    PyObject *py_arg2 = mp_obj_new_int_from_uint(arg2);
+    PyObject *py_args = (py_arg0 && py_arg1 && py_arg2) ? PyTuple_Pack(3, py_arg0, py_arg1, py_arg2) : NULL;
+    Py_XDECREF(py_arg0);
+    Py_XDECREF(py_arg1);
+    Py_XDECREF(py_arg2);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (lv_color_t){0}; }
+    lvpy_release_lock_for_python();
+    lvpy_nesting_inc();
+    PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
+    lvpy_nesting_dec();
+    lvpy_reacquire_lock_after_python();
+    if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (lv_color_t){0}; }
+    lv_color_t _c_res = mp_write_lv_color_t(result);
+    Py_DECREF(result);
+    PyGILState_Release(gstate);
+    return _c_res;
+}
+
+
+/*
+ * Callback function lv_style_transition_dsc_t_path_xcb (CPython)
+ * int32_t lv_anim_path_cb_t(const lv_anim_t *)
+ */
+static int32_t lv_style_transition_dsc_t_path_xcb_callback(const lv_anim_t *arg0)
+{
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    PyObject *callbacks = get_callback_dict_from_user_data(arg0->user_data);
+    if (!callbacks) { PyGILState_Release(gstate); return (int32_t){0}; }
+    PyObject *py_cb = PyDict_GetItemString(callbacks, "lv_style_transition_dsc_t_path_xcb");
+    if (!py_cb || !PyCallable_Check(py_cb)) { PyGILState_Release(gstate); return (int32_t){0}; }
+    /* Hold the callback for the whole call: it may replace or remove its
+     * own registration while it runs. */
+    Py_INCREF(py_cb);
+    PyObject *py_arg0 = mp_read_ptr_lv_anim_t((void*)arg0);
+    PyObject *py_args = (py_arg0) ? PyTuple_Pack(1, py_arg0) : NULL;
+    Py_XDECREF(py_arg0);
+    if (!py_args) { PyErr_Clear(); Py_DECREF(py_cb); PyGILState_Release(gstate); return (int32_t){0}; }
+    lvpy_release_lock_for_python();
+    lvpy_nesting_inc();
+    PyObject *result = PyObject_CallObject(py_cb, py_args);
+    Py_DECREF(py_args);
+    Py_DECREF(py_cb);
+    lvpy_nesting_dec();
+    lvpy_reacquire_lock_after_python();
+    if (!result) { PyErr_Clear(); PyGILState_Release(gstate); return (int32_t){0}; }
+    int32_t _c_res = (int32_t)mp_obj_get_int(result);
+    Py_DECREF(result);
+    PyGILState_Release(gstate);
+    return _c_res;
 }
 
 
@@ -110229,51 +105510,11 @@ PyMODINIT_FUNC PyInit_lvgl(void)
         Py_INCREF(PyLvReferenceError);
         if (PyModule_AddObject(m, "LvReferenceError", PyLvReferenceError) < 0) return NULL;
     }
-    if (PyType_Ready(&py_lv_color_t_type) < 0) return NULL;
-    lv_struct_register_size(&py_lv_color_t_type, sizeof(lv_color_t));
-    lv_struct_expose_size(&py_lv_color_t_type);
-    Py_INCREF((PyObject *)&py_lv_color_t_type);
-    if (PyModule_AddObject(m, "color_t", (PyObject *)&py_lv_color_t_type) < 0) return NULL;
-    if (PyType_Ready(&py_lv_grad_dsc_t_type) < 0) return NULL;
-    lv_struct_register_size(&py_lv_grad_dsc_t_type, sizeof(lv_grad_dsc_t));
-    lv_struct_expose_size(&py_lv_grad_dsc_t_type);
-    Py_INCREF((PyObject *)&py_lv_grad_dsc_t_type);
-    if (PyModule_AddObject(m, "grad_dsc_t", (PyObject *)&py_lv_grad_dsc_t_type) < 0) return NULL;
-    if (PyType_Ready(&py_lv_grad_stop_t_type) < 0) return NULL;
-    lv_struct_register_size(&py_lv_grad_stop_t_type, sizeof(lv_grad_stop_t));
-    lv_struct_expose_size(&py_lv_grad_stop_t_type);
-    Py_INCREF((PyObject *)&py_lv_grad_stop_t_type);
-    if (PyModule_AddObject(m, "grad_stop_t", (PyObject *)&py_lv_grad_stop_t_type) < 0) return NULL;
-    if (PyType_Ready(&py_lv_point_t_type) < 0) return NULL;
-    lv_struct_register_size(&py_lv_point_t_type, sizeof(lv_point_t));
-    lv_struct_expose_size(&py_lv_point_t_type);
-    Py_INCREF((PyObject *)&py_lv_point_t_type);
-    if (PyModule_AddObject(m, "point_t", (PyObject *)&py_lv_point_t_type) < 0) return NULL;
-    if (PyType_Ready(&py_lv_image_colorkey_t_type) < 0) return NULL;
-    lv_struct_register_size(&py_lv_image_colorkey_t_type, sizeof(lv_image_colorkey_t));
-    lv_struct_expose_size(&py_lv_image_colorkey_t_type);
-    Py_INCREF((PyObject *)&py_lv_image_colorkey_t_type);
-    if (PyModule_AddObject(m, "image_colorkey_t", (PyObject *)&py_lv_image_colorkey_t_type) < 0) return NULL;
-    if (PyType_Ready(&py_lv_font_t_type) < 0) return NULL;
-    lv_struct_register_size(&py_lv_font_t_type, sizeof(lv_font_t));
-    lv_struct_expose_size(&py_lv_font_t_type);
-    Py_INCREF((PyObject *)&py_lv_font_t_type);
-    if (PyModule_AddObject(m, "font_t", (PyObject *)&py_lv_font_t_type) < 0) return NULL;
-    if (PyType_Ready(&py_lv_color_filter_dsc_t_type) < 0) return NULL;
-    lv_struct_register_size(&py_lv_color_filter_dsc_t_type, sizeof(lv_color_filter_dsc_t));
-    lv_struct_expose_size(&py_lv_color_filter_dsc_t_type);
-    Py_INCREF((PyObject *)&py_lv_color_filter_dsc_t_type);
-    if (PyModule_AddObject(m, "color_filter_dsc_t", (PyObject *)&py_lv_color_filter_dsc_t_type) < 0) return NULL;
     if (PyType_Ready(&py_lv_anim_t_type) < 0) return NULL;
     lv_struct_register_size(&py_lv_anim_t_type, sizeof(lv_anim_t));
     lv_struct_expose_size(&py_lv_anim_t_type);
     Py_INCREF((PyObject *)&py_lv_anim_t_type);
     if (PyModule_AddObject(m, "anim_t", (PyObject *)&py_lv_anim_t_type) < 0) return NULL;
-    if (PyType_Ready(&py_lv_style_transition_dsc_t_type) < 0) return NULL;
-    lv_struct_register_size(&py_lv_style_transition_dsc_t_type, sizeof(lv_style_transition_dsc_t));
-    lv_struct_expose_size(&py_lv_style_transition_dsc_t_type);
-    Py_INCREF((PyObject *)&py_lv_style_transition_dsc_t_type);
-    if (PyModule_AddObject(m, "style_transition_dsc_t", (PyObject *)&py_lv_style_transition_dsc_t_type) < 0) return NULL;
     if (PyType_Ready(&py_lv_display_t_type) < 0) return NULL;
     lv_struct_register_size(&py_lv_display_t_type, sizeof(lv_display_t));
     lv_struct_expose_size(&py_lv_display_t_type);
@@ -110339,6 +105580,16 @@ PyMODINIT_FUNC PyInit_lvgl(void)
     lv_struct_expose_size(&py_lv_theme_t_type);
     Py_INCREF((PyObject *)&py_lv_theme_t_type);
     if (PyModule_AddObject(m, "theme_t", (PyObject *)&py_lv_theme_t_type) < 0) return NULL;
+    if (PyType_Ready(&py_lv_color_t_type) < 0) return NULL;
+    lv_struct_register_size(&py_lv_color_t_type, sizeof(lv_color_t));
+    lv_struct_expose_size(&py_lv_color_t_type);
+    Py_INCREF((PyObject *)&py_lv_color_t_type);
+    if (PyModule_AddObject(m, "color_t", (PyObject *)&py_lv_color_t_type) < 0) return NULL;
+    if (PyType_Ready(&py_lv_font_t_type) < 0) return NULL;
+    lv_struct_register_size(&py_lv_font_t_type, sizeof(lv_font_t));
+    lv_struct_expose_size(&py_lv_font_t_type);
+    Py_INCREF((PyObject *)&py_lv_font_t_type);
+    if (PyModule_AddObject(m, "font_t", (PyObject *)&py_lv_font_t_type) < 0) return NULL;
     if (PyType_Ready(&py_lv_timer_t_type) < 0) return NULL;
     lv_struct_register_size(&py_lv_timer_t_type, sizeof(lv_timer_t));
     lv_struct_expose_size(&py_lv_timer_t_type);
@@ -110352,6 +105603,11 @@ PyMODINIT_FUNC PyInit_lvgl(void)
     if (PyType_Ready(&py_lv_matrix_t_type) < 0) return NULL;
     Py_INCREF((PyObject *)&py_lv_matrix_t_type);
     if (PyModule_AddObject(m, "matrix_t", (PyObject *)&py_lv_matrix_t_type) < 0) return NULL;
+    if (PyType_Ready(&py_lv_point_t_type) < 0) return NULL;
+    lv_struct_register_size(&py_lv_point_t_type, sizeof(lv_point_t));
+    lv_struct_expose_size(&py_lv_point_t_type);
+    Py_INCREF((PyObject *)&py_lv_point_t_type);
+    if (PyModule_AddObject(m, "point_t", (PyObject *)&py_lv_point_t_type) < 0) return NULL;
     if (PyType_Ready(&py_lv_style_t_type) < 0) return NULL;
     lv_struct_register_size(&py_lv_style_t_type, sizeof(lv_style_t));
     lv_struct_expose_size(&py_lv_style_t_type);
@@ -110362,6 +105618,31 @@ PyMODINIT_FUNC PyInit_lvgl(void)
     lv_struct_expose_size(&py_lv_style_value_t_type);
     Py_INCREF((PyObject *)&py_lv_style_value_t_type);
     if (PyModule_AddObject(m, "style_value_t", (PyObject *)&py_lv_style_value_t_type) < 0) return NULL;
+    if (PyType_Ready(&py_lv_grad_dsc_t_type) < 0) return NULL;
+    lv_struct_register_size(&py_lv_grad_dsc_t_type, sizeof(lv_grad_dsc_t));
+    lv_struct_expose_size(&py_lv_grad_dsc_t_type);
+    Py_INCREF((PyObject *)&py_lv_grad_dsc_t_type);
+    if (PyModule_AddObject(m, "grad_dsc_t", (PyObject *)&py_lv_grad_dsc_t_type) < 0) return NULL;
+    if (PyType_Ready(&py_lv_grad_stop_t_type) < 0) return NULL;
+    lv_struct_register_size(&py_lv_grad_stop_t_type, sizeof(lv_grad_stop_t));
+    lv_struct_expose_size(&py_lv_grad_stop_t_type);
+    Py_INCREF((PyObject *)&py_lv_grad_stop_t_type);
+    if (PyModule_AddObject(m, "grad_stop_t", (PyObject *)&py_lv_grad_stop_t_type) < 0) return NULL;
+    if (PyType_Ready(&py_lv_image_colorkey_t_type) < 0) return NULL;
+    lv_struct_register_size(&py_lv_image_colorkey_t_type, sizeof(lv_image_colorkey_t));
+    lv_struct_expose_size(&py_lv_image_colorkey_t_type);
+    Py_INCREF((PyObject *)&py_lv_image_colorkey_t_type);
+    if (PyModule_AddObject(m, "image_colorkey_t", (PyObject *)&py_lv_image_colorkey_t_type) < 0) return NULL;
+    if (PyType_Ready(&py_lv_color_filter_dsc_t_type) < 0) return NULL;
+    lv_struct_register_size(&py_lv_color_filter_dsc_t_type, sizeof(lv_color_filter_dsc_t));
+    lv_struct_expose_size(&py_lv_color_filter_dsc_t_type);
+    Py_INCREF((PyObject *)&py_lv_color_filter_dsc_t_type);
+    if (PyModule_AddObject(m, "color_filter_dsc_t", (PyObject *)&py_lv_color_filter_dsc_t_type) < 0) return NULL;
+    if (PyType_Ready(&py_lv_style_transition_dsc_t_type) < 0) return NULL;
+    lv_struct_register_size(&py_lv_style_transition_dsc_t_type, sizeof(lv_style_transition_dsc_t));
+    lv_struct_expose_size(&py_lv_style_transition_dsc_t_type);
+    Py_INCREF((PyObject *)&py_lv_style_transition_dsc_t_type);
+    if (PyModule_AddObject(m, "style_transition_dsc_t", (PyObject *)&py_lv_style_transition_dsc_t_type) < 0) return NULL;
     if (PyType_Ready(&py_lv_observer_t_type) < 0) return NULL;
     lv_struct_register_size(&py_lv_observer_t_type, sizeof(lv_observer_t));
     lv_struct_expose_size(&py_lv_observer_t_type);
@@ -110792,12 +106073,12 @@ PyMODINIT_FUNC PyInit_lvgl(void)
     lv_struct_expose_size(&py_lv_indev_touch_data_t_type);
     Py_INCREF((PyObject *)&py_lv_indev_touch_data_t_type);
     if (PyModule_AddObject(m, "indev_touch_data_t", (PyObject *)&py_lv_indev_touch_data_t_type) < 0) return NULL;
+    if (PyType_Ready(&py_lv_anim_parameter_t_type) < 0) return NULL;
+    if (PyType_Ready(&py_lv_anim_bezier3_para_t_type) < 0) return NULL;
     if (PyType_Ready(&py_lv_grad_dsc_params_t_type) < 0) return NULL;
     if (PyType_Ready(&py_lv_grad_dsc_params_linear_t_type) < 0) return NULL;
     if (PyType_Ready(&py_lv_grad_dsc_params_radial_t_type) < 0) return NULL;
     if (PyType_Ready(&py_lv_grad_dsc_params_conical_t_type) < 0) return NULL;
-    if (PyType_Ready(&py_lv_anim_parameter_t_type) < 0) return NULL;
-    if (PyType_Ready(&py_lv_anim_bezier3_para_t_type) < 0) return NULL;
     if (PyType_Ready(&py_lv_obj_spec_attr_t_type) < 0) return NULL;
     if (PyType_Ready(&py_lv_font_glyph_dsc_gid_t_type) < 0) return NULL;
     if (PyType_Ready(&py_lv_indev_pointer_t_type) < 0) return NULL;
@@ -111066,7 +106347,6 @@ PyMODINIT_FUNC PyInit_lvgl(void)
     { PyObject *fn = PyCFunction_New(&py_lv_thread_sync_signal_isr_def, NULL); if (fn == NULL) return NULL; if (PyModule_AddObject(m, "thread_sync_signal_isr", fn) < 0) return NULL; }
     { PyObject *fn = PyCFunction_New(&py_lv_thread_sync_delete_def, NULL); if (fn == NULL) return NULL; if (PyModule_AddObject(m, "thread_sync_delete", fn) < 0) return NULL; }
     { PyObject *fn = PyCFunction_New(&py_lv_color_16_16_mix_inlined_def, NULL); if (fn == NULL) return NULL; if (PyModule_AddObject(m, "color_16_16_mix_inlined", fn) < 0) return NULL; }
-    { PyObject *fn = PyCFunction_New(&py_lv_bidi_calculate_align_internal_def, NULL); if (fn == NULL) return NULL; if (PyModule_AddObject(m, "bidi_calculate_align_internal", fn) < 0) return NULL; }
     { PyObject *fn = PyCFunction_New(&py_lv_text_is_break_char_def, NULL); if (fn == NULL) return NULL; if (PyModule_AddObject(m, "text_is_break_char", fn) < 0) return NULL; }
     { PyObject *fn = PyCFunction_New(&py_lv_text_is_hanging_space_def, NULL); if (fn == NULL) return NULL; if (PyModule_AddObject(m, "text_is_hanging_space", fn) < 0) return NULL; }
     { PyObject *fn = PyCFunction_New(&py_lv_text_is_a_word_def, NULL); if (fn == NULL) return NULL; if (PyModule_AddObject(m, "text_is_a_word", fn) < 0) return NULL; }
@@ -111356,7 +106636,6 @@ PyMODINIT_FUNC PyInit_lvgl(void)
     { PyObject *fn = PyCFunction_New(&py_lv_text_ins_def, NULL); if (fn == NULL) return NULL; if (PyModule_AddObject(m, "text_ins", fn) < 0) return NULL; }
     { PyObject *fn = PyCFunction_New(&py_lv_text_cut_def, NULL); if (fn == NULL) return NULL; if (PyModule_AddObject(m, "text_cut", fn) < 0) return NULL; }
     { PyObject *fn = PyCFunction_New(&py_lv_text_encoded_letter_next_2_def, NULL); if (fn == NULL) return NULL; if (PyModule_AddObject(m, "text_encoded_letter_next_2", fn) < 0) return NULL; }
-    { PyObject *fn = PyCFunction_New(&py_lv_text_get_size_internal_def, NULL); if (fn == NULL) return NULL; if (PyModule_AddObject(m, "text_get_size_internal", fn) < 0) return NULL; }
     { PyObject *fn = PyCFunction_New(&py_lv_utils_bsearch_def, NULL); if (fn == NULL) return NULL; if (PyModule_AddObject(m, "utils_bsearch", fn) < 0) return NULL; }
     return m;
 }
