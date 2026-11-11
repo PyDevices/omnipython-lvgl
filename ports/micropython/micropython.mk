@@ -109,3 +109,7 @@ $(foreach s,$(SOURCES),\
 	$(eval $(call LVMP_OBJ,$(s:.c=.o)): CFLAGS += $(LVMP_FLOAT_CFLAGS)))
 $(eval $(call LVMP_OBJ,$(LVMP_C:.c=.o)): CFLAGS += $(LVMP_FLOAT_CFLAGS))
 $(eval $(call LVMP_OBJ,$(LVMP_DIR)/src/lv_mem_core_micropython.o): CFLAGS += $(LVMP_FLOAT_CFLAGS))
+# LVGL 9.6's lv_snapshot_take returns LV_RESULT_INVALID, which is 0, from a
+# function that returns a pointer. GCC takes that as NULL; clang (emcc, on the
+# webassembly port) fails it under -Werror. GCC ignores the flag.
+$(eval $(call LVMP_OBJ,$(LVGL_DIR)/src/draw/snapshot/lv_snapshot.o): CFLAGS += -Wno-non-literal-null-conversion)
