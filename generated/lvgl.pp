@@ -221,6 +221,7 @@ typedef lv_obj_t * (*lv_screen_create_cb_t)(void);
 typedef uint8_t lv_opa_t;
 typedef uint8_t lv_style_prop_t;
 typedef struct _lv_obj_class_t lv_obj_class_t;
+typedef struct _lv_delete_dsc_t lv_delete_dsc_t;
 typedef struct _lv_group_t lv_group_t;
 typedef struct _lv_display_t lv_display_t;
 typedef struct _lv_layer_t lv_layer_t;
@@ -228,6 +229,7 @@ typedef struct _lv_draw_unit_t lv_draw_unit_t;
 typedef struct _lv_draw_task_t lv_draw_task_t;
 typedef struct _lv_indev_t lv_indev_t;
 typedef struct _lv_event_t lv_event_t;
+typedef struct _lv_event_list_t lv_event_list_t;
 typedef struct _lv_timer_t lv_timer_t;
 typedef struct _lv_theme_t lv_theme_t;
 typedef struct _lv_anim_t lv_anim_t;
@@ -243,12 +245,8 @@ typedef struct _lv_fragment_t lv_fragment_t;
 typedef struct _lv_fragment_class_t lv_fragment_class_t;
 typedef struct _lv_fragment_managed_states_t lv_fragment_managed_states_t;
 typedef struct _lv_profiler_builtin_config_t lv_profiler_builtin_config_t;
-typedef struct _lv_rb_node_t lv_rb_node_t;
-typedef struct _lv_rb_t lv_rb_t;
 typedef struct _lv_color_filter_dsc_t lv_color_filter_dsc_t;
 typedef struct _lv_event_dsc_t lv_event_dsc_t;
-typedef struct _lv_cache_t lv_cache_t;
-typedef struct _lv_cache_entry_t lv_cache_entry_t;
 typedef struct _lv_fs_file_cache_t lv_fs_file_cache_t;
 typedef struct _lv_image_decoder_args_t lv_image_decoder_args_t;
 typedef struct _lv_image_cache_data_t lv_image_cache_data_t;
@@ -262,7 +260,6 @@ typedef struct _lv_obj_style_t lv_obj_style_t;
 typedef struct _lv_obj_style_transition_dsc_t lv_obj_style_transition_dsc_t;
 typedef struct _lv_hit_test_info_t lv_hit_test_info_t;
 typedef struct _lv_cover_check_info_t lv_cover_check_info_t;
-typedef struct _lv_obj_spec_attr_t lv_obj_spec_attr_t;
 typedef struct _lv_image_t lv_image_t;
 typedef struct _lv_animimg_t lv_animimg_t;
 typedef struct _lv_arc_t lv_arc_t;
@@ -348,131 +345,10 @@ typedef struct _lv_rlottie_t lv_rlottie_t;
 typedef struct _lv_ffmpeg_player_t lv_ffmpeg_player_t;
 typedef struct _lv_opengles_window_t lv_opengles_window_t;
 typedef struct _lv_opengles_window_texture_t lv_opengles_window_texture_t;
+typedef struct _lv_tree_class_t lv_tree_class_t;
+typedef struct _lv_tree_node_t lv_tree_node_t;
 typedef uint32_t lv_prop_id_t;
-typedef struct _lv_array_t lv_array_t;
-typedef struct _lv_iter_t lv_iter_t;
-typedef struct _lv_circle_buf_t lv_circle_buf_t;
 typedef struct _lv_draw_buf_t lv_draw_buf_t;
-void lv_init(void);
-void lv_deinit(void);
-bool lv_is_initialized(void);
-void * lv_memcpy(void * dst, const void * src, size_t len);
-void lv_memset(void * dst, uint8_t v, size_t len);
-void * lv_memmove(void * dst, const void * src, size_t len);
-int lv_memcmp(const void * p1, const void * p2, size_t len);
-static inline void lv_memzero(void * dst, size_t len)
-{
-    lv_memset(dst, 0x00, len);
-}
-size_t lv_strlen(const char * str);
-size_t lv_strnlen(const char * str, size_t max_len);
-size_t lv_strlcpy(char * dst, const char * src, size_t dst_size);
-char * lv_strncpy(char * dst, const char * src, size_t dest_size);
-char * lv_strcpy(char * dst, const char * src);
-int lv_strcmp(const char * s1, const char * s2);
-int lv_strncmp(const char * s1, const char * s2, size_t len);
-static inline bool lv_streq(const char * s1, const char * s2)
-{
-    return lv_strcmp(s1, s2) == 0;
-}
-char * lv_strdup(const char * src);
-char * lv_strndup(const char * src, size_t max_len);
-char * lv_strcat(char * dst, const char * src);
-char * lv_strncat(char * dst, const char * src, size_t src_len);
-char * lv_strchr(const char * str, int c);
-typedef void * lv_mem_pool_t;
-typedef struct {
-    size_t total_size;
-    size_t free_cnt;
-    size_t free_size;
-    size_t free_biggest_size;
-    size_t used_cnt;
-    size_t max_used;
-    uint8_t used_pct;
-    uint8_t frag_pct;
-} lv_mem_monitor_t;
-void lv_mem_init(void);
-void lv_mem_deinit(void);
-lv_mem_pool_t lv_mem_add_pool(void * mem, size_t bytes);
-void lv_mem_remove_pool(lv_mem_pool_t pool);
-void * lv_malloc(size_t size);
-void * lv_calloc(size_t num, size_t size);
-void * lv_zalloc(size_t size);
-void * lv_malloc_zeroed(size_t size);
-void lv_free(void * data);
-void * lv_realloc(void * data_p, size_t new_size);
-void * lv_reallocf(void * data_p, size_t new_size);
-void * lv_malloc_core(size_t size);
-void lv_free_core(void * p);
-void * lv_realloc_core(void * p, size_t new_size);
-void lv_mem_monitor_core(lv_mem_monitor_t * mon_p);
-lv_result_t lv_mem_test_core(void);
-lv_result_t lv_mem_test(void);
-void lv_mem_monitor(lv_mem_monitor_t * mon_p);
-int lv_snprintf(char * buffer, size_t count, const char * format, ...);
-int lv_vsnprintf(char * buffer, size_t count, const char * format, va_list va);
-enum {ENUM_LV_LOG_LEVEL_TRACE = 0};
-enum {ENUM_LV_LOG_LEVEL_INFO = 1};
-enum {ENUM_LV_LOG_LEVEL_WARN = 2};
-enum {ENUM_LV_LOG_LEVEL_ERROR = 3};
-enum {ENUM_LV_LOG_LEVEL_USER = 4};
-enum {ENUM_LV_LOG_LEVEL_NONE = 5};
-typedef int8_t lv_log_level_t;
-typedef uint32_t (*lv_tick_get_cb_t)(void);
-typedef void (*lv_delay_cb_t)(uint32_t ms);
- void lv_tick_inc(uint32_t tick_period);
-uint32_t lv_tick_get(void);
-uint32_t lv_tick_elaps(uint32_t prev_tick);
-uint32_t lv_tick_diff(uint32_t tick, uint32_t prev_tick);
-void lv_delay_ms(uint32_t ms);
-void lv_delay_set_cb(lv_delay_cb_t cb);
-void lv_tick_set_cb(lv_tick_get_cb_t cb);
-lv_tick_get_cb_t lv_tick_get_cb(void);
-typedef uint8_t lv_ll_node_t;
-typedef struct {
-    uint32_t n_size;
-    lv_ll_node_t * head;
-    lv_ll_node_t * tail;
-} lv_ll_t;
-void lv_ll_init(lv_ll_t * ll_p, uint32_t node_size);
-void * lv_ll_ins_head(lv_ll_t * ll_p);
-void * lv_ll_ins_prev(lv_ll_t * ll_p, void * n_act);
-void * lv_ll_ins_tail(lv_ll_t * ll_p);
-void lv_ll_remove(lv_ll_t * ll_p, void * node_p);
-void lv_ll_clear_custom(lv_ll_t * ll_p, void(*cleanup)(void *));
-void lv_ll_clear(lv_ll_t * ll_p);
-void lv_ll_chg_list(lv_ll_t * ll_ori_p, lv_ll_t * ll_new_p, void * node, bool head);
-void * lv_ll_get_head(const lv_ll_t * ll_p);
-void * lv_ll_get_tail(const lv_ll_t * ll_p);
-void * lv_ll_get_next(const lv_ll_t * ll_p, const void * n_act);
-void * lv_ll_get_prev(const lv_ll_t * ll_p, const void * n_act);
-uint32_t lv_ll_get_len(const lv_ll_t * ll_p);
-void lv_ll_move_before(lv_ll_t * ll_p, void * n_act, void * n_after);
-bool lv_ll_is_empty(lv_ll_t * ll_p);
-typedef void (*lv_timer_cb_t)(lv_timer_t *);
-typedef void (*lv_timer_handler_resume_cb_t)(void * data);
- uint32_t lv_timer_handler(void);
- uint32_t lv_timer_handler_run_in_period(uint32_t period);
- void lv_timer_periodic_handler(void);
-void lv_timer_handler_set_resume_cb(lv_timer_handler_resume_cb_t cb, void * data);
-lv_timer_t * lv_timer_create_basic(void);
-lv_timer_t * lv_timer_create(lv_timer_cb_t timer_xcb, uint32_t period, void * user_data);
-void lv_timer_delete(lv_timer_t * timer);
-void lv_timer_pause(lv_timer_t * timer);
-void lv_timer_resume(lv_timer_t * timer);
-void lv_timer_set_cb(lv_timer_t * timer, lv_timer_cb_t timer_cb);
-void lv_timer_set_period(lv_timer_t * timer, uint32_t period);
-void lv_timer_ready(lv_timer_t * timer);
-void lv_timer_set_repeat_count(lv_timer_t * timer, int32_t repeat_count);
-void lv_timer_set_auto_delete(lv_timer_t * timer, bool auto_delete);
-void lv_timer_set_user_data(lv_timer_t * timer, void * user_data);
-void lv_timer_reset(lv_timer_t * timer);
-void lv_timer_enable(bool en);
-uint32_t lv_timer_get_idle(void);
-uint32_t lv_timer_get_time_until_next(void);
-lv_timer_t * lv_timer_get_next(lv_timer_t * timer);
-void * lv_timer_get_user_data(lv_timer_t * timer);
-bool lv_timer_get_paused(lv_timer_t * timer);
 typedef struct {
     uint16_t i;
     uint16_t f;
@@ -492,57 +368,6 @@ int64_t lv_pow(int64_t base, int8_t exp);
 int32_t lv_map(int32_t x, int32_t min_in, int32_t max_in, int32_t min_out, int32_t max_out);
 void lv_rand_set_seed(uint32_t seed);
 uint32_t lv_rand(uint32_t min, uint32_t max);
-struct _lv_array_t {
-    uint8_t * data;
-    uint32_t size;
-    uint32_t capacity;
-    uint32_t element_size;
-    bool inner_alloc;
-};
-void lv_array_init(lv_array_t * array, uint32_t capacity, uint32_t element_size);
-void lv_array_init_from_buf(lv_array_t * array, void * buf, uint32_t capacity, uint32_t element_size);
-bool lv_array_resize(lv_array_t * array, uint32_t new_capacity);
-void lv_array_deinit(lv_array_t * array);
-static inline uint32_t lv_array_size(const lv_array_t * array)
-{
-    return array->size;
-}
-static inline uint32_t lv_array_capacity(const lv_array_t * array)
-{
-    return array->capacity;
-}
-static inline bool lv_array_is_empty(const lv_array_t * array)
-{
-    return array->size == 0;
-}
-static inline bool lv_array_is_full(const lv_array_t * array)
-{
-    return array->size == array->capacity;
-}
-void lv_array_copy(lv_array_t * target, const lv_array_t * source);
-static inline void lv_array_clear(lv_array_t * array)
-{
-    array->size = 0;
-}
-void lv_array_shrink(lv_array_t * array);
-lv_result_t lv_array_remove(lv_array_t * array, uint32_t index);
-lv_result_t lv_array_remove_unordered(lv_array_t * array, uint32_t index);
-lv_result_t lv_array_erase(lv_array_t * array, uint32_t start, uint32_t end);
-lv_result_t lv_array_concat(lv_array_t * array, const lv_array_t * other);
-lv_result_t lv_array_push_back(lv_array_t * array, const void * element);
-lv_result_t lv_array_assign(lv_array_t * array, uint32_t index, const void * value);
-void * lv_array_at(const lv_array_t * array, uint32_t index);
-static inline void * lv_array_front(const lv_array_t * array)
-{
-    return lv_array_at(array, 0);
-}
-static inline void * lv_array_back(const lv_array_t * array)
-{
-    return lv_array_at(array, lv_array_size(array) - 1);
-}
-typedef void (*lv_async_cb_t)(void *);
-lv_result_t lv_async_call(lv_async_cb_t async_xcb, void * user_data);
-lv_result_t lv_async_call_cancel(lv_async_cb_t async_xcb, void * user_data);
 enum {ENUM_LV_ANIM_REPEAT_INFINITE = 0xFFFFFFFF};
 enum {ENUM_LV_ANIM_PLAYTIME_INFINITE = 0xFFFFFFFF};
 typedef bool lv_anim_enable_t;
@@ -629,7 +454,7 @@ lv_anim_t * lv_anim_custom_get(lv_anim_t * a, lv_anim_custom_exec_cb_t exec_cb);
 uint16_t lv_anim_count_running(void);
 uint32_t lv_anim_speed(uint32_t speed);
 uint32_t lv_anim_speed_clamped(uint32_t speed, uint32_t min_time, uint32_t max_time);
-uint32_t lv_anim_resolve_speed(uint32_t speed, int32_t start, int32_t end);
+uint32_t lv_anim_resolve_speed(uint32_t speed_or_time, int32_t start, int32_t end);
 uint32_t lv_anim_speed_to_time(uint32_t speed, int32_t start, int32_t end);
 void lv_anim_refr_now(void);
 int32_t lv_anim_path_linear(const lv_anim_t * a);
@@ -650,6 +475,7 @@ lv_anim_timeline_t * lv_anim_timeline_create(void);
 void lv_anim_timeline_delete(lv_anim_timeline_t * at);
 void lv_anim_timeline_add(lv_anim_timeline_t * at, uint32_t start_time, const lv_anim_t * a);
 uint32_t lv_anim_timeline_start(lv_anim_timeline_t * at);
+uint32_t lv_anim_timeline_restart(lv_anim_timeline_t * at);
 void lv_anim_timeline_pause(lv_anim_timeline_t * at);
 void lv_anim_timeline_set_reverse(lv_anim_timeline_t * at, bool reverse);
 void lv_anim_timeline_set_delay(lv_anim_timeline_t * at, uint32_t delay);
@@ -665,24 +491,6 @@ uint32_t lv_anim_timeline_get_repeat_count(lv_anim_timeline_t * at);
 uint32_t lv_anim_timeline_get_repeat_delay(lv_anim_timeline_t * at);
 void * lv_anim_timeline_get_user_data(lv_anim_timeline_t * at);
 void lv_anim_timeline_merge(lv_anim_timeline_t * dest, const lv_anim_timeline_t * src, int32_t delay);
-typedef enum {
-    LV_RB_COLOR_RED,
-    LV_RB_COLOR_BLACK
-} lv_rb_color_t;
-typedef int32_t lv_rb_compare_res_t;
-typedef lv_rb_compare_res_t (*lv_rb_compare_t)(const void * a, const void * b);
-bool lv_rb_init(lv_rb_t * tree, lv_rb_compare_t compare, size_t node_size);
-lv_rb_node_t * lv_rb_insert(lv_rb_t * tree, void * key);
-lv_rb_node_t * lv_rb_find(lv_rb_t * tree, const void * key);
-void * lv_rb_remove_node(lv_rb_t * tree, lv_rb_node_t * node);
-void * lv_rb_remove(lv_rb_t * tree, const void * key);
-bool lv_rb_drop_node(lv_rb_t * tree, lv_rb_node_t * node);
-bool lv_rb_drop(lv_rb_t * tree, const void * key);
-lv_rb_node_t * lv_rb_minimum(lv_rb_t * node);
-lv_rb_node_t * lv_rb_maximum(lv_rb_t * node);
-lv_rb_node_t * lv_rb_minimum_from(lv_rb_node_t * node);
-lv_rb_node_t * lv_rb_maximum_from(lv_rb_node_t * node);
-void lv_rb_destroy(lv_rb_t * tree);
 typedef struct {
     int32_t x;
     int32_t y;
@@ -732,13 +540,7 @@ typedef enum {
     LV_DIR_ALL = LV_DIR_HOR | LV_DIR_VER,
 } lv_dir_t;
 void lv_area_set(lv_area_t * area_p, int32_t x1, int32_t y1, int32_t x2, int32_t y2);
-inline static void lv_area_copy(lv_area_t * dest, const lv_area_t * src)
-{
-    dest->x1 = src->x1;
-    dest->y1 = src->y1;
-    dest->x2 = src->x2;
-    dest->y2 = src->y2;
-}
+void lv_area_copy(lv_area_t * dest, const lv_area_t * src);
 int32_t lv_area_get_width(const lv_area_t * area_p);
 int32_t lv_area_get_height(const lv_area_t * area_p);
 void lv_area_set_width(lv_area_t * area_p, int32_t w);
@@ -763,6 +565,264 @@ enum {ENUM_LV_COORD_MIN = (-((1 << (29U)) - 1))};
 enum {ENUM_LV_SIZE_CONTENT = ((((1 << (29U)) - 1)) | (1 << (29U)))};
 int32_t lv_pct(int32_t x);
 int32_t lv_pct_to_px(int32_t v, int32_t base);
+typedef void (*lv_event_cb_t)(lv_event_t * e);
+typedef enum {
+    LV_EVENT_ALL = 0,
+    LV_EVENT_PRESSED,
+    LV_EVENT_PRESSING,
+    LV_EVENT_PRESS_LOST,
+    LV_EVENT_SHORT_CLICKED,
+    LV_EVENT_SINGLE_CLICKED,
+    LV_EVENT_DOUBLE_CLICKED,
+    LV_EVENT_TRIPLE_CLICKED,
+    LV_EVENT_LONG_PRESSED,
+    LV_EVENT_LONG_PRESSED_REPEAT,
+    LV_EVENT_CLICKED,
+    LV_EVENT_RELEASED,
+    LV_EVENT_SCROLL_BEGIN,
+    LV_EVENT_SCROLL_THROW_BEGIN,
+    LV_EVENT_SCROLL_END,
+    LV_EVENT_SCROLL,
+    LV_EVENT_GESTURE,
+    LV_EVENT_GESTURE_UP,
+    LV_EVENT_GESTURE_DOWN,
+    LV_EVENT_GESTURE_LEFT,
+    LV_EVENT_GESTURE_RIGHT,
+    LV_EVENT_KEY,
+    LV_EVENT_ROTARY,
+    LV_EVENT_FOCUSED,
+    LV_EVENT_DEFOCUSED,
+    LV_EVENT_LEAVE,
+    LV_EVENT_HIT_TEST,
+    LV_EVENT_INDEV_RESET,
+    LV_EVENT_HOVER_OVER,
+    LV_EVENT_HOVER_LEAVE,
+    LV_EVENT_COVER_CHECK,
+    LV_EVENT_REFR_EXT_DRAW_SIZE,
+    LV_EVENT_DRAW_MAIN_BEGIN,
+    LV_EVENT_DRAW_MAIN,
+    LV_EVENT_DRAW_MAIN_END,
+    LV_EVENT_DRAW_POST_BEGIN,
+    LV_EVENT_DRAW_POST,
+    LV_EVENT_DRAW_POST_END,
+    LV_EVENT_DRAW_TASK_ADDED,
+    LV_EVENT_VALUE_CHANGED,
+    LV_EVENT_INSERT,
+    LV_EVENT_REFRESH,
+    LV_EVENT_READY,
+    LV_EVENT_CANCEL,
+    LV_EVENT_STATE_CHANGED,
+    LV_EVENT_CHECKED,
+    LV_EVENT_UNCHECKED,
+    LV_EVENT_CREATE,
+    LV_EVENT_DELETE,
+    LV_EVENT_CHILD_CHANGED,
+    LV_EVENT_CHILD_CREATED,
+    LV_EVENT_CHILD_DELETED,
+    LV_EVENT_SCREEN_UNLOAD_START,
+    LV_EVENT_SCREEN_LOAD_START,
+    LV_EVENT_SCREEN_LOADED,
+    LV_EVENT_SCREEN_UNLOADED,
+    LV_EVENT_SIZE_CHANGED,
+    LV_EVENT_STYLE_CHANGED,
+    LV_EVENT_LAYOUT_CHANGED,
+    LV_EVENT_GET_SELF_SIZE,
+    LV_EVENT_INVALIDATE_AREA,
+    LV_EVENT_RESOLUTION_CHANGED,
+    LV_EVENT_COLOR_FORMAT_CHANGED,
+    LV_EVENT_REFR_REQUEST,
+    LV_EVENT_REFR_START,
+    LV_EVENT_REFR_READY,
+    LV_EVENT_RENDER_START,
+    LV_EVENT_RENDER_READY,
+    LV_EVENT_FLUSH_START,
+    LV_EVENT_FLUSH_FINISH,
+    LV_EVENT_FLUSH_WAIT_START,
+    LV_EVENT_FLUSH_WAIT_FINISH,
+    LV_EVENT_SYNC_START,
+    LV_EVENT_SYNC_FINISH,
+    LV_EVENT_SYNC_WAIT_START,
+    LV_EVENT_SYNC_WAIT_FINISH,
+    LV_EVENT_UPDATE_LAYOUT_COMPLETED,
+    LV_EVENT_VSYNC,
+    LV_EVENT_VSYNC_REQUEST,
+    LV_EVENT_LAST,
+    LV_EVENT_LAST_CUSTOM = 0x7FFF,
+    LV_EVENT_PREPROCESS = 0x8000,
+    LV_EVENT_MARKED_DELETING = 0x10000,
+} lv_event_code_t;
+lv_result_t lv_event_send(lv_event_list_t * list, lv_event_t * e, bool preprocess);
+lv_event_dsc_t * lv_event_add(lv_event_list_t * list, lv_event_cb_t cb, lv_event_code_t filter, void * user_data);
+bool lv_event_remove_dsc(lv_event_list_t * list, lv_event_dsc_t * dsc);
+uint32_t lv_event_get_count(lv_event_list_t * list);
+lv_event_dsc_t * lv_event_get_dsc(lv_event_list_t * list, uint32_t index);
+lv_event_cb_t lv_event_dsc_get_cb(lv_event_dsc_t * dsc);
+void * lv_event_dsc_get_user_data(lv_event_dsc_t * dsc);
+bool lv_event_remove(lv_event_list_t * list, uint32_t index);
+void lv_event_remove_all(lv_event_list_t * list);
+void * lv_event_get_target(lv_event_t * e);
+void * lv_event_get_current_target(lv_event_t * e);
+lv_event_code_t lv_event_get_code(lv_event_t * e);
+void * lv_event_get_param(lv_event_t * e);
+void * lv_event_get_user_data(lv_event_t * e);
+void lv_event_stop_bubbling(lv_event_t * e);
+void lv_event_stop_trickling(lv_event_t * e);
+void lv_event_stop_processing(lv_event_t * e);
+void lv_event_free_user_data_cb(lv_event_t * e);
+uint32_t lv_event_register_id(void);
+const char * lv_event_code_get_name(lv_event_code_t code);
+typedef enum {
+    LV_KEY_UP = 17,
+    LV_KEY_DOWN = 18,
+    LV_KEY_RIGHT = 19,
+    LV_KEY_LEFT = 20,
+    LV_KEY_ESC = 27,
+    LV_KEY_DEL = 127,
+    LV_KEY_BACKSPACE = 8,
+    LV_KEY_ENTER = 10,
+    LV_KEY_NEXT = 9,
+    LV_KEY_PREV = 11,
+    LV_KEY_HOME = 2,
+    LV_KEY_END = 3,
+} lv_key_t;
+typedef void (*lv_group_focus_cb_t)(lv_group_t *);
+typedef void (*lv_group_edge_cb_t)(lv_group_t *, bool);
+typedef enum {
+    LV_GROUP_REFOCUS_POLICY_NEXT = 0,
+    LV_GROUP_REFOCUS_POLICY_PREV = 1
+} lv_group_refocus_policy_t;
+lv_group_t * lv_group_create(void);
+void lv_group_delete(lv_group_t * group);
+void lv_group_set_default(lv_group_t * group);
+lv_group_t * lv_group_get_default(void);
+void lv_group_add_obj(lv_group_t * group, lv_obj_t * obj);
+void lv_group_swap_obj(lv_obj_t * obj1, lv_obj_t * obj2);
+void lv_group_remove_obj(lv_obj_t * obj);
+void lv_group_remove_all_objs(lv_group_t * group);
+void lv_group_focus_obj(lv_obj_t * obj);
+void lv_group_focus_next(lv_group_t * group);
+void lv_group_focus_prev(lv_group_t * group);
+void lv_group_focus_freeze(lv_group_t * group, bool en);
+lv_result_t lv_group_send_data(lv_group_t * group, uint32_t c);
+void lv_group_set_focus_cb(lv_group_t * group, lv_group_focus_cb_t focus_cb);
+void lv_group_set_edge_cb(lv_group_t * group, lv_group_edge_cb_t edge_cb);
+void lv_group_set_refocus_policy(lv_group_t * group, lv_group_refocus_policy_t policy);
+void lv_group_set_editing(lv_group_t * group, bool edit);
+void lv_group_set_wrap(lv_group_t * group, bool en);
+lv_obj_t * lv_group_get_focused(const lv_group_t * group);
+lv_group_focus_cb_t lv_group_get_focus_cb(const lv_group_t * group);
+lv_group_edge_cb_t lv_group_get_edge_cb(const lv_group_t * group);
+bool lv_group_get_editing(const lv_group_t * group);
+bool lv_group_get_wrap(lv_group_t * group);
+uint32_t lv_group_get_obj_count(lv_group_t * group);
+lv_obj_t * lv_group_get_obj_by_index(lv_group_t * group, uint32_t index);
+uint32_t lv_group_get_count(void);
+lv_group_t * lv_group_by_index(uint32_t index);
+void lv_group_set_user_data(lv_group_t * group, void * user_data);
+void * lv_group_get_user_data(const lv_group_t * group);
+void lv_init(void);
+void lv_deinit(void);
+bool lv_is_initialized(void);
+enum _lv_str_symbol_id_t {
+    LV_STR_SYMBOL_BULLET,
+    LV_STR_SYMBOL_AUDIO,
+    LV_STR_SYMBOL_VIDEO,
+    LV_STR_SYMBOL_LIST,
+    LV_STR_SYMBOL_OK,
+    LV_STR_SYMBOL_CLOSE,
+    LV_STR_SYMBOL_POWER,
+    LV_STR_SYMBOL_SETTINGS,
+    LV_STR_SYMBOL_HOME,
+    LV_STR_SYMBOL_DOWNLOAD,
+    LV_STR_SYMBOL_DRIVE,
+    LV_STR_SYMBOL_REFRESH,
+    LV_STR_SYMBOL_MUTE,
+    LV_STR_SYMBOL_VOLUME_MID,
+    LV_STR_SYMBOL_VOLUME_MAX,
+    LV_STR_SYMBOL_IMAGE,
+    LV_STR_SYMBOL_TINT,
+    LV_STR_SYMBOL_PREV,
+    LV_STR_SYMBOL_PLAY,
+    LV_STR_SYMBOL_PAUSE,
+    LV_STR_SYMBOL_STOP,
+    LV_STR_SYMBOL_NEXT,
+    LV_STR_SYMBOL_EJECT,
+    LV_STR_SYMBOL_LEFT,
+    LV_STR_SYMBOL_RIGHT,
+    LV_STR_SYMBOL_PLUS,
+    LV_STR_SYMBOL_MINUS,
+    LV_STR_SYMBOL_EYE_OPEN,
+    LV_STR_SYMBOL_EYE_CLOSE,
+    LV_STR_SYMBOL_WARNING,
+    LV_STR_SYMBOL_SHUFFLE,
+    LV_STR_SYMBOL_UP,
+    LV_STR_SYMBOL_DOWN,
+    LV_STR_SYMBOL_LOOP,
+    LV_STR_SYMBOL_DIRECTORY,
+    LV_STR_SYMBOL_UPLOAD,
+    LV_STR_SYMBOL_CALL,
+    LV_STR_SYMBOL_CUT,
+    LV_STR_SYMBOL_COPY,
+    LV_STR_SYMBOL_SAVE,
+    LV_STR_SYMBOL_BARS,
+    LV_STR_SYMBOL_ENVELOPE,
+    LV_STR_SYMBOL_CHARGE,
+    LV_STR_SYMBOL_PASTE,
+    LV_STR_SYMBOL_BELL,
+    LV_STR_SYMBOL_KEYBOARD,
+    LV_STR_SYMBOL_GPS,
+    LV_STR_SYMBOL_FILE,
+    LV_STR_SYMBOL_WIFI,
+    LV_STR_SYMBOL_BATTERY_FULL,
+    LV_STR_SYMBOL_BATTERY_3,
+    LV_STR_SYMBOL_BATTERY_2,
+    LV_STR_SYMBOL_BATTERY_1,
+    LV_STR_SYMBOL_BATTERY_EMPTY,
+    LV_STR_SYMBOL_USB,
+    LV_STR_SYMBOL_BLUETOOTH,
+    LV_STR_SYMBOL_TRASH,
+    LV_STR_SYMBOL_EDIT,
+    LV_STR_SYMBOL_BACKSPACE,
+    LV_STR_SYMBOL_SD_CARD,
+    LV_STR_SYMBOL_NEW_LINE,
+    LV_STR_SYMBOL_DUMMY,
+};
+enum {ENUM_LV_LOG_LEVEL_TRACE = 0};
+enum {ENUM_LV_LOG_LEVEL_INFO = 1};
+enum {ENUM_LV_LOG_LEVEL_WARN = 2};
+enum {ENUM_LV_LOG_LEVEL_ERROR = 3};
+enum {ENUM_LV_LOG_LEVEL_USER = 4};
+enum {ENUM_LV_LOG_LEVEL_NONE = 5};
+typedef int8_t lv_log_level_t;
+typedef void * lv_mem_pool_t;
+typedef struct {
+    size_t total_size;
+    size_t free_cnt;
+    size_t free_size;
+    size_t free_biggest_size;
+    size_t used_cnt;
+    size_t max_used;
+    uint8_t used_pct;
+    uint8_t frag_pct;
+} lv_mem_monitor_t;
+void lv_mem_init(void);
+void lv_mem_deinit(void);
+lv_mem_pool_t lv_mem_add_pool(void * mem, size_t bytes);
+void lv_mem_remove_pool(lv_mem_pool_t pool);
+void * lv_malloc(size_t size);
+void * lv_calloc(size_t num, size_t size);
+void * lv_zalloc(size_t size);
+void * lv_malloc_zeroed(size_t size);
+void lv_free(void * data);
+void * lv_realloc(void * data_p, size_t new_size);
+void * lv_reallocf(void * data_p, size_t new_size);
+void * lv_malloc_core(size_t size);
+void lv_free_core(void * p);
+void * lv_realloc_core(void * p, size_t new_size);
+void lv_mem_monitor_core(lv_mem_monitor_t * mon_p);
+lv_result_t lv_mem_test_core(void);
+lv_result_t lv_mem_test(void);
+void lv_mem_monitor(lv_mem_monitor_t * mon_p);
 enum {ENUM_LV_COLOR_DEPTH = 16};
 enum _lv_opacity_level_t {
     LV_OPA_TRANSP = 0,
@@ -848,8 +908,6 @@ typedef enum {
     LV_COLOR_FORMAT_NEMA_TSC12 = 0x34,
     LV_COLOR_FORMAT_NEMA_TSC12A = 0x35,
     LV_COLOR_FORMAT_NEMA_TSC_END = LV_COLOR_FORMAT_NEMA_TSC12A,
-    LV_COLOR_FORMAT_NATIVE = LV_COLOR_FORMAT_RGB565,
-    LV_COLOR_FORMAT_NATIVE_WITH_ALPHA = LV_COLOR_FORMAT_RGB565A8,
 } lv_color_format_t;
 uint8_t lv_color_format_get_bpp(lv_color_format_t cf);
 uint8_t lv_color_format_get_size(lv_color_format_t cf);
@@ -873,7 +931,7 @@ static inline bool lv_color_is_in_range(lv_color_t color, lv_color_t l_color, lv
 }
 static inline lv_color_t lv_color16_to_color(lv_color16_t c)
 {
-    return lv_color_make(c.red << 3, c.green << 2, c.blue << 3);
+    return lv_color_make((uint8_t)(c.red << 3), (uint8_t)(c.green << 2), (uint8_t)(c.blue << 3));
 }
 uint16_t lv_color_to_u16(lv_color_t color);
 uint32_t lv_color_to_u32(lv_color_t color);
@@ -934,6 +992,30 @@ uint8_t lv_color_brightness(lv_color_t c);
 void lv_color_filter_dsc_init(lv_color_filter_dsc_t * dsc, lv_color_filter_cb_t cb);
 lv_color32_t lv_color_over32(lv_color32_t fg, lv_color32_t bg);
  extern const lv_color_filter_dsc_t lv_color_filter_shade;
+void * lv_memcpy(void * dst, const void * src, size_t len);
+void lv_memset(void * dst, uint8_t v, size_t len);
+void * lv_memmove(void * dst, const void * src, size_t len);
+int lv_memcmp(const void * p1, const void * p2, size_t len);
+static inline void lv_memzero(void * dst, size_t len)
+{
+    lv_memset(dst, 0x00, len);
+}
+size_t lv_strlen(const char * str);
+size_t lv_strnlen(const char * str, size_t max_len);
+size_t lv_strlcpy(char * dst, const char * src, size_t dst_size);
+char * lv_strncpy(char * dst, const char * src, size_t dest_size);
+char * lv_strcpy(char * dst, const char * src);
+int lv_strcmp(const char * s1, const char * s2);
+int lv_strncmp(const char * s1, const char * s2, size_t len);
+static inline bool lv_streq(const char * s1, const char * s2)
+{
+    return lv_strcmp(s1, s2) == 0;
+}
+char * lv_strdup(const char * src);
+char * lv_strndup(const char * src, size_t max_len);
+char * lv_strcat(char * dst, const char * src);
+char * lv_strncat(char * dst, const char * src, size_t src_len);
+char * lv_strchr(const char * str, int c);
 enum {ENUM_LV_IMAGE_HEADER_MAGIC = (0x19)};
 typedef enum _lvimage_flags_t {
     LV_IMAGE_FLAGS_PREMULTIPLIED = 0x0001,
@@ -995,6 +1077,7 @@ typedef void (*lv_draw_buf_copy_cb_t)(lv_draw_buf_t * dest, const lv_area_t * de
 typedef void * (*lv_draw_buf_align_cb_t)(void * buf, lv_color_format_t color_format);
 typedef void (*lv_draw_buf_cache_operation_cb_t)(const lv_draw_buf_t * draw_buf, const lv_area_t * area);
 typedef uint32_t (*lv_draw_buf_width_to_stride_cb_t)(uint32_t w, lv_color_format_t color_format);
+typedef void (*lv_draw_buf_clear_cb_t)(lv_draw_buf_t * draw_buf, const lv_area_t * a, lv_layer_t * layer);
 struct _lv_draw_buf_t {
     lv_image_header_t header;
     uint32_t data_size;
@@ -1035,173 +1118,19 @@ void lv_draw_buf_destroy(lv_draw_buf_t * draw_buf);
 void lv_draw_buf_copy(lv_draw_buf_t * dest, const lv_area_t * dest_area,
                       const lv_draw_buf_t * src, const lv_area_t * src_area);
 void * lv_draw_buf_goto_xy(const lv_draw_buf_t * buf, uint32_t x, uint32_t y);
+bool lv_draw_buf_is_position_valid(const lv_draw_buf_t * buf, uint32_t x, uint32_t y);
 lv_result_t lv_draw_buf_adjust_stride(lv_draw_buf_t * src, uint32_t stride);
 lv_result_t lv_draw_buf_premultiply(lv_draw_buf_t * draw_buf);
-static inline bool lv_draw_buf_has_flag(const lv_draw_buf_t * draw_buf, lv_image_flags_t flag)
-{
-    return draw_buf->header.flags & flag;
-}
-static inline void lv_draw_buf_set_flag(lv_draw_buf_t * draw_buf, lv_image_flags_t flag)
-{
-    draw_buf->header.flags |= flag;
-}
-static inline void lv_draw_buf_clear_flag(lv_draw_buf_t * draw_buf, lv_image_flags_t flag)
-{
-    draw_buf->header.flags &= ~flag;
-}
+bool lv_draw_buf_has_flag(const lv_draw_buf_t * draw_buf, lv_image_flags_t flag);
+void lv_draw_buf_set_flag(lv_draw_buf_t * draw_buf, lv_image_flags_t flag);
+void lv_draw_buf_clear_flag(lv_draw_buf_t * draw_buf, lv_image_flags_t flag);
 lv_result_t lv_draw_buf_from_image(lv_draw_buf_t * buf, const lv_image_dsc_t * img);
 void lv_draw_buf_to_image(const lv_draw_buf_t * buf, lv_image_dsc_t * img);
 void lv_draw_buf_set_palette(lv_draw_buf_t * draw_buf, uint8_t index, lv_color32_t color);
+
 void lv_image_buf_set_palette(lv_image_dsc_t * dsc, uint8_t id, lv_color32_t c);
+
 void lv_image_buf_free(lv_image_dsc_t * dsc);
-void * lv_utils_bsearch(const void * key, const void * base, size_t n, size_t size,
-                        int (*cmp)(const void * pRef, const void * pElement));
-lv_result_t lv_draw_buf_save_to_file(const lv_draw_buf_t * draw_buf, const char * path);
-static inline uint32_t lv_swap_bytes_32(uint32_t x)
-{
-    return (x << 24)
-           | ((x & 0x0000ff00U) << 8)
-           | ((x & 0x00ff0000U) >> 8)
-           | (x >> 24);
-}
-static inline uint16_t lv_swap_bytes_16(uint16_t x)
-{
-    return (x << 8) | (x >> 8);
-}
-typedef lv_result_t (*lv_iter_next_cb)(void * instance, void * context, void * elem);
-typedef void (*lv_iter_inspect_cb)(void * elem);
-lv_iter_t * lv_iter_create(void * instance, uint32_t elem_size, uint32_t context_size, lv_iter_next_cb next_cb);
-void * lv_iter_get_context(const lv_iter_t * iter);
-void lv_iter_destroy(lv_iter_t * iter);
-lv_result_t lv_iter_next(lv_iter_t * iter, void * elem);
-void lv_iter_make_peekable(lv_iter_t * iter, uint32_t capacity);
-lv_result_t lv_iter_peek(lv_iter_t * iter, void * elem);
-lv_result_t lv_iter_peek_advance(lv_iter_t * iter);
-lv_result_t lv_iter_peek_reset(lv_iter_t * iter);
-void lv_iter_inspect(lv_iter_t * iter, lv_iter_inspect_cb inspect_cb);
-typedef bool (*lv_circle_buf_fill_cb_t)(void * buf, uint32_t buff_len, int32_t index, void * user_data);
-lv_circle_buf_t * lv_circle_buf_create(uint32_t capacity, uint32_t element_size);
-lv_circle_buf_t * lv_circle_buf_create_from_buf(void * buf, uint32_t capacity, uint32_t element_size);
-lv_circle_buf_t * lv_circle_buf_create_from_array(const lv_array_t * array);
-lv_result_t lv_circle_buf_resize(lv_circle_buf_t * circle_buf, uint32_t capacity);
-void lv_circle_buf_destroy(lv_circle_buf_t * circle_buf);
-uint32_t lv_circle_buf_size(const lv_circle_buf_t * circle_buf);
-uint32_t lv_circle_buf_capacity(const lv_circle_buf_t * circle_buf);
-uint32_t lv_circle_buf_remain(const lv_circle_buf_t * circle_buf);
-bool lv_circle_buf_is_empty(const lv_circle_buf_t * circle_buf);
-bool lv_circle_buf_is_full(const lv_circle_buf_t * circle_buf);
-void lv_circle_buf_reset(lv_circle_buf_t * circle_buf);
-void * lv_circle_buf_head(const lv_circle_buf_t * circle_buf);
-void * lv_circle_buf_tail(const lv_circle_buf_t * circle_buf);
-lv_result_t lv_circle_buf_read(lv_circle_buf_t * circle_buf, void * data);
-lv_result_t lv_circle_buf_write(lv_circle_buf_t * circle_buf, const void * data);
-uint32_t lv_circle_buf_fill(lv_circle_buf_t * circle_buf, uint32_t count, lv_circle_buf_fill_cb_t fill_cb,
-                            void * user_data);
-lv_result_t lv_circle_buf_skip(lv_circle_buf_t * circle_buf);
-lv_result_t lv_circle_buf_peek(const lv_circle_buf_t * circle_buf, void * data);
-lv_result_t lv_circle_buf_peek_at(const lv_circle_buf_t * circle_buf, uint32_t index, void * data);
-typedef struct _lv_tree_class_t lv_tree_class_t;
-typedef struct _lv_tree_node_t lv_tree_node_t;
-typedef void (*lv_tree_constructor_cb_t)(const lv_tree_class_t * class_p, lv_tree_node_t * node);
-typedef void (*lv_tree_destructor_cb_t)(const lv_tree_class_t * class_p, lv_tree_node_t * node);
-struct _lv_tree_class_t {
-    const lv_tree_class_t * base_class;
-    uint32_t instance_size;
-    lv_tree_constructor_cb_t constructor_cb;
-    lv_tree_destructor_cb_t destructor_cb;
-};
-struct _lv_tree_node_t {
-    lv_tree_node_t * parent;
-    lv_tree_node_t ** children;
-    uint32_t child_cnt;
-    uint32_t child_cap;
-    const lv_tree_class_t * class_p;
-};
-enum _lv_tree_walk_mode_t {
-    LV_TREE_WALK_PRE_ORDER = 0,
-    LV_TREE_WALK_POST_ORDER,
-};
-typedef uint8_t lv_tree_walk_mode_t;
-typedef bool (*lv_tree_traverse_cb_t)(const lv_tree_node_t * node, void * user_data);
-typedef bool (*lv_tree_before_cb_t)(const lv_tree_node_t * node, void * user_data);
-typedef void (*lv_tree_after_cb_t)(const lv_tree_node_t * node, void * user_data);
-extern const lv_tree_class_t lv_tree_node_class;
-lv_tree_node_t * lv_tree_node_create(const lv_tree_class_t * class_p, lv_tree_node_t * parent);
-void lv_tree_node_delete(lv_tree_node_t * node);
-bool lv_tree_walk(const lv_tree_node_t * node,
-                  lv_tree_walk_mode_t mode,
-                  lv_tree_traverse_cb_t cb,
-                  lv_tree_before_cb_t bcb,
-                  lv_tree_after_cb_t acb,
-                  void * user_data);
-void lv_lock(void);
-lv_result_t lv_lock_isr(void);
-void lv_unlock(void);
-void lv_sleep_ms(uint32_t ms);
-enum _lv_str_symbol_id_t {
-    LV_STR_SYMBOL_BULLET,
-    LV_STR_SYMBOL_AUDIO,
-    LV_STR_SYMBOL_VIDEO,
-    LV_STR_SYMBOL_LIST,
-    LV_STR_SYMBOL_OK,
-    LV_STR_SYMBOL_CLOSE,
-    LV_STR_SYMBOL_POWER,
-    LV_STR_SYMBOL_SETTINGS,
-    LV_STR_SYMBOL_HOME,
-    LV_STR_SYMBOL_DOWNLOAD,
-    LV_STR_SYMBOL_DRIVE,
-    LV_STR_SYMBOL_REFRESH,
-    LV_STR_SYMBOL_MUTE,
-    LV_STR_SYMBOL_VOLUME_MID,
-    LV_STR_SYMBOL_VOLUME_MAX,
-    LV_STR_SYMBOL_IMAGE,
-    LV_STR_SYMBOL_TINT,
-    LV_STR_SYMBOL_PREV,
-    LV_STR_SYMBOL_PLAY,
-    LV_STR_SYMBOL_PAUSE,
-    LV_STR_SYMBOL_STOP,
-    LV_STR_SYMBOL_NEXT,
-    LV_STR_SYMBOL_EJECT,
-    LV_STR_SYMBOL_LEFT,
-    LV_STR_SYMBOL_RIGHT,
-    LV_STR_SYMBOL_PLUS,
-    LV_STR_SYMBOL_MINUS,
-    LV_STR_SYMBOL_EYE_OPEN,
-    LV_STR_SYMBOL_EYE_CLOSE,
-    LV_STR_SYMBOL_WARNING,
-    LV_STR_SYMBOL_SHUFFLE,
-    LV_STR_SYMBOL_UP,
-    LV_STR_SYMBOL_DOWN,
-    LV_STR_SYMBOL_LOOP,
-    LV_STR_SYMBOL_DIRECTORY,
-    LV_STR_SYMBOL_UPLOAD,
-    LV_STR_SYMBOL_CALL,
-    LV_STR_SYMBOL_CUT,
-    LV_STR_SYMBOL_COPY,
-    LV_STR_SYMBOL_SAVE,
-    LV_STR_SYMBOL_BARS,
-    LV_STR_SYMBOL_ENVELOPE,
-    LV_STR_SYMBOL_CHARGE,
-    LV_STR_SYMBOL_PASTE,
-    LV_STR_SYMBOL_BELL,
-    LV_STR_SYMBOL_KEYBOARD,
-    LV_STR_SYMBOL_GPS,
-    LV_STR_SYMBOL_FILE,
-    LV_STR_SYMBOL_WIFI,
-    LV_STR_SYMBOL_BATTERY_FULL,
-    LV_STR_SYMBOL_BATTERY_3,
-    LV_STR_SYMBOL_BATTERY_2,
-    LV_STR_SYMBOL_BATTERY_1,
-    LV_STR_SYMBOL_BATTERY_EMPTY,
-    LV_STR_SYMBOL_USB,
-    LV_STR_SYMBOL_BLUETOOTH,
-    LV_STR_SYMBOL_TRASH,
-    LV_STR_SYMBOL_EDIT,
-    LV_STR_SYMBOL_BACKSPACE,
-    LV_STR_SYMBOL_SD_CARD,
-    LV_STR_SYMBOL_NEW_LINE,
-    LV_STR_SYMBOL_DUMMY,
-};
 typedef enum {
     LV_FONT_GLYPH_FORMAT_NONE = 0,
     LV_FONT_GLYPH_FORMAT_A1 = 0x01,
@@ -1215,23 +1144,22 @@ typedef enum {
     LV_FONT_GLYPH_FORMAT_CUSTOM = 0xFF,
 } lv_font_glyph_format_t;
 typedef struct {
-    const lv_font_t *
-    resolved_font;
+    const lv_font_t * resolved_font;
+    void * entry;
+    union {
+        uint32_t index;
+        const void * src;
+    } gid;
+    lv_font_glyph_format_t format;
+    int32_t outline_stroke_width;
     uint16_t adv_w;
     uint16_t box_w;
     uint16_t box_h;
     int16_t ofs_x;
     int16_t ofs_y;
     uint16_t stride;
-    lv_font_glyph_format_t format;
     uint8_t is_placeholder: 1;
     uint8_t req_raw_bitmap: 1;
-    int32_t outline_stroke_width;
-    union {
-        uint32_t index;
-        const void * src;
-    } gid;
-    lv_cache_entry_t * entry;
 } lv_font_glyph_dsc_t;
 typedef enum {
     LV_FONT_SUBPX_NONE,
@@ -1244,19 +1172,22 @@ typedef enum {
     LV_FONT_KERNING_NONE,
 } lv_font_kerning_t;
 struct _lv_font_t {
-    bool (*get_glyph_dsc)(const lv_font_t *, lv_font_glyph_dsc_t *, uint32_t letter, uint32_t letter_next);
-    const void * (*get_glyph_bitmap)(lv_font_glyph_dsc_t *, lv_draw_buf_t *);
-    void (*release_glyph)(const lv_font_t *, lv_font_glyph_dsc_t *);
+    const void * dsc;
+    const lv_font_t * fallback;
+    void * user_data;
+    bool (*get_glyph_dsc)(const lv_font_t * font, lv_font_glyph_dsc_t * dsc_out,
+                          uint32_t letter, uint32_t letter_next);
+    const void * (*get_glyph_bitmap)(lv_font_glyph_dsc_t * g_dsc, lv_draw_buf_t * draw_buf);
+    void (*release_glyph)(const lv_font_t * font, lv_font_glyph_dsc_t * g_dsc);
     int32_t line_height;
     int32_t base_line;
+    int32_t cap_height;
+    int32_t x_height;
     uint8_t subpx : 2;
     uint8_t kerning : 1;
     uint8_t static_bitmap : 1;
     int8_t underline_position;
     int8_t underline_thickness;
-    const void * dsc;
-    const lv_font_t * fallback;
-    void * user_data;
 };
 struct _lv_font_class_t {
     lv_font_t * (*create_cb)(const lv_font_info_t * info, const void * src);
@@ -1270,6 +1201,7 @@ struct _lv_font_info_t {
     uint32_t size;
     uint32_t render_mode;
     uint32_t style;
+    int32_t weight;
     lv_font_kerning_t kerning;
 };
 const void * lv_font_get_glyph_bitmap(lv_font_glyph_dsc_t * g_dsc, lv_draw_buf_t * draw_buf);
@@ -1289,6 +1221,8 @@ bool lv_font_has_static_bitmap(const lv_font_t * font);
  extern const lv_font_t lv_font_montserrat_32;
  extern const lv_font_t lv_font_montserrat_40;
 
+int lv_snprintf(char * buffer, size_t count, const char * format, ...);
+int lv_vsnprintf(char * buffer, size_t count, const char * format, va_list va);
 typedef enum {
     LV_TEXT_FLAG_NONE = 0x00,
     LV_TEXT_FLAG_EXPAND = 0x01,
@@ -1302,6 +1236,15 @@ typedef enum {
     LV_TEXT_ALIGN_CENTER,
     LV_TEXT_ALIGN_RIGHT,
 } lv_text_align_t;
+typedef enum {
+    LV_TEXT_LEADING_TRIM_NONE = 0,
+    LV_TEXT_LEADING_TRIM_CAPITAL_BASELINE,
+    LV_TEXT_LEADING_TRIM_LOWER_BASELINE,
+    LV_TEXT_LEADING_TRIM_CAPITAL,
+    LV_TEXT_LEADING_TRIM_LOWER,
+} lv_text_leading_trim_t;
+int32_t lv_font_get_top_trim(const lv_font_t * font, lv_text_leading_trim_t trim);
+int32_t lv_font_get_bottom_trim(const lv_font_t * font, lv_text_leading_trim_t trim);
 void lv_text_get_size(lv_point_t * size_res, const char * text, const lv_font_t * font, int32_t letter_space,
                       int32_t line_space, int32_t max_width, lv_text_flag_t flag);
 typedef enum {
@@ -1311,12 +1254,7 @@ typedef enum {
     LV_BASE_DIR_NEUTRAL = 0x20,
     LV_BASE_DIR_WEAK = 0x21,
 } lv_base_dir_t;
-static inline void lv_bidi_calculate_align(lv_text_align_t * align, lv_base_dir_t * base_dir, const char * txt)
-{
-    ((void)txt);
-    ((void)base_dir);
-    if(*align == LV_TEXT_ALIGN_AUTO) * align = LV_TEXT_ALIGN_LEFT;
-}
+void lv_bidi_calculate_align(lv_text_align_t * align, lv_base_dir_t * base_dir, const char * txt);
 typedef enum {
     LV_GRAD_DIR_NONE,
     LV_GRAD_DIR_VER,
@@ -1383,6 +1321,7 @@ typedef enum {
     LV_LAYOUT_LAST
 } lv_layout_t;
 uint32_t lv_layout_create(lv_layout_callbacks_t callbacks, void * user_data);
+
 uint32_t lv_layout_register(lv_layout_update_cb_t cb, void * user_data);
 typedef enum {
     LV_FLEX_ALIGN_START,
@@ -1590,6 +1529,7 @@ enum _lv_style_id_t {
     LV_STYLE_GRID_CELL_ROW_POS,
     LV_STYLE_GRID_CELL_ROW_SPAN,
     LV_STYLE_GRID_CELL_Y_ALIGN,
+    LV_STYLE_TEXT_LEADING_TRIM = 176,
     LV_STYLE_LAST_BUILT_IN_PROP,
     LV_STYLE_NUM_BUILT_IN_PROPS = LV_STYLE_LAST_BUILT_IN_PROP + 1,
     LV_STYLE_PROP_ANY = 0xFF,
@@ -1619,11 +1559,7 @@ void lv_style_init(lv_style_t * style);
 void lv_style_reset(lv_style_t * style);
 void lv_style_copy(lv_style_t * dst, const lv_style_t * src);
 void lv_style_merge(lv_style_t * dst, const lv_style_t * src);
-static inline bool lv_style_is_const(const lv_style_t * style)
-{
-    if(style->prop_cnt == 255) return 1;
-    return 0;
-}
+bool lv_style_is_const(const lv_style_t * style);
 lv_style_prop_t lv_style_register_prop(uint8_t flag);
 lv_style_prop_t lv_style_get_num_custom_props(void);
 bool lv_style_remove_prop(lv_style_t * style, lv_style_prop_t prop);
@@ -1632,32 +1568,6 @@ lv_style_res_t lv_style_get_prop(const lv_style_t * style, lv_style_prop_t prop,
 void lv_style_transition_dsc_init(lv_style_transition_dsc_t * tr, const lv_style_prop_t props[],
                                   lv_anim_path_cb_t path_cb, uint32_t time, uint32_t delay, void * user_data);
 lv_style_value_t lv_style_prop_get_default(lv_style_prop_t prop);
-static inline lv_style_res_t lv_style_get_prop_inlined(const lv_style_t * style, lv_style_prop_t prop,
-                                                       lv_style_value_t * value)
-{
-    if(lv_style_is_const(style)) {
-        lv_style_const_prop_t * props = (lv_style_const_prop_t *)style->values_and_props;
-        uint32_t i;
-        for(i = 0; props[i].prop != LV_STYLE_PROP_INV; i++) {
-            if(props[i].prop == prop) {
-                *value = props[i].value;
-                return LV_STYLE_RES_FOUND;
-            }
-        }
-    }
-    else {
-        lv_style_prop_t * props = (lv_style_prop_t *)style->values_and_props + style->prop_cnt * sizeof(lv_style_value_t);
-        uint32_t i;
-        for(i = 0; i < style->prop_cnt; i++) {
-            if(props[i] == prop) {
-                lv_style_value_t * values = (lv_style_value_t *)style->values_and_props;
-                *value = values[i];
-                return LV_STYLE_RES_FOUND;
-            }
-        }
-    }
-    return LV_STYLE_RES_NOT_FOUND;
-}
 bool lv_style_is_empty(const lv_style_t * style);
 static inline uint32_t lv_style_get_prop_group(lv_style_prop_t prop)
 {
@@ -1753,6 +1663,7 @@ void lv_style_set_text_align(lv_style_t * style, lv_text_align_t value);
 void lv_style_set_text_outline_stroke_color(lv_style_t * style, lv_color_t value);
 void lv_style_set_text_outline_stroke_width(lv_style_t * style, int32_t value);
 void lv_style_set_text_outline_stroke_opa(lv_style_t * style, lv_opa_t value);
+void lv_style_set_text_leading_trim(lv_style_t * style, lv_text_leading_trim_t value);
 void lv_style_set_blur_radius(lv_style_t * style, int32_t value);
 void lv_style_set_blur_backdrop(lv_style_t * style, bool value);
 void lv_style_set_blur_quality(lv_style_t * style, lv_blur_quality_t value);
@@ -1794,160 +1705,45 @@ void lv_style_set_grid_cell_column_span(lv_style_t * style, int32_t value);
 void lv_style_set_grid_cell_row_pos(lv_style_t * style, int32_t value);
 void lv_style_set_grid_cell_y_align(lv_style_t * style, lv_grid_align_t value);
 void lv_style_set_grid_cell_row_span(lv_style_t * style, int32_t value);
-static inline void lv_style_set_size(lv_style_t * style, int32_t width, int32_t height)
-{
-    lv_style_set_width(style, width);
-    lv_style_set_height(style, height);
-}
-static inline void lv_style_set_pad_all(lv_style_t * style, int32_t value)
-{
-    lv_style_set_pad_left(style, value);
-    lv_style_set_pad_right(style, value);
-    lv_style_set_pad_top(style, value);
-    lv_style_set_pad_bottom(style, value);
-}
-static inline void lv_style_set_pad_hor(lv_style_t * style, int32_t value)
-{
-    lv_style_set_pad_left(style, value);
-    lv_style_set_pad_right(style, value);
-}
-static inline void lv_style_set_pad_ver(lv_style_t * style, int32_t value)
-{
-    lv_style_set_pad_top(style, value);
-    lv_style_set_pad_bottom(style, value);
-}
-static inline void lv_style_set_pad_gap(lv_style_t * style, int32_t value)
-{
-    lv_style_set_pad_row(style, value);
-    lv_style_set_pad_column(style, value);
-}
-static inline void lv_style_set_margin_hor(lv_style_t * style, int32_t value)
-{
-    lv_style_set_margin_left(style, value);
-    lv_style_set_margin_right(style, value);
-}
-static inline void lv_style_set_margin_ver(lv_style_t * style, int32_t value)
-{
-    lv_style_set_margin_top(style, value);
-    lv_style_set_margin_bottom(style, value);
-}
-static inline void lv_style_set_margin_all(lv_style_t * style, int32_t value)
-{
-    lv_style_set_margin_left(style, value);
-    lv_style_set_margin_right(style, value);
-    lv_style_set_margin_top(style, value);
-    lv_style_set_margin_bottom(style, value);
-}
-static inline void lv_style_set_transform_scale(lv_style_t * style, int32_t value)
-{
-    lv_style_set_transform_scale_x(style, value);
-    lv_style_set_transform_scale_y(style, value);
-}
+void lv_style_set_size(lv_style_t * style, int32_t width, int32_t height);
+void lv_style_set_pad_all(lv_style_t * style, int32_t value);
+void lv_style_set_pad_hor(lv_style_t * style, int32_t value);
+void lv_style_set_pad_ver(lv_style_t * style, int32_t value);
+void lv_style_set_pad_gap(lv_style_t * style, int32_t value);
+void lv_style_set_margin_hor(lv_style_t * style, int32_t value);
+void lv_style_set_margin_ver(lv_style_t * style, int32_t value);
+void lv_style_set_margin_all(lv_style_t * style, int32_t value);
+void lv_style_set_transform_scale(lv_style_t * style, int32_t value);
 static inline bool lv_style_prop_has_flag(lv_style_prop_t prop, uint8_t flag)
 {
     return lv_style_prop_lookup_flags(prop) & flag;
 }
  extern const lv_style_prop_t lv_style_const_prop_id_inv;
-typedef void (*lv_event_cb_t)(lv_event_t * e);
-typedef enum {
-    LV_EVENT_ALL = 0,
-    LV_EVENT_PRESSED,
-    LV_EVENT_PRESSING,
-    LV_EVENT_PRESS_LOST,
-    LV_EVENT_SHORT_CLICKED,
-    LV_EVENT_SINGLE_CLICKED,
-    LV_EVENT_DOUBLE_CLICKED,
-    LV_EVENT_TRIPLE_CLICKED,
-    LV_EVENT_LONG_PRESSED,
-    LV_EVENT_LONG_PRESSED_REPEAT,
-    LV_EVENT_CLICKED,
-    LV_EVENT_RELEASED,
-    LV_EVENT_SCROLL_BEGIN,
-    LV_EVENT_SCROLL_THROW_BEGIN,
-    LV_EVENT_SCROLL_END,
-    LV_EVENT_SCROLL,
-    LV_EVENT_GESTURE,
-    LV_EVENT_KEY,
-    LV_EVENT_ROTARY,
-    LV_EVENT_FOCUSED,
-    LV_EVENT_DEFOCUSED,
-    LV_EVENT_LEAVE,
-    LV_EVENT_HIT_TEST,
-    LV_EVENT_INDEV_RESET,
-    LV_EVENT_HOVER_OVER,
-    LV_EVENT_HOVER_LEAVE,
-    LV_EVENT_COVER_CHECK,
-    LV_EVENT_REFR_EXT_DRAW_SIZE,
-    LV_EVENT_DRAW_MAIN_BEGIN,
-    LV_EVENT_DRAW_MAIN,
-    LV_EVENT_DRAW_MAIN_END,
-    LV_EVENT_DRAW_POST_BEGIN,
-    LV_EVENT_DRAW_POST,
-    LV_EVENT_DRAW_POST_END,
-    LV_EVENT_DRAW_TASK_ADDED,
-    LV_EVENT_VALUE_CHANGED,
-    LV_EVENT_INSERT,
-    LV_EVENT_REFRESH,
-    LV_EVENT_READY,
-    LV_EVENT_CANCEL,
-    LV_EVENT_STATE_CHANGED,
-    LV_EVENT_CREATE,
-    LV_EVENT_DELETE,
-    LV_EVENT_CHILD_CHANGED,
-    LV_EVENT_CHILD_CREATED,
-    LV_EVENT_CHILD_DELETED,
-    LV_EVENT_SCREEN_UNLOAD_START,
-    LV_EVENT_SCREEN_LOAD_START,
-    LV_EVENT_SCREEN_LOADED,
-    LV_EVENT_SCREEN_UNLOADED,
-    LV_EVENT_SIZE_CHANGED,
-    LV_EVENT_STYLE_CHANGED,
-    LV_EVENT_LAYOUT_CHANGED,
-    LV_EVENT_GET_SELF_SIZE,
-    LV_EVENT_INVALIDATE_AREA,
-    LV_EVENT_RESOLUTION_CHANGED,
-    LV_EVENT_COLOR_FORMAT_CHANGED,
-    LV_EVENT_REFR_REQUEST,
-    LV_EVENT_REFR_START,
-    LV_EVENT_REFR_READY,
-    LV_EVENT_RENDER_START,
-    LV_EVENT_RENDER_READY,
-    LV_EVENT_FLUSH_START,
-    LV_EVENT_FLUSH_FINISH,
-    LV_EVENT_FLUSH_WAIT_START,
-    LV_EVENT_FLUSH_WAIT_FINISH,
-    LV_EVENT_UPDATE_LAYOUT_COMPLETED,
-    LV_EVENT_VSYNC,
-    LV_EVENT_VSYNC_REQUEST,
-    LV_EVENT_LAST,
-    LV_EVENT_PREPROCESS = 0x8000,
-    LV_EVENT_MARKED_DELETING = 0x10000,
-} lv_event_code_t;
-typedef struct {
-    lv_array_t array;
-    uint8_t is_traversing: 1;
-    uint8_t has_marked_deleting: 1;
-} lv_event_list_t;
-lv_result_t lv_event_send(lv_event_list_t * list, lv_event_t * e, bool preprocess);
-lv_event_dsc_t * lv_event_add(lv_event_list_t * list, lv_event_cb_t cb, lv_event_code_t filter, void * user_data);
-bool lv_event_remove_dsc(lv_event_list_t * list, lv_event_dsc_t * dsc);
-uint32_t lv_event_get_count(lv_event_list_t * list);
-lv_event_dsc_t * lv_event_get_dsc(lv_event_list_t * list, uint32_t index);
-lv_event_cb_t lv_event_dsc_get_cb(lv_event_dsc_t * dsc);
-void * lv_event_dsc_get_user_data(lv_event_dsc_t * dsc);
-bool lv_event_remove(lv_event_list_t * list, uint32_t index);
-void lv_event_remove_all(lv_event_list_t * list);
-void * lv_event_get_target(lv_event_t * e);
-void * lv_event_get_current_target(lv_event_t * e);
-lv_event_code_t lv_event_get_code(lv_event_t * e);
-void * lv_event_get_param(lv_event_t * e);
-void * lv_event_get_user_data(lv_event_t * e);
-void lv_event_stop_bubbling(lv_event_t * e);
-void lv_event_stop_trickling(lv_event_t * e);
-void lv_event_stop_processing(lv_event_t * e);
-void lv_event_free_user_data_cb(lv_event_t * e);
-uint32_t lv_event_register_id(void);
-const char * lv_event_code_get_name(lv_event_code_t code);
+typedef void (*lv_timer_cb_t)(lv_timer_t *);
+typedef void (*lv_timer_handler_resume_cb_t)(void * data);
+ uint32_t lv_timer_handler(void);
+ uint32_t lv_timer_handler_run_in_period(uint32_t period);
+ uint32_t lv_timer_get_time_to_next(void);
+ void lv_timer_periodic_handler(void);
+void lv_timer_handler_set_resume_cb(lv_timer_handler_resume_cb_t cb, void * data);
+lv_timer_t * lv_timer_create_basic(void);
+lv_timer_t * lv_timer_create(lv_timer_cb_t timer_xcb, uint32_t period, void * user_data);
+void lv_timer_delete(lv_timer_t * timer);
+void lv_timer_pause(lv_timer_t * timer);
+void lv_timer_resume(lv_timer_t * timer);
+void lv_timer_set_cb(lv_timer_t * timer, lv_timer_cb_t timer_cb);
+void lv_timer_set_period(lv_timer_t * timer, uint32_t period);
+void lv_timer_ready(lv_timer_t * timer);
+void lv_timer_set_repeat_count(lv_timer_t * timer, int32_t repeat_count);
+void lv_timer_set_auto_delete(lv_timer_t * timer, bool auto_delete);
+void lv_timer_set_user_data(lv_timer_t * timer, void * user_data);
+void lv_timer_reset(lv_timer_t * timer);
+void lv_timer_enable(bool en);
+uint32_t lv_timer_get_idle(void);
+uint32_t lv_timer_get_time_until_next(void);
+lv_timer_t * lv_timer_get_next(lv_timer_t * timer);
+void * lv_timer_get_user_data(lv_timer_t * timer);
+bool lv_timer_get_paused(lv_timer_t * timer);
 typedef enum {
     LV_DISPLAY_ROTATION_0 = 0,
     LV_DISPLAY_ROTATION_90,
@@ -1979,6 +1775,8 @@ typedef enum {
 } lv_screen_load_anim_t;
 typedef void (*lv_display_flush_cb_t)(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map);
 typedef void (*lv_display_flush_wait_cb_t)(lv_display_t * disp);
+typedef void (*lv_display_sync_cb_t)(lv_display_t * disp, const lv_area_t * area);
+typedef void (*lv_display_sync_wait_cb_t)(lv_display_t * disp);
 lv_display_t * lv_display_create(int32_t hor_res, int32_t ver_res);
 void lv_display_delete(lv_display_t * disp);
 void lv_display_set_default(lv_display_t * disp);
@@ -2009,7 +1807,10 @@ void lv_display_set_draw_buffers(lv_display_t * disp, lv_draw_buf_t * buf1, lv_d
 void lv_display_set_3rd_draw_buffer(lv_display_t * disp, lv_draw_buf_t * buf3);
 void lv_display_set_render_mode(lv_display_t * disp, lv_display_render_mode_t render_mode);
 void lv_display_set_flush_cb(lv_display_t * disp, lv_display_flush_cb_t flush_cb);
+lv_display_flush_cb_t lv_display_get_flush_cb(lv_display_t * disp);
 void lv_display_set_flush_wait_cb(lv_display_t * disp, lv_display_flush_wait_cb_t wait_cb);
+void lv_display_set_sync_cb(lv_display_t * disp, lv_display_sync_cb_t sync_cb);
+void lv_display_set_sync_wait_cb(lv_display_t * disp, lv_display_sync_wait_cb_t wait_cb);
 void lv_display_set_color_format(lv_display_t * disp, lv_color_format_t color_format);
 lv_color_format_t lv_display_get_color_format(lv_display_t * disp);
 void lv_display_set_tile_cnt(lv_display_t * disp, uint32_t tile_cnt);
@@ -2018,6 +1819,8 @@ void lv_display_set_antialiasing(lv_display_t * disp, bool en);
 bool lv_display_get_antialiasing(lv_display_t * disp);
  void lv_display_flush_ready(lv_display_t * disp);
  bool lv_display_flush_is_last(lv_display_t * disp);
+ void lv_display_sync_ready(lv_display_t * disp);
+ bool lv_display_sync_is_last(lv_display_t * disp);
 bool lv_display_is_double_buffered(lv_display_t * disp);
 lv_display_render_mode_t lv_display_get_render_mode(lv_display_t * disp);
 lv_obj_t * lv_display_get_screen_active(lv_display_t * disp);
@@ -2026,17 +1829,18 @@ lv_obj_t * lv_display_get_screen_loading(lv_display_t * disp);
 lv_obj_t * lv_display_get_layer_top(lv_display_t * disp);
 lv_obj_t * lv_display_get_layer_sys(lv_display_t * disp);
 lv_obj_t * lv_display_get_layer_bottom(lv_display_t * disp);
-void lv_screen_load(struct _lv_obj_t * scr);
+void lv_screen_load(lv_obj_t * scr);
 void lv_screen_load_anim(lv_obj_t * scr, lv_screen_load_anim_t anim_type, uint32_t time, uint32_t delay,
                          bool auto_del);
 lv_obj_t * lv_screen_active(void);
 lv_obj_t * lv_layer_top(void);
 lv_obj_t * lv_layer_sys(void);
 lv_obj_t * lv_layer_bottom(void);
-void lv_display_add_event_cb(lv_display_t * disp, lv_event_cb_t event_cb, lv_event_code_t filter, void * user_data);
+lv_event_dsc_t * lv_display_add_event_cb(lv_display_t * disp, lv_event_cb_t event_cb, lv_event_code_t filter,
+                                         void * user_data);
 uint32_t lv_display_get_event_count(lv_display_t * disp);
 lv_event_dsc_t * lv_display_get_event_dsc(lv_display_t * disp, uint32_t index);
-bool lv_display_delete_event(lv_display_t * disp, uint32_t index);
+bool lv_display_remove_event(lv_display_t * disp, uint32_t index);
 uint32_t lv_display_remove_event_cb_with_user_data(lv_display_t * disp, lv_event_cb_t event_cb, void * user_data);
 lv_result_t lv_display_send_event(lv_display_t * disp, lv_event_code_t code, void * param);
 lv_area_t * lv_event_get_invalidated_area(lv_event_t * e);
@@ -2058,6 +1862,7 @@ void * lv_display_get_driver_data(lv_display_t * disp);
 lv_draw_buf_t * lv_display_get_buf_active(lv_display_t * disp);
 void lv_display_rotate_area(lv_display_t * disp, lv_area_t * area);
 void lv_display_rotate_point(lv_display_t * disp, lv_point_t * point);
+void lv_display_rotate_point_ccw(lv_display_t * disp, lv_point_t * point);
 uint32_t lv_display_get_draw_buf_size(lv_display_t * disp);
 uint32_t lv_display_get_invalidated_draw_buf_size(lv_display_t * disp, uint32_t width, uint32_t height);
 int32_t lv_dpx(int32_t n);
@@ -2133,6 +1938,8 @@ int32_t lv_obj_get_self_width(const lv_obj_t * obj);
 int32_t lv_obj_get_self_height(const lv_obj_t * obj);
 int32_t lv_obj_get_style_clamped_width(lv_obj_t * obj);
 int32_t lv_obj_get_style_clamped_height(lv_obj_t * obj);
+bool lv_obj_is_style_any_width_content(lv_obj_t * obj);
+bool lv_obj_is_style_any_height_content(lv_obj_t * obj);
 bool lv_obj_is_width_min(lv_obj_t * obj);
 bool lv_obj_is_height_min(lv_obj_t * obj);
 bool lv_obj_is_width_max(lv_obj_t * obj);
@@ -2194,7 +2001,7 @@ void lv_obj_scroll_to_view_recursive(lv_obj_t * obj, lv_anim_enable_t anim_en);
 bool lv_obj_is_scrolling(const lv_obj_t * obj);
 void lv_obj_stop_scroll_anim(const lv_obj_t * obj);
 void lv_obj_update_snap(lv_obj_t * obj, lv_anim_enable_t anim_en);
-void lv_obj_get_scrollbar_area(lv_obj_t * obj, lv_area_t * hor, lv_area_t * ver);
+void lv_obj_get_scrollbar_area(lv_obj_t * obj, lv_area_t * hor_area, lv_area_t * ver_area);
 void lv_obj_scrollbar_invalidate(lv_obj_t * obj);
 void lv_obj_readjust_scroll(lv_obj_t * obj, lv_anim_enable_t anim_en);
 typedef enum {
@@ -2240,7 +2047,11 @@ void lv_obj_remove_theme(lv_obj_t * obj, lv_style_selector_t selector);
 void lv_obj_remove_style_all(lv_obj_t * obj);
 void lv_obj_report_style_change(lv_style_t * style);
 void lv_obj_refresh_style(lv_obj_t * obj, lv_part_t part, lv_style_prop_t prop);
+void lv_obj_set_style_enabled(lv_obj_t * obj, const lv_style_t * style, lv_style_selector_t selector, bool en);
+bool lv_obj_get_style_enabled(lv_obj_t * obj, const lv_style_t * style, lv_style_selector_t selector);
+
 void lv_obj_style_set_disabled(lv_obj_t * obj, const lv_style_t * style, lv_style_selector_t selector, bool dis);
+
 bool lv_obj_style_get_disabled(lv_obj_t * obj, const lv_style_t * style, lv_style_selector_t selector);
 void lv_obj_enable_style_refresh(bool en);
 lv_style_value_t lv_obj_get_style_prop(const lv_obj_t * obj, lv_part_t part, lv_style_prop_t prop);
@@ -2261,706 +2072,147 @@ static inline lv_part_t lv_obj_style_get_selector_part(lv_style_selector_t selec
 {
     return (lv_part_t)(selector & 0xFF0000);
 }
-static inline int32_t lv_obj_get_style_width(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_WIDTH);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_min_width(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_MIN_WIDTH);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_max_width(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_MAX_WIDTH);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_height(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_HEIGHT);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_min_height(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_MIN_HEIGHT);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_max_height(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_MAX_HEIGHT);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_length(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_LENGTH);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_x(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_X);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_y(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_Y);
-    return (int32_t)v.num;
-}
-static inline lv_align_t lv_obj_get_style_align(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_ALIGN);
-    return (lv_align_t)v.num;
-}
-static inline int32_t lv_obj_get_style_transform_width(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TRANSFORM_WIDTH);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_transform_height(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TRANSFORM_HEIGHT);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_translate_x(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TRANSLATE_X);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_translate_y(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TRANSLATE_Y);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_translate_radial(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TRANSLATE_RADIAL);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_transform_scale_x(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TRANSFORM_SCALE_X);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_transform_scale_y(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TRANSFORM_SCALE_Y);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_transform_rotation(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TRANSFORM_ROTATION);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_transform_pivot_x(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TRANSFORM_PIVOT_X);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_transform_pivot_y(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TRANSFORM_PIVOT_Y);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_transform_skew_x(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TRANSFORM_SKEW_X);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_transform_skew_y(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TRANSFORM_SKEW_Y);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_pad_top(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_PAD_TOP);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_pad_bottom(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_PAD_BOTTOM);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_pad_left(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_PAD_LEFT);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_pad_right(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_PAD_RIGHT);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_pad_row(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_PAD_ROW);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_pad_column(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_PAD_COLUMN);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_pad_radial(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_PAD_RADIAL);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_margin_top(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_MARGIN_TOP);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_margin_bottom(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_MARGIN_BOTTOM);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_margin_left(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_MARGIN_LEFT);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_margin_right(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_MARGIN_RIGHT);
-    return (int32_t)v.num;
-}
-static inline lv_color_t lv_obj_get_style_bg_color(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BG_COLOR);
-    return v.color;
-}
-static inline lv_color_t lv_obj_get_style_bg_color_filtered(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_style_apply_color_filter(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_BG_COLOR));
-    return v.color;
-}
-static inline lv_opa_t lv_obj_get_style_bg_opa(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BG_OPA);
-    return (lv_opa_t)v.num;
-}
-static inline lv_color_t lv_obj_get_style_bg_grad_color(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BG_GRAD_COLOR);
-    return v.color;
-}
-static inline lv_color_t lv_obj_get_style_bg_grad_color_filtered(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_style_apply_color_filter(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_BG_GRAD_COLOR));
-    return v.color;
-}
-static inline lv_grad_dir_t lv_obj_get_style_bg_grad_dir(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BG_GRAD_DIR);
-    return (lv_grad_dir_t)v.num;
-}
-static inline int32_t lv_obj_get_style_bg_main_stop(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BG_MAIN_STOP);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_bg_grad_stop(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BG_GRAD_STOP);
-    return (int32_t)v.num;
-}
-static inline lv_opa_t lv_obj_get_style_bg_main_opa(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BG_MAIN_OPA);
-    return (lv_opa_t)v.num;
-}
-static inline lv_opa_t lv_obj_get_style_bg_grad_opa(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BG_GRAD_OPA);
-    return (lv_opa_t)v.num;
-}
-static inline const lv_grad_dsc_t * lv_obj_get_style_bg_grad(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BG_GRAD);
-    return (const lv_grad_dsc_t *)v.ptr;
-}
-static inline const void * lv_obj_get_style_bg_image_src(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BG_IMAGE_SRC);
-    return (const void *)v.ptr;
-}
-static inline lv_opa_t lv_obj_get_style_bg_image_opa(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BG_IMAGE_OPA);
-    return (lv_opa_t)v.num;
-}
-static inline lv_color_t lv_obj_get_style_bg_image_recolor(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BG_IMAGE_RECOLOR);
-    return v.color;
-}
-static inline lv_color_t lv_obj_get_style_bg_image_recolor_filtered(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_style_apply_color_filter(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_BG_IMAGE_RECOLOR));
-    return v.color;
-}
-static inline lv_opa_t lv_obj_get_style_bg_image_recolor_opa(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BG_IMAGE_RECOLOR_OPA);
-    return (lv_opa_t)v.num;
-}
-static inline bool lv_obj_get_style_bg_image_tiled(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BG_IMAGE_TILED);
-    return (bool)v.num;
-}
-static inline lv_color_t lv_obj_get_style_border_color(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BORDER_COLOR);
-    return v.color;
-}
-static inline lv_color_t lv_obj_get_style_border_color_filtered(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_style_apply_color_filter(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_BORDER_COLOR));
-    return v.color;
-}
-static inline lv_opa_t lv_obj_get_style_border_opa(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BORDER_OPA);
-    return (lv_opa_t)v.num;
-}
-static inline int32_t lv_obj_get_style_border_width(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BORDER_WIDTH);
-    return (int32_t)v.num;
-}
-static inline lv_border_side_t lv_obj_get_style_border_side(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BORDER_SIDE);
-    return (lv_border_side_t)v.num;
-}
-static inline bool lv_obj_get_style_border_post(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BORDER_POST);
-    return (bool)v.num;
-}
-static inline int32_t lv_obj_get_style_outline_width(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_OUTLINE_WIDTH);
-    return (int32_t)v.num;
-}
-static inline lv_color_t lv_obj_get_style_outline_color(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_OUTLINE_COLOR);
-    return v.color;
-}
-static inline lv_color_t lv_obj_get_style_outline_color_filtered(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_style_apply_color_filter(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_OUTLINE_COLOR));
-    return v.color;
-}
-static inline lv_opa_t lv_obj_get_style_outline_opa(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_OUTLINE_OPA);
-    return (lv_opa_t)v.num;
-}
-static inline int32_t lv_obj_get_style_outline_pad(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_OUTLINE_PAD);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_shadow_width(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_SHADOW_WIDTH);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_shadow_offset_x(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_SHADOW_OFFSET_X);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_shadow_offset_y(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_SHADOW_OFFSET_Y);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_shadow_spread(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_SHADOW_SPREAD);
-    return (int32_t)v.num;
-}
-static inline lv_color_t lv_obj_get_style_shadow_color(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_SHADOW_COLOR);
-    return v.color;
-}
-static inline lv_color_t lv_obj_get_style_shadow_color_filtered(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_style_apply_color_filter(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_SHADOW_COLOR));
-    return v.color;
-}
-static inline lv_opa_t lv_obj_get_style_shadow_opa(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_SHADOW_OPA);
-    return (lv_opa_t)v.num;
-}
-static inline lv_opa_t lv_obj_get_style_image_opa(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_IMAGE_OPA);
-    return (lv_opa_t)v.num;
-}
-static inline lv_color_t lv_obj_get_style_image_recolor(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_IMAGE_RECOLOR);
-    return v.color;
-}
-static inline lv_color_t lv_obj_get_style_image_recolor_filtered(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_style_apply_color_filter(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_IMAGE_RECOLOR));
-    return v.color;
-}
-static inline lv_opa_t lv_obj_get_style_image_recolor_opa(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_IMAGE_RECOLOR_OPA);
-    return (lv_opa_t)v.num;
-}
-static inline const lv_image_colorkey_t * lv_obj_get_style_image_colorkey(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_IMAGE_COLORKEY);
-    return (const lv_image_colorkey_t *)v.ptr;
-}
-static inline int32_t lv_obj_get_style_line_width(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_LINE_WIDTH);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_line_dash_width(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_LINE_DASH_WIDTH);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_line_dash_gap(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_LINE_DASH_GAP);
-    return (int32_t)v.num;
-}
-static inline bool lv_obj_get_style_line_rounded(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_LINE_ROUNDED);
-    return (bool)v.num;
-}
-static inline lv_color_t lv_obj_get_style_line_color(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_LINE_COLOR);
-    return v.color;
-}
-static inline lv_color_t lv_obj_get_style_line_color_filtered(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_style_apply_color_filter(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_LINE_COLOR));
-    return v.color;
-}
-static inline lv_opa_t lv_obj_get_style_line_opa(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_LINE_OPA);
-    return (lv_opa_t)v.num;
-}
-static inline int32_t lv_obj_get_style_arc_width(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_ARC_WIDTH);
-    return (int32_t)v.num;
-}
-static inline bool lv_obj_get_style_arc_rounded(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_ARC_ROUNDED);
-    return (bool)v.num;
-}
-static inline lv_color_t lv_obj_get_style_arc_color(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_ARC_COLOR);
-    return v.color;
-}
-static inline lv_color_t lv_obj_get_style_arc_color_filtered(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_style_apply_color_filter(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_ARC_COLOR));
-    return v.color;
-}
-static inline lv_opa_t lv_obj_get_style_arc_opa(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_ARC_OPA);
-    return (lv_opa_t)v.num;
-}
-static inline const void * lv_obj_get_style_arc_image_src(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_ARC_IMAGE_SRC);
-    return (const void *)v.ptr;
-}
-static inline lv_color_t lv_obj_get_style_text_color(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TEXT_COLOR);
-    return v.color;
-}
-static inline lv_color_t lv_obj_get_style_text_color_filtered(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_style_apply_color_filter(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_TEXT_COLOR));
-    return v.color;
-}
-static inline lv_opa_t lv_obj_get_style_text_opa(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TEXT_OPA);
-    return (lv_opa_t)v.num;
-}
-static inline const lv_font_t * lv_obj_get_style_text_font(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TEXT_FONT);
-    return (const lv_font_t *)v.ptr;
-}
-static inline int32_t lv_obj_get_style_text_letter_space(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TEXT_LETTER_SPACE);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_text_line_space(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TEXT_LINE_SPACE);
-    return (int32_t)v.num;
-}
-static inline lv_text_decor_t lv_obj_get_style_text_decor(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TEXT_DECOR);
-    return (lv_text_decor_t)v.num;
-}
-static inline lv_text_align_t lv_obj_get_style_text_align(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TEXT_ALIGN);
-    return (lv_text_align_t)v.num;
-}
-static inline lv_color_t lv_obj_get_style_text_outline_stroke_color(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TEXT_OUTLINE_STROKE_COLOR);
-    return v.color;
-}
-static inline lv_color_t lv_obj_get_style_text_outline_stroke_color_filtered(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_style_apply_color_filter(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_TEXT_OUTLINE_STROKE_COLOR));
-    return v.color;
-}
-static inline int32_t lv_obj_get_style_text_outline_stroke_width(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TEXT_OUTLINE_STROKE_WIDTH);
-    return (int32_t)v.num;
-}
-static inline lv_opa_t lv_obj_get_style_text_outline_stroke_opa(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TEXT_OUTLINE_STROKE_OPA);
-    return (lv_opa_t)v.num;
-}
-static inline int32_t lv_obj_get_style_blur_radius(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BLUR_RADIUS);
-    return (int32_t)v.num;
-}
-static inline bool lv_obj_get_style_blur_backdrop(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BLUR_BACKDROP);
-    return (bool)v.num;
-}
-static inline lv_blur_quality_t lv_obj_get_style_blur_quality(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BLUR_QUALITY);
-    return (lv_blur_quality_t)v.num;
-}
-static inline int32_t lv_obj_get_style_drop_shadow_radius(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_DROP_SHADOW_RADIUS);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_drop_shadow_offset_x(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_DROP_SHADOW_OFFSET_X);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_drop_shadow_offset_y(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_DROP_SHADOW_OFFSET_Y);
-    return (int32_t)v.num;
-}
-static inline lv_color_t lv_obj_get_style_drop_shadow_color(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_DROP_SHADOW_COLOR);
-    return v.color;
-}
-static inline lv_color_t lv_obj_get_style_drop_shadow_color_filtered(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_style_apply_color_filter(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_DROP_SHADOW_COLOR));
-    return v.color;
-}
-static inline lv_opa_t lv_obj_get_style_drop_shadow_opa(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_DROP_SHADOW_OPA);
-    return (lv_opa_t)v.num;
-}
-static inline lv_blur_quality_t lv_obj_get_style_drop_shadow_quality(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_DROP_SHADOW_QUALITY);
-    return (lv_blur_quality_t)v.num;
-}
-static inline int32_t lv_obj_get_style_radius(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_RADIUS);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_radial_offset(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_RADIAL_OFFSET);
-    return (int32_t)v.num;
-}
-static inline bool lv_obj_get_style_clip_corner(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_CLIP_CORNER);
-    return (bool)v.num;
-}
-static inline lv_opa_t lv_obj_get_style_opa(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_OPA);
-    return (lv_opa_t)v.num;
-}
-static inline lv_opa_t lv_obj_get_style_opa_layered(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_OPA_LAYERED);
-    return (lv_opa_t)v.num;
-}
-static inline const lv_color_filter_dsc_t * lv_obj_get_style_color_filter_dsc(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_COLOR_FILTER_DSC);
-    return (const lv_color_filter_dsc_t *)v.ptr;
-}
-static inline lv_opa_t lv_obj_get_style_color_filter_opa(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_COLOR_FILTER_OPA);
-    return (lv_opa_t)v.num;
-}
-static inline lv_color_t lv_obj_get_style_recolor(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_RECOLOR);
-    return v.color;
-}
-static inline lv_opa_t lv_obj_get_style_recolor_opa(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_RECOLOR_OPA);
-    return (lv_opa_t)v.num;
-}
-static inline const lv_anim_t * lv_obj_get_style_anim(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_ANIM);
-    return (const lv_anim_t *)v.ptr;
-}
-static inline uint32_t lv_obj_get_style_anim_duration(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_ANIM_DURATION);
-    return (uint32_t)v.num;
-}
-static inline const lv_style_transition_dsc_t * lv_obj_get_style_transition(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_TRANSITION);
-    return (const lv_style_transition_dsc_t *)v.ptr;
-}
-static inline lv_blend_mode_t lv_obj_get_style_blend_mode(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BLEND_MODE);
-    return (lv_blend_mode_t)v.num;
-}
-static inline uint16_t lv_obj_get_style_layout(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_LAYOUT);
-    return (uint16_t)v.num;
-}
-static inline lv_base_dir_t lv_obj_get_style_base_dir(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BASE_DIR);
-    return (lv_base_dir_t)v.num;
-}
-static inline const void * lv_obj_get_style_bitmap_mask_src(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_BITMAP_MASK_SRC);
-    return (const void *)v.ptr;
-}
-static inline uint32_t lv_obj_get_style_rotary_sensitivity(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_ROTARY_SENSITIVITY);
-    return (uint32_t)v.num;
-}
-static inline lv_flex_flow_t lv_obj_get_style_flex_flow(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_FLEX_FLOW);
-    return (lv_flex_flow_t)v.num;
-}
-static inline lv_flex_align_t lv_obj_get_style_flex_main_place(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_FLEX_MAIN_PLACE);
-    return (lv_flex_align_t)v.num;
-}
-static inline lv_flex_align_t lv_obj_get_style_flex_cross_place(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_FLEX_CROSS_PLACE);
-    return (lv_flex_align_t)v.num;
-}
-static inline lv_flex_align_t lv_obj_get_style_flex_track_place(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_FLEX_TRACK_PLACE);
-    return (lv_flex_align_t)v.num;
-}
-static inline uint8_t lv_obj_get_style_flex_grow(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_FLEX_GROW);
-    return (uint8_t)v.num;
-}
-static inline const int32_t * lv_obj_get_style_grid_column_dsc_array(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_GRID_COLUMN_DSC_ARRAY);
-    return (const int32_t *)v.ptr;
-}
-static inline lv_grid_align_t lv_obj_get_style_grid_column_align(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_GRID_COLUMN_ALIGN);
-    return (lv_grid_align_t)v.num;
-}
-static inline const int32_t * lv_obj_get_style_grid_row_dsc_array(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_GRID_ROW_DSC_ARRAY);
-    return (const int32_t *)v.ptr;
-}
-static inline lv_grid_align_t lv_obj_get_style_grid_row_align(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_GRID_ROW_ALIGN);
-    return (lv_grid_align_t)v.num;
-}
-static inline int32_t lv_obj_get_style_grid_cell_column_pos(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_GRID_CELL_COLUMN_POS);
-    return (int32_t)v.num;
-}
-static inline lv_grid_align_t lv_obj_get_style_grid_cell_x_align(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_GRID_CELL_X_ALIGN);
-    return (lv_grid_align_t)v.num;
-}
-static inline int32_t lv_obj_get_style_grid_cell_column_span(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_GRID_CELL_COLUMN_SPAN);
-    return (int32_t)v.num;
-}
-static inline int32_t lv_obj_get_style_grid_cell_row_pos(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_GRID_CELL_ROW_POS);
-    return (int32_t)v.num;
-}
-static inline lv_grid_align_t lv_obj_get_style_grid_cell_y_align(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_GRID_CELL_Y_ALIGN);
-    return (lv_grid_align_t)v.num;
-}
-static inline int32_t lv_obj_get_style_grid_cell_row_span(const lv_obj_t * obj, lv_part_t part)
-{
-    lv_style_value_t v = lv_obj_get_style_prop(obj, part, LV_STYLE_GRID_CELL_ROW_SPAN);
-    return (int32_t)v.num;
-}
+int32_t lv_obj_get_style_width(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_min_width(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_max_width(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_height(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_min_height(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_max_height(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_length(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_x(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_y(const lv_obj_t * obj, lv_part_t part);
+lv_align_t lv_obj_get_style_align(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_transform_width(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_transform_height(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_translate_x(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_translate_y(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_translate_radial(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_transform_scale_x(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_transform_scale_y(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_transform_rotation(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_transform_pivot_x(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_transform_pivot_y(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_transform_skew_x(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_transform_skew_y(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_pad_top(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_pad_bottom(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_pad_left(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_pad_right(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_pad_row(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_pad_column(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_pad_radial(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_margin_top(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_margin_bottom(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_margin_left(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_margin_right(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_bg_color(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_bg_color_filtered(const lv_obj_t * obj, lv_part_t part);
+lv_opa_t lv_obj_get_style_bg_opa(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_bg_grad_color(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_bg_grad_color_filtered(const lv_obj_t * obj, lv_part_t part);
+lv_grad_dir_t lv_obj_get_style_bg_grad_dir(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_bg_main_stop(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_bg_grad_stop(const lv_obj_t * obj, lv_part_t part);
+lv_opa_t lv_obj_get_style_bg_main_opa(const lv_obj_t * obj, lv_part_t part);
+lv_opa_t lv_obj_get_style_bg_grad_opa(const lv_obj_t * obj, lv_part_t part);
+const lv_grad_dsc_t * lv_obj_get_style_bg_grad(const lv_obj_t * obj, lv_part_t part);
+const void * lv_obj_get_style_bg_image_src(const lv_obj_t * obj, lv_part_t part);
+lv_opa_t lv_obj_get_style_bg_image_opa(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_bg_image_recolor(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_bg_image_recolor_filtered(const lv_obj_t * obj, lv_part_t part);
+lv_opa_t lv_obj_get_style_bg_image_recolor_opa(const lv_obj_t * obj, lv_part_t part);
+bool lv_obj_get_style_bg_image_tiled(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_border_color(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_border_color_filtered(const lv_obj_t * obj, lv_part_t part);
+lv_opa_t lv_obj_get_style_border_opa(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_border_width(const lv_obj_t * obj, lv_part_t part);
+lv_border_side_t lv_obj_get_style_border_side(const lv_obj_t * obj, lv_part_t part);
+bool lv_obj_get_style_border_post(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_outline_width(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_outline_color(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_outline_color_filtered(const lv_obj_t * obj, lv_part_t part);
+lv_opa_t lv_obj_get_style_outline_opa(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_outline_pad(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_shadow_width(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_shadow_offset_x(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_shadow_offset_y(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_shadow_spread(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_shadow_color(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_shadow_color_filtered(const lv_obj_t * obj, lv_part_t part);
+lv_opa_t lv_obj_get_style_shadow_opa(const lv_obj_t * obj, lv_part_t part);
+lv_opa_t lv_obj_get_style_image_opa(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_image_recolor(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_image_recolor_filtered(const lv_obj_t * obj, lv_part_t part);
+lv_opa_t lv_obj_get_style_image_recolor_opa(const lv_obj_t * obj, lv_part_t part);
+const lv_image_colorkey_t * lv_obj_get_style_image_colorkey(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_line_width(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_line_dash_width(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_line_dash_gap(const lv_obj_t * obj, lv_part_t part);
+bool lv_obj_get_style_line_rounded(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_line_color(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_line_color_filtered(const lv_obj_t * obj, lv_part_t part);
+lv_opa_t lv_obj_get_style_line_opa(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_arc_width(const lv_obj_t * obj, lv_part_t part);
+bool lv_obj_get_style_arc_rounded(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_arc_color(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_arc_color_filtered(const lv_obj_t * obj, lv_part_t part);
+lv_opa_t lv_obj_get_style_arc_opa(const lv_obj_t * obj, lv_part_t part);
+const void * lv_obj_get_style_arc_image_src(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_text_color(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_text_color_filtered(const lv_obj_t * obj, lv_part_t part);
+lv_opa_t lv_obj_get_style_text_opa(const lv_obj_t * obj, lv_part_t part);
+const lv_font_t * lv_obj_get_style_text_font(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_text_letter_space(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_text_line_space(const lv_obj_t * obj, lv_part_t part);
+lv_text_decor_t lv_obj_get_style_text_decor(const lv_obj_t * obj, lv_part_t part);
+lv_text_align_t lv_obj_get_style_text_align(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_text_outline_stroke_color(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_text_outline_stroke_color_filtered(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_text_outline_stroke_width(const lv_obj_t * obj, lv_part_t part);
+lv_opa_t lv_obj_get_style_text_outline_stroke_opa(const lv_obj_t * obj, lv_part_t part);
+lv_text_leading_trim_t lv_obj_get_style_text_leading_trim(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_blur_radius(const lv_obj_t * obj, lv_part_t part);
+bool lv_obj_get_style_blur_backdrop(const lv_obj_t * obj, lv_part_t part);
+lv_blur_quality_t lv_obj_get_style_blur_quality(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_drop_shadow_radius(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_drop_shadow_offset_x(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_drop_shadow_offset_y(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_drop_shadow_color(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_drop_shadow_color_filtered(const lv_obj_t * obj, lv_part_t part);
+lv_opa_t lv_obj_get_style_drop_shadow_opa(const lv_obj_t * obj, lv_part_t part);
+lv_blur_quality_t lv_obj_get_style_drop_shadow_quality(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_radius(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_radial_offset(const lv_obj_t * obj, lv_part_t part);
+bool lv_obj_get_style_clip_corner(const lv_obj_t * obj, lv_part_t part);
+lv_opa_t lv_obj_get_style_opa(const lv_obj_t * obj, lv_part_t part);
+lv_opa_t lv_obj_get_style_opa_layered(const lv_obj_t * obj, lv_part_t part);
+const lv_color_filter_dsc_t * lv_obj_get_style_color_filter_dsc(const lv_obj_t * obj, lv_part_t part);
+lv_opa_t lv_obj_get_style_color_filter_opa(const lv_obj_t * obj, lv_part_t part);
+lv_color_t lv_obj_get_style_recolor(const lv_obj_t * obj, lv_part_t part);
+lv_opa_t lv_obj_get_style_recolor_opa(const lv_obj_t * obj, lv_part_t part);
+const lv_anim_t * lv_obj_get_style_anim(const lv_obj_t * obj, lv_part_t part);
+uint32_t lv_obj_get_style_anim_duration(const lv_obj_t * obj, lv_part_t part);
+const lv_style_transition_dsc_t * lv_obj_get_style_transition(const lv_obj_t * obj, lv_part_t part);
+lv_blend_mode_t lv_obj_get_style_blend_mode(const lv_obj_t * obj, lv_part_t part);
+uint16_t lv_obj_get_style_layout(const lv_obj_t * obj, lv_part_t part);
+lv_base_dir_t lv_obj_get_style_base_dir(const lv_obj_t * obj, lv_part_t part);
+const void * lv_obj_get_style_bitmap_mask_src(const lv_obj_t * obj, lv_part_t part);
+uint32_t lv_obj_get_style_rotary_sensitivity(const lv_obj_t * obj, lv_part_t part);
+lv_flex_flow_t lv_obj_get_style_flex_flow(const lv_obj_t * obj, lv_part_t part);
+lv_flex_align_t lv_obj_get_style_flex_main_place(const lv_obj_t * obj, lv_part_t part);
+lv_flex_align_t lv_obj_get_style_flex_cross_place(const lv_obj_t * obj, lv_part_t part);
+lv_flex_align_t lv_obj_get_style_flex_track_place(const lv_obj_t * obj, lv_part_t part);
+uint8_t lv_obj_get_style_flex_grow(const lv_obj_t * obj, lv_part_t part);
+const int32_t * lv_obj_get_style_grid_column_dsc_array(const lv_obj_t * obj, lv_part_t part);
+lv_grid_align_t lv_obj_get_style_grid_column_align(const lv_obj_t * obj, lv_part_t part);
+const int32_t * lv_obj_get_style_grid_row_dsc_array(const lv_obj_t * obj, lv_part_t part);
+lv_grid_align_t lv_obj_get_style_grid_row_align(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_grid_cell_column_pos(const lv_obj_t * obj, lv_part_t part);
+lv_grid_align_t lv_obj_get_style_grid_cell_x_align(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_grid_cell_column_span(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_grid_cell_row_pos(const lv_obj_t * obj, lv_part_t part);
+lv_grid_align_t lv_obj_get_style_grid_cell_y_align(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_grid_cell_row_span(const lv_obj_t * obj, lv_part_t part);
 void lv_obj_set_style_width(lv_obj_t * obj, int32_t value, lv_style_selector_t selector);
 void lv_obj_set_style_min_width(lv_obj_t * obj, int32_t value, lv_style_selector_t selector);
 void lv_obj_set_style_max_width(lv_obj_t * obj, int32_t value, lv_style_selector_t selector);
@@ -3048,6 +2300,7 @@ void lv_obj_set_style_text_align(lv_obj_t * obj, lv_text_align_t value, lv_style
 void lv_obj_set_style_text_outline_stroke_color(lv_obj_t * obj, lv_color_t value, lv_style_selector_t selector);
 void lv_obj_set_style_text_outline_stroke_width(lv_obj_t * obj, int32_t value, lv_style_selector_t selector);
 void lv_obj_set_style_text_outline_stroke_opa(lv_obj_t * obj, lv_opa_t value, lv_style_selector_t selector);
+void lv_obj_set_style_text_leading_trim(lv_obj_t * obj, lv_text_leading_trim_t value, lv_style_selector_t selector);
 void lv_obj_set_style_blur_radius(lv_obj_t * obj, int32_t value, lv_style_selector_t selector);
 void lv_obj_set_style_blur_backdrop(lv_obj_t * obj, bool value, lv_style_selector_t selector);
 void lv_obj_set_style_blur_quality(lv_obj_t * obj, lv_blur_quality_t value, lv_style_selector_t selector);
@@ -3089,96 +2342,22 @@ void lv_obj_set_style_grid_cell_column_span(lv_obj_t * obj, int32_t value, lv_st
 void lv_obj_set_style_grid_cell_row_pos(lv_obj_t * obj, int32_t value, lv_style_selector_t selector);
 void lv_obj_set_style_grid_cell_y_align(lv_obj_t * obj, lv_grid_align_t value, lv_style_selector_t selector);
 void lv_obj_set_style_grid_cell_row_span(lv_obj_t * obj, int32_t value, lv_style_selector_t selector);
-static inline void lv_obj_set_style_pad_all(lv_obj_t * obj, int32_t value, lv_style_selector_t selector)
-{
-    lv_obj_set_style_pad_left(obj, value, selector);
-    lv_obj_set_style_pad_right(obj, value, selector);
-    lv_obj_set_style_pad_top(obj, value, selector);
-    lv_obj_set_style_pad_bottom(obj, value, selector);
-}
-static inline void lv_obj_set_style_pad_hor(lv_obj_t * obj, int32_t value, lv_style_selector_t selector)
-{
-    lv_obj_set_style_pad_left(obj, value, selector);
-    lv_obj_set_style_pad_right(obj, value, selector);
-}
-static inline void lv_obj_set_style_pad_ver(lv_obj_t * obj, int32_t value, lv_style_selector_t selector)
-{
-    lv_obj_set_style_pad_top(obj, value, selector);
-    lv_obj_set_style_pad_bottom(obj, value, selector);
-}
-static inline void lv_obj_set_style_margin_all(lv_obj_t * obj, int32_t value, lv_style_selector_t selector)
-{
-    lv_obj_set_style_margin_left(obj, value, selector);
-    lv_obj_set_style_margin_right(obj, value, selector);
-    lv_obj_set_style_margin_top(obj, value, selector);
-    lv_obj_set_style_margin_bottom(obj, value, selector);
-}
-static inline void lv_obj_set_style_margin_hor(lv_obj_t * obj, int32_t value, lv_style_selector_t selector)
-{
-    lv_obj_set_style_margin_left(obj, value, selector);
-    lv_obj_set_style_margin_right(obj, value, selector);
-}
-static inline void lv_obj_set_style_margin_ver(lv_obj_t * obj, int32_t value, lv_style_selector_t selector)
-{
-    lv_obj_set_style_margin_top(obj, value, selector);
-    lv_obj_set_style_margin_bottom(obj, value, selector);
-}
-static inline void lv_obj_set_style_pad_gap(lv_obj_t * obj, int32_t value, lv_style_selector_t selector)
-{
-    lv_obj_set_style_pad_row(obj, value, selector);
-    lv_obj_set_style_pad_column(obj, value, selector);
-}
-static inline void lv_obj_set_style_size(lv_obj_t * obj, int32_t width, int32_t height,
-                                         lv_style_selector_t selector)
-{
-    lv_obj_set_style_width(obj, width, selector);
-    lv_obj_set_style_height(obj, height, selector);
-}
-static inline void lv_obj_set_style_transform_scale(lv_obj_t * obj, int32_t value,
-                                                    lv_style_selector_t selector)
-{
-    lv_obj_set_style_transform_scale_x(obj, value, selector);
-    lv_obj_set_style_transform_scale_y(obj, value, selector);
-}
-static inline int32_t lv_obj_get_style_space_left(const lv_obj_t * obj, lv_part_t part)
-{
-    int32_t padding = lv_obj_get_style_pad_left(obj, part);
-    int32_t border_width = lv_obj_get_style_border_width(obj, part);
-    lv_border_side_t border_side = lv_obj_get_style_border_side(obj, part);
-    return (border_side & LV_BORDER_SIDE_LEFT) ? padding + border_width : padding;
-}
-static inline int32_t lv_obj_get_style_space_right(const lv_obj_t * obj, lv_part_t part)
-{
-    int32_t padding = lv_obj_get_style_pad_right(obj, part);
-    int32_t border_width = lv_obj_get_style_border_width(obj, part);
-    lv_border_side_t border_side = lv_obj_get_style_border_side(obj, part);
-    return (border_side & LV_BORDER_SIDE_RIGHT) ? padding + border_width : padding;
-}
-static inline int32_t lv_obj_get_style_space_top(const lv_obj_t * obj, lv_part_t part)
-{
-    int32_t padding = lv_obj_get_style_pad_top(obj, part);
-    int32_t border_width = lv_obj_get_style_border_width(obj, part);
-    lv_border_side_t border_side = lv_obj_get_style_border_side(obj, part);
-    return (border_side & LV_BORDER_SIDE_TOP) ? padding + border_width : padding;
-}
-static inline int32_t lv_obj_get_style_space_bottom(const lv_obj_t * obj, lv_part_t part)
-{
-    int32_t padding = lv_obj_get_style_pad_bottom(obj, part);
-    int32_t border_width = lv_obj_get_style_border_width(obj, part);
-    lv_border_side_t border_side = lv_obj_get_style_border_side(obj, part);
-    return (border_side & LV_BORDER_SIDE_BOTTOM) ? padding + border_width : padding;
-}
+void lv_obj_set_style_pad_all(lv_obj_t * obj, int32_t value, lv_style_selector_t selector);
+void lv_obj_set_style_pad_hor(lv_obj_t * obj, int32_t value, lv_style_selector_t selector);
+void lv_obj_set_style_pad_ver(lv_obj_t * obj, int32_t value, lv_style_selector_t selector);
+void lv_obj_set_style_margin_all(lv_obj_t * obj, int32_t value, lv_style_selector_t selector);
+void lv_obj_set_style_margin_hor(lv_obj_t * obj, int32_t value, lv_style_selector_t selector);
+void lv_obj_set_style_margin_ver(lv_obj_t * obj, int32_t value, lv_style_selector_t selector);
+void lv_obj_set_style_pad_gap(lv_obj_t * obj, int32_t value, lv_style_selector_t selector);
+void lv_obj_set_style_size(lv_obj_t * obj, int32_t width, int32_t height, lv_style_selector_t selector);
+void lv_obj_set_style_transform_scale(lv_obj_t * obj, int32_t value, lv_style_selector_t selector);
+int32_t lv_obj_get_style_space_left(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_space_right(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_space_top(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_space_bottom(const lv_obj_t * obj, lv_part_t part);
 lv_text_align_t lv_obj_calculate_style_text_align(const lv_obj_t * obj, lv_part_t part, const char * txt);
-static inline int32_t lv_obj_get_style_transform_scale_x_safe(const lv_obj_t * obj, lv_part_t part)
-{
-    int32_t scale = lv_obj_get_style_transform_scale_x(obj, part);
-    return scale > 0 ? scale : 1;
-}
-static inline int32_t lv_obj_get_style_transform_scale_y_safe(const lv_obj_t * obj, lv_part_t part)
-{
-    int32_t scale = lv_obj_get_style_transform_scale_y(obj, part);
-    return scale > 0 ? scale : 1;
-}
+int32_t lv_obj_get_style_transform_scale_x_safe(const lv_obj_t * obj, lv_part_t part);
+int32_t lv_obj_get_style_transform_scale_y_safe(const lv_obj_t * obj, lv_part_t part);
 lv_opa_t lv_obj_get_style_opa_recursive(const lv_obj_t * obj, lv_part_t part);
 lv_color32_t lv_obj_style_apply_recolor(const lv_obj_t * obj, lv_part_t part, lv_color32_t color);
 lv_color32_t lv_obj_get_style_recolor_recursive(const lv_obj_t * obj, lv_part_t part);
@@ -3186,118 +2365,6 @@ lv_observer_t * lv_obj_bind_style(lv_obj_t * obj, const lv_style_t * style, lv_s
                                   lv_subject_t * subject, int32_t ref_value);
 lv_observer_t * lv_obj_bind_style_prop(lv_obj_t * obj, lv_style_prop_t prop, lv_style_selector_t selector,
                                        lv_subject_t * subject);
-typedef enum {
-    LV_FS_RES_OK = 0,
-    LV_FS_RES_HW_ERR,
-    LV_FS_RES_FS_ERR,
-    LV_FS_RES_NOT_EX,
-    LV_FS_RES_FULL,
-    LV_FS_RES_LOCKED,
-    LV_FS_RES_DENIED,
-    LV_FS_RES_BUSY,
-    LV_FS_RES_TOUT,
-    LV_FS_RES_NOT_IMP,
-    LV_FS_RES_OUT_OF_MEM,
-    LV_FS_RES_INV_PARAM,
-    LV_FS_RES_DRIVE_LETTER_ALREADY_USED,
-    LV_FS_RES_UNKNOWN,
-} lv_fs_res_t;
-typedef enum {
-    LV_FS_MODE_WR = 0x01,
-    LV_FS_MODE_RD = 0x02,
-} lv_fs_mode_t;
-typedef enum {
-    LV_FS_SEEK_SET = 0x00,
-    LV_FS_SEEK_CUR = 0x01,
-    LV_FS_SEEK_END = 0x02,
-} lv_fs_whence_t;
-struct _lv_fs_drv_t;
-typedef struct _lv_fs_drv_t lv_fs_drv_t;
-struct _lv_fs_drv_t {
-    char letter;
-    uint32_t cache_size;
-    bool (*ready_cb)(lv_fs_drv_t * drv);
-    void(*remove_cb)(lv_fs_drv_t * drv);
-    void * (*open_cb)(lv_fs_drv_t * drv, const char * path, lv_fs_mode_t mode);
-    lv_fs_res_t (*close_cb)(lv_fs_drv_t * drv, void * file_p);
-    lv_fs_res_t (*read_cb)(lv_fs_drv_t * drv, void * file_p, void * buf, uint32_t btr, uint32_t * br);
-    lv_fs_res_t (*write_cb)(lv_fs_drv_t * drv, void * file_p, const void * buf, uint32_t btw, uint32_t * bw);
-    lv_fs_res_t (*seek_cb)(lv_fs_drv_t * drv, void * file_p, uint32_t pos, lv_fs_whence_t whence);
-    lv_fs_res_t (*tell_cb)(lv_fs_drv_t * drv, void * file_p, uint32_t * pos_p);
-    void * (*dir_open_cb)(lv_fs_drv_t * drv, const char * path);
-    lv_fs_res_t (*dir_read_cb)(lv_fs_drv_t * drv, void * rddir_p, char * fn, uint32_t fn_len);
-    lv_fs_res_t (*dir_close_cb)(lv_fs_drv_t * drv, void * rddir_p);
-    void * user_data;
-};
-typedef struct {
-    void * file_d;
-    lv_fs_drv_t * drv;
-    lv_fs_file_cache_t * cache;
-} lv_fs_file_t;
-typedef struct {
-    void * dir_d;
-    lv_fs_drv_t * drv;
-} lv_fs_dir_t;
-typedef struct {
-    char path[64];
-} lv_fs_path_ex_t;
-void lv_fs_drv_init(lv_fs_drv_t * drv);
-void lv_fs_drv_register(lv_fs_drv_t * drv);
-lv_fs_drv_t * lv_fs_get_drv(char letter);
-void lv_fs_remove_drive(char letter);
-bool lv_fs_is_ready(char letter);
-lv_fs_res_t lv_fs_open(lv_fs_file_t * file_p, const char * path, lv_fs_mode_t mode);
-void lv_fs_make_path_from_buffer(lv_fs_path_ex_t * path, char letter, const void * buf, uint32_t size,
-                                 const char * ext);
-lv_result_t lv_fs_get_buffer_from_path(lv_fs_path_ex_t * path, void ** buffer, uint32_t * size);
-lv_fs_res_t lv_fs_close(lv_fs_file_t * file_p);
-lv_fs_res_t lv_fs_read(lv_fs_file_t * file_p, void * buf, uint32_t btr, uint32_t * br);
-lv_fs_res_t lv_fs_write(lv_fs_file_t * file_p, const void * buf, uint32_t btw, uint32_t * bw);
-lv_fs_res_t lv_fs_seek(lv_fs_file_t * file_p, uint32_t pos, lv_fs_whence_t whence);
-lv_fs_res_t lv_fs_tell(lv_fs_file_t * file_p, uint32_t * pos);
-lv_fs_res_t lv_fs_get_size(lv_fs_file_t * file_p, uint32_t * size_res);
-lv_fs_res_t lv_fs_path_get_size(const char * path, uint32_t * size_res);
-lv_fs_res_t lv_fs_load_to_buf(void * buf, uint32_t buf_size, const char * path);
-void * lv_fs_load_with_alloc(const char * path, uint32_t * size);
-lv_fs_res_t lv_fs_dir_open(lv_fs_dir_t * rddir_p, const char * path);
-lv_fs_res_t lv_fs_dir_read(lv_fs_dir_t * rddir_p, char * fn, uint32_t fn_len);
-lv_fs_res_t lv_fs_dir_close(lv_fs_dir_t * rddir_p);
-char * lv_fs_get_letters(char * buf);
-const char * lv_fs_get_ext(const char * fn);
-char * lv_fs_up(char * path);
-const char * lv_fs_get_last(const char * path);
-int lv_fs_path_join(char * buf, size_t buf_sz, const char * base, const char * end);
-typedef enum {
-    LV_IMAGE_SRC_VARIABLE,
-    LV_IMAGE_SRC_FILE,
-    LV_IMAGE_SRC_SYMBOL,
-    LV_IMAGE_SRC_UNKNOWN,
-} lv_image_src_t;
-typedef lv_result_t (*lv_image_decoder_info_f_t)(lv_image_decoder_t * decoder, lv_image_decoder_dsc_t * dsc,
-                                                 lv_image_header_t * header);
-typedef lv_result_t (*lv_image_decoder_open_f_t)(lv_image_decoder_t * decoder, lv_image_decoder_dsc_t * dsc);
-typedef lv_result_t (*lv_image_decoder_get_area_cb_t)(lv_image_decoder_t * decoder,
-                                                      lv_image_decoder_dsc_t * dsc,
-                                                      const lv_area_t * full_area, lv_area_t * decoded_area);
-typedef void (*lv_image_decoder_close_f_t)(lv_image_decoder_t * decoder, lv_image_decoder_dsc_t * dsc);
-typedef void (*lv_image_decoder_custom_draw_t)(lv_layer_t * layer, const lv_image_decoder_dsc_t * dsc,
-                                               const lv_area_t * coords, const lv_draw_image_dsc_t * draw_dsc, const lv_area_t * clip_area);
-lv_result_t lv_image_decoder_get_info(const void * src, lv_image_header_t * header);
-lv_result_t lv_image_decoder_open(lv_image_decoder_dsc_t * dsc, const void * src, const lv_image_decoder_args_t * args);
-lv_result_t lv_image_decoder_get_area(lv_image_decoder_dsc_t * dsc, const lv_area_t * full_area,
-                                      lv_area_t * decoded_area);
-void lv_image_decoder_close(lv_image_decoder_dsc_t * dsc);
-lv_image_decoder_t * lv_image_decoder_create(void);
-void lv_image_decoder_delete(lv_image_decoder_t * decoder);
-lv_image_decoder_t * lv_image_decoder_get_next(lv_image_decoder_t * decoder);
-void lv_image_decoder_set_info_cb(lv_image_decoder_t * decoder, lv_image_decoder_info_f_t info_cb);
-void lv_image_decoder_set_open_cb(lv_image_decoder_t * decoder, lv_image_decoder_open_f_t open_cb);
-void lv_image_decoder_set_get_area_cb(lv_image_decoder_t * decoder, lv_image_decoder_get_area_cb_t read_line_cb);
-void lv_image_decoder_set_close_cb(lv_image_decoder_t * decoder, lv_image_decoder_close_f_t close_cb);
-lv_cache_entry_t * lv_image_decoder_add_to_cache(lv_image_decoder_t * decoder,
-                                                 lv_image_cache_data_t * search_key,
-                                                 const lv_draw_buf_t * decoded, void * user_data);
-lv_draw_buf_t * lv_image_decoder_post_process(lv_image_decoder_dsc_t * dsc, lv_draw_buf_t * decoded);
 typedef enum {
     LV_DRAW_TASK_TYPE_NONE = 0,
     LV_DRAW_TASK_TYPE_FILL,
@@ -3320,10 +2387,12 @@ typedef enum {
     LV_DRAW_TASK_STATE_QUEUED,
     LV_DRAW_TASK_STATE_IN_PROGRESS,
     LV_DRAW_TASK_STATE_FINISHED,
+    LV_DRAW_TASK_STATE_FAILED,
 } lv_draw_task_state_t;
 struct _lv_layer_t {
     lv_draw_buf_t * draw_buf;
     lv_draw_task_t * draw_task_head;
+    lv_display_t * display;
     lv_layer_t * parent;
     lv_layer_t * next;
     void * user_data;
@@ -3335,6 +2404,7 @@ struct _lv_layer_t {
     lv_color_format_t color_format;
     bool all_tasks_added;
     lv_opa_t opa;
+    bool buffer_owned;
 };
 typedef struct {
     lv_obj_t * obj;
@@ -3379,6 +2449,9 @@ void lv_draw_task_get_area(const lv_draw_task_t * t, lv_area_t * area);
 lv_layer_t * lv_draw_layer_create_drop_shadow(lv_layer_t * parent_layer, const lv_draw_dsc_base_t * base,
                                               const lv_area_t * area);
 void lv_draw_layer_finish_drop_shadow(lv_layer_t * drop_shadow_layer, const lv_draw_dsc_base_t * base);
+void lv_draw_layer_dealloc_buf(lv_layer_t * layer);
+void lv_draw_layer_deinit(lv_layer_t * layer);
+void lv_draw_layer_delete(lv_layer_t * layer);
 enum {ENUM_LV_RADIUS_CIRCLE = 0x7FFF};
 typedef struct {
     lv_draw_dsc_base_t base;
@@ -3509,6 +2582,116 @@ void lv_draw_label_iterate_characters(lv_draw_task_t * t, const lv_draw_label_ds
                                       const lv_area_t * coords, lv_draw_glyph_cb_t cb);
 void lv_draw_unit_draw_letter(lv_draw_task_t * t, lv_draw_glyph_dsc_t * dsc, const lv_point_t * pos,
                               const lv_font_t * font, uint32_t letter, lv_draw_glyph_cb_t cb);
+typedef enum {
+    LV_FS_RES_OK = 0,
+    LV_FS_RES_HW_ERR,
+    LV_FS_RES_FS_ERR,
+    LV_FS_RES_NOT_EX,
+    LV_FS_RES_FULL,
+    LV_FS_RES_LOCKED,
+    LV_FS_RES_DENIED,
+    LV_FS_RES_BUSY,
+    LV_FS_RES_TOUT,
+    LV_FS_RES_NOT_IMP,
+    LV_FS_RES_OUT_OF_MEM,
+    LV_FS_RES_INV_PARAM,
+    LV_FS_RES_DRIVE_LETTER_ALREADY_USED,
+    LV_FS_RES_UNKNOWN,
+} lv_fs_res_t;
+typedef enum {
+    LV_FS_MODE_WR = 0x01,
+    LV_FS_MODE_RD = 0x02,
+} lv_fs_mode_t;
+typedef enum {
+    LV_FS_SEEK_SET = 0x00,
+    LV_FS_SEEK_CUR = 0x01,
+    LV_FS_SEEK_END = 0x02,
+} lv_fs_whence_t;
+struct _lv_fs_drv_t;
+typedef struct _lv_fs_drv_t lv_fs_drv_t;
+struct _lv_fs_drv_t {
+    char letter;
+    uint32_t cache_size;
+    bool (*ready_cb)(lv_fs_drv_t * drv);
+    void(*remove_cb)(lv_fs_drv_t * drv);
+    void * (*open_cb)(lv_fs_drv_t * drv, const char * path, lv_fs_mode_t mode);
+    lv_fs_res_t (*close_cb)(lv_fs_drv_t * drv, void * file_p);
+    lv_fs_res_t (*read_cb)(lv_fs_drv_t * drv, void * file_p, void * buf, uint32_t btr, uint32_t * br);
+    lv_fs_res_t (*write_cb)(lv_fs_drv_t * drv, void * file_p, const void * buf, uint32_t btw, uint32_t * bw);
+    lv_fs_res_t (*seek_cb)(lv_fs_drv_t * drv, void * file_p, uint32_t pos, lv_fs_whence_t whence);
+    lv_fs_res_t (*tell_cb)(lv_fs_drv_t * drv, void * file_p, uint32_t * pos_p);
+    void * (*dir_open_cb)(lv_fs_drv_t * drv, const char * path);
+    lv_fs_res_t (*dir_read_cb)(lv_fs_drv_t * drv, void * rddir_p, char * fn, uint32_t fn_len);
+    lv_fs_res_t (*dir_close_cb)(lv_fs_drv_t * drv, void * rddir_p);
+    void * user_data;
+};
+typedef struct {
+    void * file_d;
+    lv_fs_drv_t * drv;
+    lv_fs_file_cache_t * cache;
+} lv_fs_file_t;
+typedef struct {
+    void * dir_d;
+    lv_fs_drv_t * drv;
+} lv_fs_dir_t;
+typedef struct {
+    char path[64];
+} lv_fs_path_ex_t;
+void lv_fs_drv_init(lv_fs_drv_t * drv);
+void lv_fs_drv_register(lv_fs_drv_t * drv);
+lv_fs_drv_t * lv_fs_get_drv(char letter);
+void lv_fs_remove_drive(char letter);
+bool lv_fs_is_ready(char letter);
+lv_fs_res_t lv_fs_open(lv_fs_file_t * file_p, const char * path, lv_fs_mode_t mode);
+void lv_fs_make_path_from_buffer(lv_fs_path_ex_t * path, char letter, const void * buf, uint32_t size,
+                                 const char * ext);
+lv_result_t lv_fs_get_buffer_from_path(lv_fs_path_ex_t * path, void ** buffer, uint32_t * size);
+lv_fs_res_t lv_fs_close(lv_fs_file_t * file_p);
+lv_fs_res_t lv_fs_read(lv_fs_file_t * file_p, void * buf, uint32_t btr, uint32_t * br);
+lv_fs_res_t lv_fs_write(lv_fs_file_t * file_p, const void * buf, uint32_t btw, uint32_t * bw);
+lv_fs_res_t lv_fs_seek(lv_fs_file_t * file_p, uint32_t pos, lv_fs_whence_t whence);
+lv_fs_res_t lv_fs_tell(lv_fs_file_t * file_p, uint32_t * pos);
+lv_fs_res_t lv_fs_get_size(lv_fs_file_t * file_p, uint32_t * size_res);
+lv_fs_res_t lv_fs_path_get_size(const char * path, uint32_t * size_res);
+lv_fs_res_t lv_fs_load_to_buf(void * buf, uint32_t buf_size, const char * path);
+void * lv_fs_load_with_alloc(const char * path, uint32_t * size);
+lv_fs_res_t lv_fs_dir_open(lv_fs_dir_t * rddir_p, const char * path);
+lv_fs_res_t lv_fs_dir_read(lv_fs_dir_t * rddir_p, char * fn, uint32_t fn_len);
+lv_fs_res_t lv_fs_dir_close(lv_fs_dir_t * rddir_p);
+char * lv_fs_get_letters(char * buf);
+const char * lv_fs_get_ext(const char * fn);
+char * lv_fs_up(char * path);
+const char * lv_fs_get_last(const char * path);
+int lv_fs_path_join(char * buf, size_t buf_sz, const char * base, const char * end);
+typedef enum {
+    LV_IMAGE_SRC_VARIABLE,
+    LV_IMAGE_SRC_FILE,
+    LV_IMAGE_SRC_SYMBOL,
+    LV_IMAGE_SRC_UNKNOWN,
+} lv_image_src_t;
+typedef lv_result_t (*lv_image_decoder_info_f_t)(lv_image_decoder_t * decoder, lv_image_decoder_dsc_t * dsc,
+                                                 lv_image_header_t * header);
+typedef lv_result_t (*lv_image_decoder_open_f_t)(lv_image_decoder_t * decoder, lv_image_decoder_dsc_t * dsc);
+typedef lv_result_t (*lv_image_decoder_get_area_cb_t)(lv_image_decoder_t * decoder,
+                                                      lv_image_decoder_dsc_t * dsc,
+                                                      const lv_area_t * full_area, lv_area_t * decoded_area);
+typedef void (*lv_image_decoder_close_f_t)(lv_image_decoder_t * decoder, lv_image_decoder_dsc_t * dsc);
+typedef void (*lv_image_decoder_custom_draw_t)(lv_layer_t * layer, const lv_image_decoder_dsc_t * dsc,
+                                               const lv_area_t * coords, const lv_draw_image_dsc_t * draw_dsc, const lv_area_t * clip_area);
+lv_result_t lv_image_decoder_get_info(const void * src, lv_image_header_t * header);
+lv_result_t lv_image_decoder_open(lv_image_decoder_dsc_t * dsc, const void * src, const lv_image_decoder_args_t * args);
+lv_result_t lv_image_decoder_get_area(lv_image_decoder_dsc_t * dsc, const lv_area_t * full_area,
+                                      lv_area_t * decoded_area);
+void lv_image_decoder_close(lv_image_decoder_dsc_t * dsc);
+lv_image_decoder_t * lv_image_decoder_create(void);
+void lv_image_decoder_delete(lv_image_decoder_t * decoder);
+lv_image_decoder_t * lv_image_decoder_get_next(lv_image_decoder_t * decoder);
+void lv_image_decoder_set_info_cb(lv_image_decoder_t * decoder, lv_image_decoder_info_f_t info_cb);
+void lv_image_decoder_set_open_cb(lv_image_decoder_t * decoder, lv_image_decoder_open_f_t open_cb);
+void lv_image_decoder_set_get_area_cb(lv_image_decoder_t * decoder, lv_image_decoder_get_area_cb_t get_area_cb);
+void lv_image_decoder_set_close_cb(lv_image_decoder_t * decoder, lv_image_decoder_close_f_t close_cb);
+lv_draw_buf_t * lv_image_decoder_post_process(lv_image_decoder_dsc_t * dsc, lv_draw_buf_t * decoded);
+void lv_image_cache_drop(const void * src);
 struct _lv_draw_image_dsc_t {
     lv_draw_dsc_base_t base;
     const void * src;
@@ -3607,6 +2790,7 @@ void lv_obj_init_draw_image_dsc(lv_obj_t * obj, lv_part_t part, lv_draw_image_ds
 void lv_obj_init_draw_line_dsc(lv_obj_t * obj, lv_part_t part, lv_draw_line_dsc_t * draw_dsc);
 void lv_obj_init_draw_arc_dsc(lv_obj_t * obj, lv_part_t part, lv_draw_arc_dsc_t * draw_dsc);
 void lv_obj_init_draw_blur_dsc(lv_obj_t * obj, lv_part_t part, lv_draw_blur_dsc_t * draw_dsc);
+void lv_obj_set_ext_draw_size(lv_obj_t * obj, int32_t size);
 int32_t lv_obj_calculate_ext_draw_size(lv_obj_t * obj, lv_part_t part);
 void lv_obj_refresh_ext_draw_size(lv_obj_t * obj);
 typedef enum {
@@ -3626,57 +2810,8 @@ typedef enum {
 typedef void (*lv_obj_class_event_cb_t)(lv_obj_class_t * class_p, lv_event_t * e);
 lv_obj_t * lv_obj_class_create_obj(const lv_obj_class_t * class_p, lv_obj_t * parent);
 void lv_obj_class_init_obj(lv_obj_t * obj);
-bool lv_obj_is_editable(lv_obj_t * obj);
-bool lv_obj_is_group_def(lv_obj_t * obj);
-typedef enum {
-    LV_KEY_UP = 17,
-    LV_KEY_DOWN = 18,
-    LV_KEY_RIGHT = 19,
-    LV_KEY_LEFT = 20,
-    LV_KEY_ESC = 27,
-    LV_KEY_DEL = 127,
-    LV_KEY_BACKSPACE = 8,
-    LV_KEY_ENTER = 10,
-    LV_KEY_NEXT = 9,
-    LV_KEY_PREV = 11,
-    LV_KEY_HOME = 2,
-    LV_KEY_END = 3,
-} lv_key_t;
-typedef void (*lv_group_focus_cb_t)(lv_group_t *);
-typedef void (*lv_group_edge_cb_t)(lv_group_t *, bool);
-typedef enum {
-    LV_GROUP_REFOCUS_POLICY_NEXT = 0,
-    LV_GROUP_REFOCUS_POLICY_PREV = 1
-} lv_group_refocus_policy_t;
-lv_group_t * lv_group_create(void);
-void lv_group_delete(lv_group_t * group);
-void lv_group_set_default(lv_group_t * group);
-lv_group_t * lv_group_get_default(void);
-void lv_group_add_obj(lv_group_t * group, lv_obj_t * obj);
-void lv_group_swap_obj(lv_obj_t * obj1, lv_obj_t * obj2);
-void lv_group_remove_obj(lv_obj_t * obj);
-void lv_group_remove_all_objs(lv_group_t * group);
-void lv_group_focus_obj(lv_obj_t * obj);
-void lv_group_focus_next(lv_group_t * group);
-void lv_group_focus_prev(lv_group_t * group);
-void lv_group_focus_freeze(lv_group_t * group, bool en);
-lv_result_t lv_group_send_data(lv_group_t * group, uint32_t c);
-void lv_group_set_focus_cb(lv_group_t * group, lv_group_focus_cb_t focus_cb);
-void lv_group_set_edge_cb(lv_group_t * group, lv_group_edge_cb_t edge_cb);
-void lv_group_set_refocus_policy(lv_group_t * group, lv_group_refocus_policy_t policy);
-void lv_group_set_editing(lv_group_t * group, bool edit);
-void lv_group_set_wrap(lv_group_t * group, bool en);
-lv_obj_t * lv_group_get_focused(const lv_group_t * group);
-lv_group_focus_cb_t lv_group_get_focus_cb(const lv_group_t * group);
-lv_group_edge_cb_t lv_group_get_edge_cb(const lv_group_t * group);
-bool lv_group_get_editing(const lv_group_t * group);
-bool lv_group_get_wrap(lv_group_t * group);
-uint32_t lv_group_get_obj_count(lv_group_t * group);
-lv_obj_t * lv_group_get_obj_by_index(lv_group_t * group, uint32_t index);
-uint32_t lv_group_get_count(void);
-lv_group_t * lv_group_by_index(uint32_t index);
-void lv_group_set_user_data(lv_group_t * group, void * user_data);
-void * lv_group_get_user_data(const lv_group_t * group);
+bool lv_obj_is_editable(const lv_obj_t * obj);
+bool lv_obj_is_group_def(const lv_obj_t * obj);
 typedef enum {
     LV_INDEV_TYPE_NONE,
     LV_INDEV_TYPE_POINTER,
@@ -3729,6 +2864,7 @@ void lv_indev_set_driver_data(lv_indev_t * indev, void * driver_data);
 void lv_indev_set_display(lv_indev_t * indev, struct _lv_display_t * disp);
 void lv_indev_set_long_press_time(lv_indev_t * indev, uint16_t long_press_time);
 void lv_indev_set_long_press_repeat_time(lv_indev_t * indev, uint16_t long_press_repeat_time);
+void lv_indev_set_double_click_time(lv_indev_t * indev, uint16_t double_click_time);
 void lv_indev_set_scroll_limit(lv_indev_t * indev, uint8_t scroll_limit);
 void lv_indev_set_scroll_throw(lv_indev_t * indev, uint8_t scroll_throw);
 void lv_indev_set_gesture_min_velocity(lv_indev_t * indev, uint8_t min_velocity);
@@ -3761,13 +2897,17 @@ lv_timer_t * lv_indev_get_read_timer(lv_indev_t * indev);
 void lv_indev_set_mode(lv_indev_t * indev, lv_indev_mode_t mode);
 lv_indev_mode_t lv_indev_get_mode(lv_indev_t * indev);
 lv_obj_t * lv_indev_search_obj(lv_obj_t * obj, lv_point_t * point);
-void lv_indev_add_event_cb(lv_indev_t * indev, lv_event_cb_t event_cb, lv_event_code_t filter, void * user_data);
+lv_event_dsc_t * lv_indev_add_event_cb(lv_indev_t * indev, lv_event_cb_t event_cb, lv_event_code_t filter,
+                                       void * user_data);
 uint32_t lv_indev_get_event_count(lv_indev_t * indev);
 lv_event_dsc_t * lv_indev_get_event_dsc(lv_indev_t * indev, uint32_t index);
 bool lv_indev_remove_event(lv_indev_t * indev, uint32_t index);
 uint32_t lv_indev_remove_event_cb_with_user_data(lv_indev_t * indev, lv_event_cb_t event_cb, void * user_data);
 lv_result_t lv_indev_send_event(lv_indev_t * indev, lv_event_code_t code, void * param);
 void lv_indev_set_key_remap_cb(lv_indev_t * indev, lv_indev_key_remap_cb_t remap_cb);
+void lv_indev_set_ccw(lv_indev_t * indev);
+void lv_indev_clear_ccw(lv_indev_t * indev);
+bool lv_indev_get_ccw(const lv_indev_t * indev);
 typedef enum {
     LV_COVER_RES_COVER = 0,
     LV_COVER_RES_NOT_COVER = 1,
@@ -3797,6 +2937,7 @@ const lv_area_t * lv_event_get_cover_area(lv_event_t * e);
 void lv_event_set_cover_res(lv_event_t * e, lv_cover_res_t res);
 lv_draw_task_t * lv_event_get_draw_task(lv_event_t * e);
 lv_state_t lv_event_get_prev_state(lv_event_t * e);
+typedef void(*lv_delete_cb_t)(void * user_data);
 typedef enum {
     LV_OBJ_FLAG_HIDDEN = (1u << 0),
     LV_OBJ_FLAG_CLICKABLE = (1u << 1),
@@ -3834,36 +2975,137 @@ typedef enum {
 } lv_obj_flag_t;
  extern const lv_obj_class_t lv_obj_class;
 lv_obj_t * lv_obj_create(lv_obj_t * parent);
+
 void lv_obj_add_flag(lv_obj_t * obj, lv_obj_flag_t f);
+
 void lv_obj_remove_flag(lv_obj_t * obj, lv_obj_flag_t f);
+
 void lv_obj_set_flag(lv_obj_t * obj, lv_obj_flag_t f, bool v);
+void lv_obj_set_hidden(lv_obj_t * obj, bool en);
+void lv_obj_set_clickable(lv_obj_t * obj, bool en);
+void lv_obj_set_click_focusable(lv_obj_t * obj, bool en);
+void lv_obj_set_checkable(lv_obj_t * obj, bool en);
+void lv_obj_set_scrollable(lv_obj_t * obj, bool en);
+void lv_obj_set_scroll_elastic(lv_obj_t * obj, bool en);
+void lv_obj_set_scroll_momentum(lv_obj_t * obj, bool en);
+void lv_obj_set_scroll_one(lv_obj_t * obj, bool en);
+void lv_obj_set_scroll_chain(lv_obj_t * obj, bool en);
+void lv_obj_set_scroll_chain_hor(lv_obj_t * obj, bool en);
+void lv_obj_set_scroll_chain_ver(lv_obj_t * obj, bool en);
+void lv_obj_set_scroll_on_focus(lv_obj_t * obj, bool en);
+void lv_obj_set_scroll_with_arrow(lv_obj_t * obj, bool en);
+void lv_obj_set_snappable(lv_obj_t * obj, bool en);
+void lv_obj_set_press_lock(lv_obj_t * obj, bool en);
+void lv_obj_set_event_bubble(lv_obj_t * obj, bool en);
+void lv_obj_set_gesture_bubble(lv_obj_t * obj, bool en);
+void lv_obj_set_adv_hittest(lv_obj_t * obj, bool en);
+void lv_obj_set_ignore_layout(lv_obj_t * obj, bool en);
+void lv_obj_set_floating(lv_obj_t * obj, bool en);
+void lv_obj_set_send_draw_task_events(lv_obj_t * obj, bool en);
+void lv_obj_set_overflow_visible(lv_obj_t * obj, bool en);
+void lv_obj_set_event_trickle(lv_obj_t * obj, bool en);
+void lv_obj_set_state_trickle(lv_obj_t * obj, bool en);
+void lv_obj_set_radio_button(lv_obj_t * obj, bool en);
+void lv_obj_set_flex_in_new_track(lv_obj_t * obj, bool en);
 void lv_obj_add_state(lv_obj_t * obj, lv_state_t state);
 void lv_obj_remove_state(lv_obj_t * obj, lv_state_t state);
 void lv_obj_set_state(lv_obj_t * obj, lv_state_t state, bool v);
+void lv_obj_set_alt(lv_obj_t * obj, bool en);
+void lv_obj_set_checked(lv_obj_t * obj, bool en);
+void lv_obj_set_focused(lv_obj_t * obj, bool en);
+void lv_obj_set_focus_key(lv_obj_t * obj, bool en);
+void lv_obj_set_edited(lv_obj_t * obj, bool en);
+void lv_obj_set_hovered(lv_obj_t * obj, bool en);
+void lv_obj_set_pressed(lv_obj_t * obj, bool en);
+void lv_obj_set_scrolled(lv_obj_t * obj, bool en);
+void lv_obj_set_disabled(lv_obj_t * obj, bool en);
+void lv_obj_set_state_user_1(lv_obj_t * obj, bool en);
+void lv_obj_set_state_user_2(lv_obj_t * obj, bool en);
+void lv_obj_set_state_user_3(lv_obj_t * obj, bool en);
+void lv_obj_set_state_user_4(lv_obj_t * obj, bool en);
 void lv_obj_set_user_data(lv_obj_t * obj, void * user_data);
-void lv_obj_set_radio_button(lv_obj_t * obj, bool en);
+void lv_obj_set_user_flag(lv_obj_t * obj, uint32_t bit, bool v);
+
 bool lv_obj_has_flag(const lv_obj_t * obj, lv_obj_flag_t f);
+
 bool lv_obj_has_flag_any(const lv_obj_t * obj, lv_obj_flag_t f);
+bool lv_obj_is_hidden(const lv_obj_t * obj);
+bool lv_obj_is_clickable(const lv_obj_t * obj);
+bool lv_obj_is_click_focusable(const lv_obj_t * obj);
+bool lv_obj_is_checkable(const lv_obj_t * obj);
+bool lv_obj_is_scrollable(const lv_obj_t * obj);
+bool lv_obj_is_scroll_elastic(const lv_obj_t * obj);
+bool lv_obj_is_scroll_momentum(const lv_obj_t * obj);
+bool lv_obj_is_scroll_one(const lv_obj_t * obj);
+bool lv_obj_is_scroll_chain_hor(const lv_obj_t * obj);
+bool lv_obj_is_scroll_chain_ver(const lv_obj_t * obj);
+bool lv_obj_is_scroll_on_focus(const lv_obj_t * obj);
+bool lv_obj_is_scroll_with_arrow(const lv_obj_t * obj);
+bool lv_obj_is_snappable(const lv_obj_t * obj);
+bool lv_obj_is_press_lock(const lv_obj_t * obj);
+bool lv_obj_is_event_bubble(const lv_obj_t * obj);
+bool lv_obj_is_gesture_bubble(const lv_obj_t * obj);
+bool lv_obj_is_adv_hittest(const lv_obj_t * obj);
+bool lv_obj_is_ignore_layout(const lv_obj_t * obj);
+bool lv_obj_is_floating(const lv_obj_t * obj);
+bool lv_obj_is_send_draw_task_events(const lv_obj_t * obj);
+bool lv_obj_is_overflow_visible(const lv_obj_t * obj);
+bool lv_obj_is_event_trickle(const lv_obj_t * obj);
+bool lv_obj_is_state_trickle(const lv_obj_t * obj);
+bool lv_obj_is_radio_button(const lv_obj_t * obj);
+bool lv_obj_is_flex_in_new_track(const lv_obj_t * obj);
 lv_state_t lv_obj_get_state(const lv_obj_t * obj);
 bool lv_obj_has_state(const lv_obj_t * obj, lv_state_t state);
-bool lv_obj_is_radio_button(const lv_obj_t * obj);
+bool lv_obj_is_alt(const lv_obj_t * obj);
+bool lv_obj_is_checked(const lv_obj_t * obj);
+bool lv_obj_is_focused(const lv_obj_t * obj);
+bool lv_obj_is_focus_key(const lv_obj_t * obj);
+bool lv_obj_is_edited(const lv_obj_t * obj);
+bool lv_obj_is_hovered(const lv_obj_t * obj);
+bool lv_obj_is_pressed(const lv_obj_t * obj);
+bool lv_obj_is_scrolled(const lv_obj_t * obj);
+bool lv_obj_is_disabled(const lv_obj_t * obj);
+bool lv_obj_is_state_user_1(const lv_obj_t * obj);
+bool lv_obj_is_state_user_2(const lv_obj_t * obj);
+bool lv_obj_is_state_user_3(const lv_obj_t * obj);
+bool lv_obj_is_state_user_4(const lv_obj_t * obj);
 lv_group_t * lv_obj_get_group(const lv_obj_t * obj);
 void * lv_obj_get_user_data(lv_obj_t * obj);
-void lv_obj_allocate_spec_attr(lv_obj_t * obj);
+bool lv_obj_get_user_flag(lv_obj_t * obj, uint32_t bit);
 bool lv_obj_check_type(const lv_obj_t * obj, const lv_obj_class_t * class_p);
 bool lv_obj_has_class(const lv_obj_t * obj, const lv_obj_class_t * class_p);
 const lv_obj_class_t * lv_obj_get_class(const lv_obj_t * obj);
-bool lv_obj_is_valid(const lv_obj_t * obj);
+bool lv_obj_is_in_widget_tree(const lv_obj_t * obj);
 void lv_obj_null_on_delete(lv_obj_t ** obj_ptr);
+lv_delete_dsc_t * lv_obj_add_delete_cb(lv_obj_t * obj, lv_delete_cb_t cb, void * user_data);
+void lv_obj_remove_delete_cb(lv_delete_dsc_t * dsc);
 void lv_obj_add_screen_load_event(lv_obj_t * obj, lv_event_code_t trigger, lv_obj_t * screen,
                                   lv_screen_load_anim_t anim_type, uint32_t duration, uint32_t delay);
 void lv_obj_add_screen_create_event(lv_obj_t * obj, lv_event_code_t trigger, lv_screen_create_cb_t screen_create_cb,
                                     lv_screen_load_anim_t anim_type, uint32_t duration, uint32_t delay);
 void lv_obj_add_play_timeline_event(lv_obj_t * obj, lv_event_code_t trigger, lv_anim_timeline_t * at, uint32_t delay,
                                     bool reverse);
-void lv_refr_now(lv_display_t * disp);
-void lv_obj_redraw(lv_layer_t * layer, lv_obj_t * obj);
-void lv_display_refr_timer(lv_timer_t * timer);
+typedef uint8_t lv_ll_node_t;
+typedef struct {
+    uint32_t n_size;
+    lv_ll_node_t * head;
+    lv_ll_node_t * tail;
+} lv_ll_t;
+void lv_ll_init(lv_ll_t * ll_p, uint32_t node_size);
+void * lv_ll_ins_head(lv_ll_t * ll_p);
+void * lv_ll_ins_prev(lv_ll_t * ll_p, void * n_act);
+void * lv_ll_ins_tail(lv_ll_t * ll_p);
+void lv_ll_remove(lv_ll_t * ll_p, void * node_p);
+void lv_ll_clear_custom(lv_ll_t * ll_p, void(*cleanup)(void *));
+void lv_ll_clear(lv_ll_t * ll_p);
+void lv_ll_chg_list(lv_ll_t * ll_ori_p, lv_ll_t * ll_new_p, void * node, bool head);
+void * lv_ll_get_head(const lv_ll_t * ll_p);
+void * lv_ll_get_tail(const lv_ll_t * ll_p);
+void * lv_ll_get_next(const lv_ll_t * ll_p, const void * n_act);
+void * lv_ll_get_prev(const lv_ll_t * ll_p, const void * n_act);
+uint32_t lv_ll_get_len(const lv_ll_t * ll_p);
+void lv_ll_move_before(lv_ll_t * ll_p, void * n_act, void * n_after);
+bool lv_ll_is_empty(lv_ll_t * ll_p);
 typedef enum {
     LV_SUBJECT_TYPE_INVALID = 0,
     LV_SUBJECT_TYPE_NONE = 1,
@@ -3892,32 +3134,49 @@ struct _lv_subject_t {
     uint32_t notify_restart_query : 1;
 };
 typedef void (*lv_observer_cb_t)(lv_observer_t * observer, lv_subject_t * subject);
+typedef void (*lv_obj_set_bool_t)(lv_obj_t * obj, bool value);
+typedef void (*lv_obj_set_int_t)(lv_obj_t * obj, int32_t value);
+typedef void (*lv_obj_set_float_t)(lv_obj_t * obj, float value);
+typedef void (*lv_obj_set_string_t)(lv_obj_t * obj, const char * value);
+typedef void (*lv_obj_set_color_t)(lv_obj_t * obj, lv_color_t value);
+typedef void (*lv_obj_set_pointer_t)(lv_obj_t * obj, const void * value);
+lv_subject_t * lv_subject_create(lv_subject_type_t type);
+void lv_subject_delete(lv_subject_t * subject);
+
 void lv_subject_init_int(lv_subject_t * subject, int32_t value);
 void lv_subject_set_int(lv_subject_t * subject, int32_t value);
 int32_t lv_subject_get_int(lv_subject_t * subject);
 int32_t lv_subject_get_previous_int(lv_subject_t * subject);
 void lv_subject_set_min_value_int(lv_subject_t * subject, int32_t min_value);
 void lv_subject_set_max_value_int(lv_subject_t * subject, int32_t max_value);
+
 void lv_subject_init_float(lv_subject_t * subject, float value);
 void lv_subject_set_float(lv_subject_t * subject, float value);
 float lv_subject_get_float(lv_subject_t * subject);
 float lv_subject_get_previous_float(lv_subject_t * subject);
 void lv_subject_set_min_value_float(lv_subject_t * subject, float min_value);
 void lv_subject_set_max_value_float(lv_subject_t * subject, float max_value);
+
 void lv_subject_init_string(lv_subject_t * subject, char * buf, char * prev_buf, size_t size, const char * value);
-void lv_subject_copy_string(lv_subject_t * subject, const char * buf);
+void lv_subject_set_string_buffer_static(lv_subject_t * subject, char * buf, char * prev_buf, size_t size);
+void lv_subject_set_string(lv_subject_t * subject, const char * buf);
 void lv_subject_snprintf(lv_subject_t * subject, const char * format, ...) ;
 const char * lv_subject_get_string(lv_subject_t * subject);
 const char * lv_subject_get_previous_string(lv_subject_t * subject);
+
 void lv_subject_init_pointer(lv_subject_t * subject, void * value);
 void lv_subject_set_pointer(lv_subject_t * subject, void * ptr);
 const void * lv_subject_get_pointer(lv_subject_t * subject);
 const void * lv_subject_get_previous_pointer(lv_subject_t * subject);
+
 void lv_subject_init_color(lv_subject_t * subject, lv_color_t color);
 void lv_subject_set_color(lv_subject_t * subject, lv_color_t color);
 lv_color_t lv_subject_get_color(lv_subject_t * subject);
 lv_color_t lv_subject_get_previous_color(lv_subject_t * subject);
+
 void lv_subject_init_group(lv_subject_t * group_subject, lv_subject_t * list[], uint32_t list_len);
+void lv_subject_set_group_list_static(lv_subject_t * subject, lv_subject_t * list[], uint32_t list_len);
+
 void lv_subject_deinit(lv_subject_t * subject);
 lv_subject_t * lv_subject_get_group_element(lv_subject_t * subject, int32_t index);
 lv_observer_t * lv_subject_add_observer(lv_subject_t * subject, lv_observer_cb_t observer_cb, void * user_data);
@@ -3925,11 +3184,12 @@ lv_observer_t * lv_subject_add_observer_obj(lv_subject_t * subject, lv_observer_
                                             void * user_data);
 lv_observer_t * lv_subject_add_observer_with_target(lv_subject_t * subject, lv_observer_cb_t observer_cb,
                                                     void * target, void * user_data);
-void lv_observer_remove(lv_observer_t * observer);
+void lv_observer_delete(lv_observer_t * observer);
 void lv_obj_remove_from_subject(lv_obj_t * obj, lv_subject_t * subject);
 void * lv_observer_get_target(lv_observer_t * observer);
 lv_obj_t * lv_observer_get_target_obj(lv_observer_t * observer);
 void * lv_observer_get_user_data(const lv_observer_t * observer);
+void lv_observer_set_user_data(lv_observer_t * observer, void * user_data);
 void lv_subject_notify(lv_subject_t * subject);
 lv_subject_increment_dsc_t * lv_obj_add_subject_increment_event(lv_obj_t * obj, lv_subject_t * subject,
                                                                 lv_event_code_t trigger, int32_t step);
@@ -3941,21 +3201,70 @@ void lv_obj_add_subject_set_int_event(lv_obj_t * obj, lv_subject_t * subject, lv
 void lv_obj_add_subject_set_float_event(lv_obj_t * obj, lv_subject_t * subject, lv_event_code_t trigger, float value);
 void lv_obj_add_subject_set_string_event(lv_obj_t * obj, lv_subject_t * subject, lv_event_code_t trigger,
                                          const char * value);
+lv_observer_t * lv_obj_bind_bool(lv_obj_t * obj, lv_subject_t * subject, lv_obj_set_bool_t set_bool_cb);
+lv_observer_t * lv_obj_bind_int(lv_obj_t * obj, lv_subject_t * subject, lv_obj_set_int_t set_int_cb);
+lv_observer_t * lv_obj_bind_float(lv_obj_t * obj, lv_subject_t * subject, lv_obj_set_float_t set_float_cb);
+lv_observer_t * lv_obj_bind_string(lv_obj_t * obj, lv_subject_t * subject, lv_obj_set_string_t set_string_cb);
+lv_observer_t * lv_obj_bind_color(lv_obj_t * obj, lv_subject_t * subject, lv_obj_set_color_t set_color_cb);
+lv_observer_t * lv_obj_bind_pointer(lv_obj_t * obj, lv_subject_t * subject, lv_obj_set_pointer_t set_pointer_cb);
+
 lv_observer_t * lv_obj_bind_flag_if_eq(lv_obj_t * obj, lv_subject_t * subject, lv_obj_flag_t flag, int32_t ref_value);
+
 lv_observer_t * lv_obj_bind_flag_if_not_eq(lv_obj_t * obj, lv_subject_t * subject, lv_obj_flag_t flag,
                                            int32_t ref_value);
+
 lv_observer_t * lv_obj_bind_flag_if_gt(lv_obj_t * obj, lv_subject_t * subject, lv_obj_flag_t flag, int32_t ref_value);
+
 lv_observer_t * lv_obj_bind_flag_if_ge(lv_obj_t * obj, lv_subject_t * subject, lv_obj_flag_t flag, int32_t ref_value);
+
 lv_observer_t * lv_obj_bind_flag_if_lt(lv_obj_t * obj, lv_subject_t * subject, lv_obj_flag_t flag, int32_t ref_value);
+
 lv_observer_t * lv_obj_bind_flag_if_le(lv_obj_t * obj, lv_subject_t * subject, lv_obj_flag_t flag, int32_t ref_value);
+
 lv_observer_t * lv_obj_bind_state_if_eq(lv_obj_t * obj, lv_subject_t * subject, lv_state_t state, int32_t ref_value);
+
 lv_observer_t * lv_obj_bind_state_if_not_eq(lv_obj_t * obj, lv_subject_t * subject, lv_state_t state,
                                             int32_t ref_value);
+
 lv_observer_t * lv_obj_bind_state_if_gt(lv_obj_t * obj, lv_subject_t * subject, lv_state_t state, int32_t ref_value);
+
 lv_observer_t * lv_obj_bind_state_if_ge(lv_obj_t * obj, lv_subject_t * subject, lv_state_t state, int32_t ref_value);
+
 lv_observer_t * lv_obj_bind_state_if_lt(lv_obj_t * obj, lv_subject_t * subject, lv_state_t state, int32_t ref_value);
+
 lv_observer_t * lv_obj_bind_state_if_le(lv_obj_t * obj, lv_subject_t * subject, lv_state_t state, int32_t ref_value);
 lv_observer_t * lv_obj_bind_checked(lv_obj_t * obj, lv_subject_t * subject);
+void lv_refr_now(lv_display_t * disp);
+void lv_obj_redraw(lv_layer_t * layer, lv_obj_t * obj);
+void lv_display_refr_timer(lv_timer_t * timer);
+struct _lv_draw_mask_rect_dsc_t {
+    lv_draw_dsc_base_t base;
+    lv_area_t area;
+    int32_t radius;
+    uint32_t keep_outside : 1;
+};
+void lv_draw_mask_rect_dsc_init(lv_draw_mask_rect_dsc_t * dsc);
+lv_draw_mask_rect_dsc_t * lv_draw_task_get_mask_rect_dsc(lv_draw_task_t * task);
+void lv_draw_mask_rect(lv_layer_t * layer, const lv_draw_mask_rect_dsc_t * dsc);
+lv_draw_buf_t * lv_snapshot_take(lv_obj_t * obj, lv_color_format_t cf);
+lv_draw_buf_t * lv_snapshot_create_draw_buf(lv_obj_t * obj, lv_color_format_t cf);
+lv_result_t lv_snapshot_reshape_draw_buf(lv_obj_t * obj, lv_draw_buf_t * draw_buf);
+lv_result_t lv_snapshot_take_to_draw_buf(lv_obj_t * obj, lv_color_format_t cf, lv_draw_buf_t * draw_buf);
+
+void lv_snapshot_free(lv_image_dsc_t * dsc);
+
+lv_result_t lv_snapshot_take_to_buf(lv_obj_t * obj, lv_color_format_t cf, lv_image_dsc_t * dsc,
+                                    void * buf,
+                                    uint32_t buf_size);
+void lv_draw_i1_to_argb8888(const void * buf_i1, void * buf_argb8888, uint32_t width, uint32_t height,
+                            uint32_t buf_i1_stride, uint32_t buf_argb8888_stride, uint32_t index0_color, uint32_t index1_color);
+void lv_draw_rgb565_swap(void * buf, uint32_t buf_size_px);
+void lv_draw_i1_invert(void * buf, uint32_t buf_size);
+void lv_draw_i1_convert_to_vtiled(const void * buf, uint32_t buf_size, uint32_t width, uint32_t height,
+                                  void * out_buf,
+                                  uint32_t out_buf_size, bool bit_order_lsb);
+void lv_draw_rotate(const void * src, void * dest, int32_t src_width, int32_t src_height, int32_t src_stride,
+                    int32_t dest_stride, lv_display_rotation_t rotation, lv_color_format_t color_format);
 struct lv_indev_gesture;
 struct lv_indev_gesture_configuration;
 typedef struct lv_indev_gesture_recognizer lv_indev_gesture_recognizer_t;
@@ -4017,11 +3326,20 @@ typedef struct {
     const char * path;
     const void * buffer;
     uint32_t buffer_size;
+    bool dynamic_glyph_load;
 } lv_binfont_font_src_t;
+typedef struct {
+    const char * path;
+    const void * buffer;
+    uint32_t buffer_size;
+    bool dynamic_glyph_load;
+} lv_binfont_dsc_t;
  extern const lv_font_class_t lv_binfont_font_class;
 lv_font_t * lv_binfont_create(const char * path);
+lv_font_t * lv_binfont_create_ex(const lv_binfont_dsc_t * dsc);
 lv_font_t * lv_binfont_create_from_buffer(void * buffer, uint32_t size);
 void lv_binfont_destroy(lv_font_t * font);
+typedef struct _lv_font_fmt_txt_glyph_loader_t lv_font_fmt_txt_glyph_loader_t;
 typedef struct {
     uint32_t bitmap_index : 20;
     uint32_t adv_w : 12;
@@ -4069,11 +3387,12 @@ typedef struct {
     const lv_font_fmt_txt_cmap_t * cmaps;
     const void * kern_dsc;
     uint16_t kern_scale;
-    uint16_t cmap_num : 9;
-    uint16_t bpp : 4;
-    uint16_t kern_classes : 1;
-    uint16_t bitmap_format : 2;
+    uint16_t cmap_num;
+    uint8_t bpp : 4;
+    uint8_t kern_classes : 1;
+    uint8_t bitmap_format : 2;
     uint8_t stride;
+    bool are_glyphs_dynamic_loaded;
 } lv_font_fmt_txt_dsc_t;
 typedef struct {
     const lv_font_t * font_p;
@@ -4088,6 +3407,54 @@ typedef const void * (*lv_imgfont_get_path_cb_t)(const lv_font_t * font,
                                                  int32_t * offset_y, void * user_data);
 lv_font_t * lv_imgfont_create(uint16_t height, lv_imgfont_get_path_cb_t path_cb, void * user_data);
 void lv_imgfont_destroy(lv_font_t * font);
+void lv_fs_memfs_init(void);
+void lv_bin_decoder_init(void);
+lv_result_t lv_bin_decoder_info(lv_image_decoder_t * decoder, lv_image_decoder_dsc_t * dsc, lv_image_header_t * header);
+lv_result_t lv_bin_decoder_get_area(lv_image_decoder_t * decoder, lv_image_decoder_dsc_t * dsc,
+                                    const lv_area_t * full_area, lv_area_t * decoded_area);
+lv_result_t lv_bin_decoder_open(lv_image_decoder_t * decoder, lv_image_decoder_dsc_t * dsc);
+void lv_bin_decoder_close(lv_image_decoder_t * decoder, lv_image_decoder_dsc_t * dsc);
+void lv_lodepng_init(void);
+void lv_lodepng_deinit(void);
+void lv_tjpgd_init(void);
+void lv_tjpgd_deinit(void);
+typedef void (*lv_async_cb_t)(void *);
+lv_result_t lv_async_call(lv_async_cb_t async_xcb, void * user_data);
+lv_result_t lv_async_call_cancel(lv_async_cb_t async_xcb, void * user_data);
+void lv_lock(void);
+lv_result_t lv_lock_isr(void);
+void lv_unlock(void);
+void lv_sleep_ms(uint32_t ms);
+typedef void (*lv_theme_apply_cb_t)(lv_theme_t *, lv_obj_t *);
+lv_theme_t * lv_theme_create(void);
+void lv_theme_copy(lv_theme_t * dst, const lv_theme_t * src);
+lv_theme_t * lv_theme_get_from_obj(lv_obj_t * obj);
+void lv_theme_apply(lv_obj_t * obj);
+void lv_theme_set_parent(lv_theme_t * theme, lv_theme_t * parent);
+void lv_theme_set_apply_cb(lv_theme_t * theme, lv_theme_apply_cb_t apply_cb);
+void lv_theme_set_user_data(lv_theme_t * theme, void * user_data);
+const lv_font_t * lv_theme_get_font_small(lv_obj_t * obj);
+const lv_font_t * lv_theme_get_font_normal(lv_obj_t * obj);
+const lv_font_t * lv_theme_get_font_large(lv_obj_t * obj);
+lv_color_t lv_theme_get_color_primary(lv_obj_t * obj);
+lv_color_t lv_theme_get_color_secondary(lv_obj_t * obj);
+void * lv_theme_get_user_data(const lv_theme_t * theme);
+void lv_theme_delete(lv_theme_t * theme);
+lv_theme_t * lv_theme_default_init(lv_display_t * disp, lv_color_t color_primary, lv_color_t color_secondary, bool dark,
+                                   const lv_font_t * font);
+bool lv_theme_default_is_inited(void);
+lv_theme_t * lv_theme_default_get(void);
+void lv_theme_default_deinit(void);
+typedef uint32_t (*lv_tick_get_cb_t)(void);
+typedef void (*lv_delay_cb_t)(uint32_t ms);
+ void lv_tick_inc(uint32_t tick_period);
+uint32_t lv_tick_get(void);
+uint32_t lv_tick_elaps(uint32_t prev_tick);
+uint32_t lv_tick_diff(uint32_t tick, uint32_t prev_tick);
+void lv_delay_ms(uint32_t ms);
+void lv_delay_set_cb(lv_delay_cb_t cb);
+void lv_tick_set_cb(lv_tick_get_cb_t cb);
+lv_tick_get_cb_t lv_tick_get_cb(void);
  extern const lv_obj_class_t lv_image_class;
 typedef enum {
     LV_IMAGE_ALIGN_DEFAULT = 0,
@@ -4104,6 +3471,7 @@ typedef enum {
     LV_IMAGE_ALIGN_STRETCH,
     LV_IMAGE_ALIGN_TILE,
     LV_IMAGE_ALIGN_CONTAIN,
+    LV_IMAGE_ALIGN_CONTAIN_DOWNSCALE,
     LV_IMAGE_ALIGN_COVER,
 } lv_image_align_t;
 lv_obj_t * lv_image_create(lv_obj_t * parent);
@@ -4254,11 +3622,13 @@ void lv_label_set_text_fmt(lv_obj_t * obj, const char * fmt, ...) ;
 void lv_label_set_text_vfmt(lv_obj_t * obj, const char * fmt, va_list args);
 void lv_label_set_text_static(lv_obj_t * obj, const char * text);
 void lv_label_set_long_mode(lv_obj_t * obj, lv_label_long_mode_t long_mode);
+void lv_label_set_max_lines(lv_obj_t * obj, int32_t lines);
 void lv_label_set_text_selection_start(lv_obj_t * obj, uint32_t index);
 void lv_label_set_text_selection_end(lv_obj_t * obj, uint32_t index);
 void lv_label_set_recolor(lv_obj_t * obj, bool en);
 char * lv_label_get_text(const lv_obj_t * obj);
 lv_label_long_mode_t lv_label_get_long_mode(const lv_obj_t * obj);
+int32_t lv_label_get_max_lines(const lv_obj_t * obj);
 void lv_label_get_letter_pos(const lv_obj_t * obj, uint32_t char_id, lv_point_t * pos);
 uint32_t lv_label_get_letter_on(const lv_obj_t * obj, lv_point_t * pos_in, bool bidi);
 bool lv_label_is_char_under_pos(const lv_obj_t * obj, lv_point_t * pos);
@@ -4295,6 +3665,47 @@ lv_bar_mode_t lv_bar_get_mode(lv_obj_t * obj);
 lv_bar_orientation_t lv_bar_get_orientation(lv_obj_t * obj);
 bool lv_bar_is_symmetrical(lv_obj_t * obj);
 lv_observer_t * lv_bar_bind_value(lv_obj_t * obj, lv_subject_t * subject);
+ extern const lv_obj_class_t lv_canvas_class;
+lv_obj_t * lv_canvas_create(lv_obj_t * parent);
+void lv_canvas_set_buffer(lv_obj_t * obj, void * buf, int32_t w, int32_t h, lv_color_format_t cf);
+void lv_canvas_set_draw_buf(lv_obj_t * obj, lv_draw_buf_t * draw_buf);
+void lv_canvas_set_px(lv_obj_t * obj, int32_t x, int32_t y, lv_color_t color, lv_opa_t opa);
+void lv_canvas_set_palette(lv_obj_t * obj, uint8_t index, lv_color32_t color);
+lv_draw_buf_t * lv_canvas_get_draw_buf(lv_obj_t * obj);
+lv_color32_t lv_canvas_get_px(lv_obj_t * obj, int32_t x, int32_t y);
+lv_image_dsc_t * lv_canvas_get_image(lv_obj_t * obj);
+const void * lv_canvas_get_buf(lv_obj_t * obj);
+void lv_canvas_copy_buf(lv_obj_t * obj, const lv_area_t * canvas_area, lv_draw_buf_t * src_buf,
+                        const lv_area_t * src_area);
+void lv_canvas_fill_bg(lv_obj_t * obj, lv_color_t color, lv_opa_t opa);
+void lv_canvas_init_layer(lv_obj_t * obj, lv_layer_t * layer);
+void lv_canvas_finish_layer(lv_obj_t * canvas, lv_layer_t * layer);
+uint32_t lv_canvas_buf_size(int32_t w, int32_t h, uint8_t bpp, uint8_t stride);
+typedef enum {
+    LV_BARCODE_ENCODING_CODE128_GS1,
+    LV_BARCODE_ENCODING_CODE128_RAW,
+} lv_barcode_encoding_t;
+typedef enum {
+    LV_BARCODE_UPDATE_MODE_IMMEDIATE = 0,
+    LV_BARCODE_UPDATE_MODE_DEFERRED,
+} lv_barcode_update_mode_t;
+ extern const lv_obj_class_t lv_barcode_class;
+lv_obj_t * lv_barcode_create(lv_obj_t * parent);
+void lv_barcode_set_dark_color(lv_obj_t * obj, lv_color_t color);
+void lv_barcode_set_light_color(lv_obj_t * obj, lv_color_t color);
+void lv_barcode_set_scale(lv_obj_t * obj, uint16_t scale);
+void lv_barcode_set_direction(lv_obj_t * obj, lv_dir_t direction);
+void lv_barcode_set_tiled(lv_obj_t * obj, bool tiled);
+void lv_barcode_set_encoding(lv_obj_t * obj, lv_barcode_encoding_t encoding);
+lv_result_t lv_barcode_update(lv_obj_t * obj, const char * data);
+lv_result_t lv_barcode_render(lv_obj_t * obj);
+void lv_barcode_set_update_mode(lv_obj_t * obj, lv_barcode_update_mode_t mode);
+lv_barcode_update_mode_t lv_barcode_get_update_mode(lv_obj_t * obj);
+bool lv_barcode_is_render_valid(lv_obj_t * obj);
+lv_color_t lv_barcode_get_dark_color(lv_obj_t * obj);
+lv_color_t lv_barcode_get_light_color(lv_obj_t * obj);
+uint16_t lv_barcode_get_scale(lv_obj_t * obj);
+lv_barcode_encoding_t lv_barcode_get_encoding(const lv_obj_t * obj);
  extern const lv_obj_class_t lv_button_class;
 lv_obj_t * lv_button_create(lv_obj_t * parent);
 enum {ENUM_LV_BUTTONMATRIX_BUTTON_NONE = 0xFFFF};
@@ -4363,32 +3774,16 @@ void lv_calendar_set_shown_month(lv_obj_t * obj, uint32_t month);
 void lv_calendar_set_highlighted_dates(lv_obj_t * obj, lv_calendar_date_t highlighted[], size_t date_num);
 void lv_calendar_set_day_names(lv_obj_t * obj, const char ** day_names);
 lv_obj_t * lv_calendar_get_btnmatrix(const lv_obj_t * obj);
-const lv_calendar_date_t * lv_calendar_get_today_date(const lv_obj_t * calendar);
-const lv_calendar_date_t * lv_calendar_get_showed_date(const lv_obj_t * calendar);
-lv_calendar_date_t * lv_calendar_get_highlighted_dates(const lv_obj_t * calendar);
-size_t lv_calendar_get_highlighted_dates_num(const lv_obj_t * calendar);
-lv_result_t lv_calendar_get_pressed_date(const lv_obj_t * calendar, lv_calendar_date_t * date);
+const lv_calendar_date_t * lv_calendar_get_today_date(const lv_obj_t * obj);
+const lv_calendar_date_t * lv_calendar_get_showed_date(const lv_obj_t * obj);
+lv_calendar_date_t * lv_calendar_get_highlighted_dates(const lv_obj_t * obj);
+size_t lv_calendar_get_highlighted_dates_num(const lv_obj_t * obj);
+lv_result_t lv_calendar_get_pressed_date(const lv_obj_t * obj, lv_calendar_date_t * date);
  extern const lv_obj_class_t lv_calendar_header_arrow_class;
 lv_obj_t * lv_calendar_add_header_arrow(lv_obj_t * parent);
  extern const lv_obj_class_t lv_calendar_header_dropdown_class;
 lv_obj_t * lv_calendar_add_header_dropdown(lv_obj_t * parent);
 void lv_calendar_header_dropdown_set_year_list(lv_obj_t * parent, const char * years_list);
- extern const lv_obj_class_t lv_canvas_class;
-lv_obj_t * lv_canvas_create(lv_obj_t * parent);
-void lv_canvas_set_buffer(lv_obj_t * obj, void * buf, int32_t w, int32_t h, lv_color_format_t cf);
-void lv_canvas_set_draw_buf(lv_obj_t * obj, lv_draw_buf_t * draw_buf);
-void lv_canvas_set_px(lv_obj_t * obj, int32_t x, int32_t y, lv_color_t color, lv_opa_t opa);
-void lv_canvas_set_palette(lv_obj_t * obj, uint8_t index, lv_color32_t color);
-lv_draw_buf_t * lv_canvas_get_draw_buf(lv_obj_t * obj);
-lv_color32_t lv_canvas_get_px(lv_obj_t * obj, int32_t x, int32_t y);
-lv_image_dsc_t * lv_canvas_get_image(lv_obj_t * canvas);
-const void * lv_canvas_get_buf(lv_obj_t * canvas);
-void lv_canvas_copy_buf(lv_obj_t * obj, const lv_area_t * canvas_area, lv_draw_buf_t * src_buf,
-                        const lv_area_t * src_area);
-void lv_canvas_fill_bg(lv_obj_t * obj, lv_color_t color, lv_opa_t opa);
-void lv_canvas_init_layer(lv_obj_t * canvas, lv_layer_t * layer);
-void lv_canvas_finish_layer(lv_obj_t * canvas, lv_layer_t * layer);
-uint32_t lv_canvas_buf_size(int32_t w, int32_t h, uint8_t bpp, uint8_t stride);
 enum {ENUM_LV_CHART_POINT_NONE = (INT32_MAX)};
 typedef enum {
     LV_CHART_TYPE_NONE,
@@ -4434,7 +3829,7 @@ void lv_chart_hide_series(lv_obj_t * chart, lv_chart_series_t * series, bool hid
 void lv_chart_set_series_color(lv_obj_t * chart, lv_chart_series_t * series, lv_color_t color);
 lv_color_t lv_chart_get_series_color(lv_obj_t * chart, const lv_chart_series_t * series);
 void lv_chart_set_x_start_point(lv_obj_t * obj, lv_chart_series_t * ser, uint32_t id);
-lv_chart_series_t * lv_chart_get_series_next(const lv_obj_t * chart, const lv_chart_series_t * ser);
+lv_chart_series_t * lv_chart_get_series_next(const lv_obj_t * obj, const lv_chart_series_t * ser);
 lv_chart_cursor_t * lv_chart_add_cursor(lv_obj_t * obj, lv_color_t color, lv_dir_t dir);
 void lv_chart_remove_cursor(lv_obj_t * obj, lv_chart_cursor_t * cursor);
 void lv_chart_set_cursor_pos(lv_obj_t * chart, lv_chart_cursor_t * cursor, lv_point_t * pos);
@@ -4538,13 +3933,13 @@ typedef enum {
 } lv_keyboard_mode_t;
  extern const lv_obj_class_t lv_keyboard_class;
 lv_obj_t * lv_keyboard_create(lv_obj_t * parent);
-void lv_keyboard_set_textarea(lv_obj_t * kb, lv_obj_t * ta);
-void lv_keyboard_set_mode(lv_obj_t * kb, lv_keyboard_mode_t mode);
-void lv_keyboard_set_popovers(lv_obj_t * kb, bool en);
-void lv_keyboard_set_map(lv_obj_t * kb, lv_keyboard_mode_t mode, const char * const map[],
+void lv_keyboard_set_textarea(lv_obj_t * obj, lv_obj_t * ta);
+void lv_keyboard_set_mode(lv_obj_t * obj, lv_keyboard_mode_t mode);
+void lv_keyboard_set_popovers(lv_obj_t * obj, bool en);
+void lv_keyboard_set_map(lv_obj_t * obj, lv_keyboard_mode_t mode, const char * const map[],
                          const lv_buttonmatrix_ctrl_t ctrl_map[]);
-lv_obj_t * lv_keyboard_get_textarea(const lv_obj_t * kb);
-lv_keyboard_mode_t lv_keyboard_get_mode(const lv_obj_t * kb);
+lv_obj_t * lv_keyboard_get_textarea(const lv_obj_t * obj);
+lv_keyboard_mode_t lv_keyboard_get_mode(const lv_obj_t * obj);
 bool lv_keyboard_get_popovers(const lv_obj_t * obj);
 const char * const * lv_keyboard_get_map_array(const lv_obj_t * kb);
 uint32_t lv_keyboard_get_selected_button(const lv_obj_t * obj);
@@ -4552,11 +3947,11 @@ const char * lv_keyboard_get_button_text(const lv_obj_t * obj, uint32_t btn_id);
 void lv_keyboard_def_event_cb(lv_event_t * e);
  extern const lv_obj_class_t lv_led_class;
 lv_obj_t * lv_led_create(lv_obj_t * parent);
-void lv_led_set_color(lv_obj_t * led, lv_color_t color);
-void lv_led_set_brightness(lv_obj_t * led, uint8_t bright);
+void lv_led_set_color(lv_obj_t * obj, lv_color_t color);
+void lv_led_set_brightness(lv_obj_t * obj, uint8_t bright);
 void lv_led_on(lv_obj_t * led);
 void lv_led_off(lv_obj_t * led);
-void lv_led_toggle(lv_obj_t * led);
+void lv_led_toggle(lv_obj_t * obj);
 uint8_t lv_led_get_brightness(const lv_obj_t * obj);
 lv_color_t lv_led_get_color(const lv_obj_t * obj);
  extern const lv_obj_class_t lv_line_class;
@@ -4572,10 +3967,15 @@ bool lv_line_get_y_invert(const lv_obj_t * obj);
  extern const lv_obj_class_t lv_list_class;
  extern const lv_obj_class_t lv_list_text_class;
  extern const lv_obj_class_t lv_list_button_class;
+
 lv_obj_t * lv_list_create(lv_obj_t * parent);
+
 lv_obj_t * lv_list_add_text(lv_obj_t * list, const char * txt);
+
 lv_obj_t * lv_list_add_button(lv_obj_t * list, const void * icon, const char * txt);
+
 const char * lv_list_get_button_text(lv_obj_t * list, lv_obj_t * btn);
+
 void lv_list_set_button_text(lv_obj_t * list, lv_obj_t * btn, const char * txt);
 typedef enum {
     LV_MENU_HEADER_TOP_FIXED,
@@ -4595,27 +3995,49 @@ typedef enum {
  extern const lv_obj_class_t lv_menu_main_cont_class;
  extern const lv_obj_class_t lv_menu_sidebar_header_cont_class;
  extern const lv_obj_class_t lv_menu_main_header_cont_class;
+
 lv_obj_t * lv_menu_create(lv_obj_t * parent);
+
 lv_obj_t * lv_menu_page_create(lv_obj_t * menu, char const * const title);
+
 lv_obj_t * lv_menu_cont_create(lv_obj_t * parent);
+
 lv_obj_t * lv_menu_section_create(lv_obj_t * parent);
+
 lv_obj_t * lv_menu_separator_create(lv_obj_t * parent);
+
 void lv_menu_set_page(lv_obj_t * obj, lv_obj_t * page);
-void lv_menu_set_page_title(lv_obj_t * page, char const * const title);
-void lv_menu_set_page_title_static(lv_obj_t * page, char const * const title);
+
+void lv_menu_set_page_title(lv_obj_t * page_obj, char const * const title);
+
+void lv_menu_set_page_title_static(lv_obj_t * page_obj, char const * const title);
+
 void lv_menu_set_sidebar_page(lv_obj_t * obj, lv_obj_t * page);
+
 void lv_menu_set_mode_header(lv_obj_t * obj, lv_menu_mode_header_t mode);
+
 void lv_menu_set_mode_root_back_button(lv_obj_t * obj, lv_menu_mode_root_back_button_t mode);
+
 void lv_menu_set_load_page_event(lv_obj_t * menu, lv_obj_t * obj, lv_obj_t * page);
+
 lv_obj_t * lv_menu_get_cur_main_page(lv_obj_t * obj);
+
 lv_obj_t * lv_menu_get_cur_sidebar_page(lv_obj_t * obj);
+
 lv_obj_t * lv_menu_get_main_header(lv_obj_t * obj);
+
 lv_obj_t * lv_menu_get_main_header_back_button(lv_obj_t * obj);
+
 lv_obj_t * lv_menu_get_sidebar_header(lv_obj_t * obj);
+
 lv_obj_t * lv_menu_get_sidebar_header_back_button(lv_obj_t * obj);
+
 bool lv_menu_back_button_is_root(lv_obj_t * menu, lv_obj_t * obj);
+
 lv_menu_mode_header_t lv_menu_get_mode_header(lv_obj_t * obj);
+
 lv_menu_mode_root_back_button_t lv_menu_get_mode_root_back_button(lv_obj_t * obj);
+
 void lv_menu_clear_history(lv_obj_t * obj);
  extern const lv_obj_class_t lv_msgbox_class;
  extern const lv_obj_class_t lv_msgbox_header_class;
@@ -4635,8 +4057,24 @@ lv_obj_t * lv_msgbox_get_header(lv_obj_t * obj);
 lv_obj_t * lv_msgbox_get_footer(lv_obj_t * obj);
 lv_obj_t * lv_msgbox_get_content(lv_obj_t * obj);
 lv_obj_t * lv_msgbox_get_title(lv_obj_t * obj);
-void lv_msgbox_close(lv_obj_t * mbox);
-void lv_msgbox_close_async(lv_obj_t * mbox);
+void lv_msgbox_close(lv_obj_t * obj);
+void lv_msgbox_close_async(lv_obj_t * obj);
+typedef enum {
+    LV_QRCODE_UPDATE_MODE_IMMEDIATE = 0,
+    LV_QRCODE_UPDATE_MODE_DEFERRED,
+} lv_qrcode_update_mode_t;
+ extern const lv_obj_class_t lv_qrcode_class;
+lv_obj_t * lv_qrcode_create(lv_obj_t * parent);
+void lv_qrcode_set_size(lv_obj_t * obj, int32_t size);
+void lv_qrcode_set_dark_color(lv_obj_t * obj, lv_color_t color);
+void lv_qrcode_set_light_color(lv_obj_t * obj, lv_color_t color);
+lv_result_t lv_qrcode_update(lv_obj_t * obj, const void * data, uint32_t data_len);
+void lv_qrcode_set_data(lv_obj_t * obj, const char * data);
+lv_result_t lv_qrcode_render(lv_obj_t * obj);
+void lv_qrcode_set_quiet_zone(lv_obj_t * obj, bool enable);
+void lv_qrcode_set_update_mode(lv_obj_t * obj, lv_qrcode_update_mode_t mode);
+lv_qrcode_update_mode_t lv_qrcode_get_update_mode(lv_obj_t * obj);
+bool lv_qrcode_is_render_valid(lv_obj_t * obj);
 typedef enum {
     LV_ROLLER_MODE_NORMAL,
     LV_ROLLER_MODE_INFINITE,
@@ -4690,6 +4128,7 @@ void lv_scale_section_set_range(lv_scale_section_t * section, int32_t min, int32
 void lv_scale_set_section_range(lv_obj_t * scale, lv_scale_section_t * section, int32_t min, int32_t max);
 void lv_scale_set_section_min_value(lv_obj_t * scale, lv_scale_section_t * section, int32_t min);
 void lv_scale_set_section_max_value(lv_obj_t * scale, lv_scale_section_t * section, int32_t max);
+
 void lv_scale_section_set_style(lv_scale_section_t * section, lv_part_t part, lv_style_t * section_part_style);
 void lv_scale_set_section_style_main(lv_obj_t * scale, lv_scale_section_t * section, const lv_style_t * style);
 void lv_scale_set_section_style_indicator(lv_obj_t * scale, lv_scale_section_t * section, const lv_style_t * style);
@@ -4704,6 +4143,9 @@ int32_t lv_scale_get_range_min_value(lv_obj_t * obj);
 int32_t lv_scale_get_range_max_value(lv_obj_t * obj);
 lv_observer_t * lv_scale_bind_section_min_value(lv_obj_t * obj, lv_scale_section_t * section, lv_subject_t * subject);
 lv_observer_t * lv_scale_bind_section_max_value(lv_obj_t * obj, lv_scale_section_t * section, lv_subject_t * subject);
+lv_observer_t * lv_scale_bind_line_needle_value(lv_obj_t * obj, lv_obj_t * needle_line, int32_t needle_length,
+                                                lv_subject_t * subject);
+lv_observer_t * lv_scale_bind_image_needle_value(lv_obj_t * obj, lv_obj_t * needle_img, lv_subject_t * subject);
 typedef enum {
     LV_SLIDER_MODE_NORMAL = LV_BAR_MODE_NORMAL,
     LV_SLIDER_MODE_SYMMETRICAL = LV_BAR_MODE_SYMMETRICAL,
@@ -4729,7 +4171,7 @@ int32_t lv_slider_get_min_value(const lv_obj_t * obj);
 int32_t lv_slider_get_max_value(const lv_obj_t * obj);
 bool lv_slider_is_dragged(const lv_obj_t * obj);
 lv_slider_mode_t lv_slider_get_mode(lv_obj_t * slider);
-lv_slider_orientation_t lv_slider_get_orientation(lv_obj_t * slider);
+lv_slider_orientation_t lv_slider_get_orientation(lv_obj_t * obj);
 bool lv_slider_is_symmetrical(lv_obj_t * obj);
 lv_observer_t * lv_slider_bind_value(lv_obj_t * obj, lv_subject_t * subject);
 typedef enum {
@@ -4760,11 +4202,12 @@ void lv_span_set_text_static(lv_span_t * span, const char * text);
 void lv_spangroup_set_span_text(lv_obj_t * obj, lv_span_t * span, const char * text);
 void lv_spangroup_set_span_text_static(lv_obj_t * obj, lv_span_t * span, const char * text);
 void lv_spangroup_set_span_text_fmt(lv_obj_t * obj, lv_span_t * span, const char * fmt, ...) ;
-void lv_span_set_text_static(lv_span_t * span, const char * text);
 void lv_spangroup_set_span_style(lv_obj_t * obj, lv_span_t * span, const lv_style_t * style);
+
 void lv_spangroup_set_align(lv_obj_t * obj, lv_text_align_t align);
 void lv_spangroup_set_overflow(lv_obj_t * obj, lv_span_overflow_t overflow);
 void lv_spangroup_set_indent(lv_obj_t * obj, int32_t indent);
+
 void lv_spangroup_set_mode(lv_obj_t * obj, lv_span_mode_t mode);
 void lv_spangroup_set_max_lines(lv_obj_t * obj, int32_t lines);
 lv_style_t * lv_span_get_style(lv_span_t * span);
@@ -4780,7 +4223,7 @@ int32_t lv_spangroup_get_max_line_height(lv_obj_t * obj);
 uint32_t lv_spangroup_get_expand_width(lv_obj_t * obj, uint32_t max_width);
 int32_t lv_spangroup_get_expand_height(lv_obj_t * obj, int32_t width);
 lv_span_coords_t lv_spangroup_get_span_coords(lv_obj_t * obj, const lv_span_t * span);
-lv_span_t * lv_spangroup_get_span_by_point(lv_obj_t * obj, const lv_point_t * point);
+lv_span_t * lv_spangroup_get_span_by_point(lv_obj_t * obj, const lv_point_t * p);
 void lv_spangroup_refresh(lv_obj_t * obj);
 lv_observer_t * lv_spangroup_bind_span_text(lv_obj_t * obj, lv_span_t * span, lv_subject_t * subject, const char * fmt);
 enum {ENUM_LV_TEXTAREA_CURSOR_LAST = (0x7FFF)};
@@ -4804,6 +4247,7 @@ void lv_textarea_set_max_length(lv_obj_t * obj, uint32_t num);
 void lv_textarea_set_insert_replace(lv_obj_t * obj, const char * txt);
 void lv_textarea_set_text_selection(lv_obj_t * obj, bool en);
 void lv_textarea_set_password_show_time(lv_obj_t * obj, uint32_t time);
+
 void lv_textarea_set_align(lv_obj_t * obj, lv_text_align_t align);
 const char * lv_textarea_get_text(const lv_obj_t * obj);
 const char * lv_textarea_get_placeholder_text(lv_obj_t * obj);
@@ -4912,91 +4356,25 @@ lv_dir_t lv_tabview_get_tab_bar_position(lv_obj_t * obj);
  extern const lv_obj_class_t lv_tileview_tile_class;
 lv_obj_t * lv_tileview_create(lv_obj_t * parent);
 lv_obj_t * lv_tileview_add_tile(lv_obj_t * tv, uint8_t col_id, uint8_t row_id, lv_dir_t dir);
-void lv_tileview_set_tile(lv_obj_t * tv, lv_obj_t * tile_obj, lv_anim_enable_t anim_en);
+void lv_tileview_set_tile(lv_obj_t * obj, lv_obj_t * tile_obj, lv_anim_enable_t anim_en);
 void lv_tileview_set_tile_by_index(lv_obj_t * tv, uint32_t col_id, uint32_t row_id, lv_anim_enable_t anim_en);
 lv_obj_t * lv_tileview_get_tile_active(lv_obj_t * obj);
  extern const lv_obj_class_t lv_win_class;
+
 lv_obj_t * lv_win_create(lv_obj_t * parent);
+
 lv_obj_t * lv_win_add_title(lv_obj_t * win, const char * txt);
+
 lv_obj_t * lv_win_add_button(lv_obj_t * win, const void * icon, int32_t btn_w);
+
 lv_obj_t * lv_win_get_header(lv_obj_t * win);
+
 lv_obj_t * lv_win_get_content(lv_obj_t * win);
-typedef enum {
-    LV_BARCODE_ENCODING_CODE128_GS1,
-    LV_BARCODE_ENCODING_CODE128_RAW,
-} lv_barcode_encoding_t;
- extern const lv_obj_class_t lv_barcode_class;
-lv_obj_t * lv_barcode_create(lv_obj_t * parent);
-void lv_barcode_set_dark_color(lv_obj_t * obj, lv_color_t color);
-void lv_barcode_set_light_color(lv_obj_t * obj, lv_color_t color);
-void lv_barcode_set_scale(lv_obj_t * obj, uint16_t scale);
-void lv_barcode_set_direction(lv_obj_t * obj, lv_dir_t direction);
-void lv_barcode_set_tiled(lv_obj_t * obj, bool tiled);
-void lv_barcode_set_encoding(lv_obj_t * obj, lv_barcode_encoding_t encoding);
-lv_result_t lv_barcode_update(lv_obj_t * obj, const char * data);
-lv_color_t lv_barcode_get_dark_color(lv_obj_t * obj);
-lv_color_t lv_barcode_get_light_color(lv_obj_t * obj);
-uint16_t lv_barcode_get_scale(lv_obj_t * obj);
-lv_barcode_encoding_t lv_barcode_get_encoding(const lv_obj_t * obj);
-void lv_bin_decoder_init(void);
-lv_result_t lv_bin_decoder_info(lv_image_decoder_t * decoder, lv_image_decoder_dsc_t * dsc, lv_image_header_t * header);
-lv_result_t lv_bin_decoder_get_area(lv_image_decoder_t * decoder, lv_image_decoder_dsc_t * dsc,
-                                    const lv_area_t * full_area, lv_area_t * decoded_area);
-lv_result_t lv_bin_decoder_open(lv_image_decoder_t * decoder, lv_image_decoder_dsc_t * dsc);
-void lv_bin_decoder_close(lv_image_decoder_t * decoder, lv_image_decoder_dsc_t * dsc);
-void lv_fs_memfs_init(void);
-void lv_lodepng_init(void);
-void lv_lodepng_deinit(void);
- extern const lv_obj_class_t lv_qrcode_class;
-lv_obj_t * lv_qrcode_create(lv_obj_t * parent);
-void lv_qrcode_set_size(lv_obj_t * obj, int32_t size);
-void lv_qrcode_set_dark_color(lv_obj_t * obj, lv_color_t color);
-void lv_qrcode_set_light_color(lv_obj_t * obj, lv_color_t color);
-lv_result_t lv_qrcode_update(lv_obj_t * obj, const void * data, uint32_t data_len);
-void lv_qrcode_set_data(lv_obj_t * obj, const char * data);
-void lv_qrcode_set_quiet_zone(lv_obj_t * obj, bool enable);
-void lv_tjpgd_init(void);
-void lv_tjpgd_deinit(void);
-void lv_draw_sw_i1_to_argb8888(const void * buf_i1, void * buf_argb8888, uint32_t width, uint32_t height,
-                               uint32_t buf_i1_stride, uint32_t buf_argb8888_stride, uint32_t index0_color, uint32_t index1_color);
-void lv_draw_sw_rgb565_swap(void * buf, uint32_t buf_size_px);
-void lv_draw_sw_i1_invert(void * buf, uint32_t buf_size);
-void lv_draw_sw_i1_convert_to_vtiled(const void * buf, uint32_t buf_size, uint32_t width, uint32_t height,
-                                     void * out_buf,
-                                     uint32_t out_buf_size, bool bit_order_lsb);
-void lv_draw_sw_rotate(const void * src, void * dest, int32_t src_width, int32_t src_height, int32_t src_stride,
-                       int32_t dest_stride, lv_display_rotation_t rotation, lv_color_format_t color_format);
-lv_draw_buf_t * lv_snapshot_take(lv_obj_t * obj, lv_color_format_t cf);
-lv_draw_buf_t * lv_snapshot_create_draw_buf(lv_obj_t * obj, lv_color_format_t cf);
-lv_result_t lv_snapshot_reshape_draw_buf(lv_obj_t * obj, lv_draw_buf_t * draw_buf);
-lv_result_t lv_snapshot_take_to_draw_buf(lv_obj_t * obj, lv_color_format_t cf, lv_draw_buf_t * draw_buf);
-void lv_snapshot_free(lv_image_dsc_t * dsc);
-lv_result_t lv_snapshot_take_to_buf(lv_obj_t * obj, lv_color_format_t cf, lv_image_dsc_t * dsc,
-                                    void * buf,
-                                    uint32_t buf_size);
-typedef void (*lv_theme_apply_cb_t)(lv_theme_t *, lv_obj_t *);
-lv_theme_t * lv_theme_create(void);
-void lv_theme_copy(lv_theme_t * dst, const lv_theme_t * src);
-lv_theme_t * lv_theme_get_from_obj(lv_obj_t * obj);
-void lv_theme_apply(lv_obj_t * obj);
-void lv_theme_set_parent(lv_theme_t * theme, lv_theme_t * parent);
-void lv_theme_set_apply_cb(lv_theme_t * theme, lv_theme_apply_cb_t apply_cb);
-const lv_font_t * lv_theme_get_font_small(lv_obj_t * obj);
-const lv_font_t * lv_theme_get_font_normal(lv_obj_t * obj);
-const lv_font_t * lv_theme_get_font_large(lv_obj_t * obj);
-lv_color_t lv_theme_get_color_primary(lv_obj_t * obj);
-lv_color_t lv_theme_get_color_secondary(lv_obj_t * obj);
-void lv_theme_delete(lv_theme_t * theme);
-lv_theme_t * lv_theme_default_init(lv_display_t * disp, lv_color_t color_primary, lv_color_t color_secondary, bool dark,
-                                   const lv_font_t * font);
-bool lv_theme_default_is_inited(void);
-lv_theme_t * lv_theme_default_get(void);
-void lv_theme_default_deinit(void);
 typedef int32_t lv_coord_t;
 typedef lv_result_t lv_res_t;
 typedef lv_image_dsc_t lv_img_dsc_t;
 typedef lv_display_t lv_disp_t;
-typedef lv_display_rotation_t lv_disp_rotation_t;
+typedef lv_display_rotation_t lv_disp_rot_t;
 typedef lv_display_render_mode_t lv_disp_render_t;
 typedef lv_anim_completed_cb_t lv_anim_ready_cb_t;
 typedef lv_screen_load_anim_t lv_scr_load_anim_t;
@@ -5012,90 +4390,29 @@ static inline void lv_obj_move_foreground(lv_obj_t * obj)
         do {}while(0);
         return;
     }
-    lv_obj_move_to_index(obj, lv_obj_get_child_count(parent) - 1);
+    lv_obj_move_to_index(obj, (int32_t)lv_obj_get_child_count(parent) - 1);
 }
 static inline void lv_obj_move_background(lv_obj_t * obj)
 {
     lv_obj_move_to_index(obj, 0);
 }
-struct _lv_draw_mask_rect_dsc_t {
-    lv_draw_dsc_base_t base;
-    lv_area_t area;
-    int32_t radius;
-    uint32_t keep_outside : 1;
-};
-void lv_draw_mask_rect_dsc_init(lv_draw_mask_rect_dsc_t * dsc);
-lv_draw_mask_rect_dsc_t * lv_draw_task_get_mask_rect_dsc(lv_draw_task_t * task);
-void lv_draw_mask_rect(lv_layer_t * layer, const lv_draw_mask_rect_dsc_t * dsc);
-typedef enum {
-    LV_DRAW_SW_MASK_RES_TRANSP,
-    LV_DRAW_SW_MASK_RES_FULL_COVER,
-    LV_DRAW_SW_MASK_RES_CHANGED,
-    LV_DRAW_SW_MASK_RES_UNKNOWN
-} lv_draw_sw_mask_res_t;
-typedef enum {
-    LV_DRAW_SW_MASK_TYPE_LINE,
-    LV_DRAW_SW_MASK_TYPE_ANGLE,
-    LV_DRAW_SW_MASK_TYPE_RADIUS,
-    LV_DRAW_SW_MASK_TYPE_FADE,
-    LV_DRAW_SW_MASK_TYPE_MAP,
-} lv_draw_sw_mask_type_t;
-typedef enum {
-    LV_DRAW_SW_MASK_LINE_SIDE_LEFT = 0,
-    LV_DRAW_SW_MASK_LINE_SIDE_RIGHT,
-    LV_DRAW_SW_MASK_LINE_SIDE_TOP,
-    LV_DRAW_SW_MASK_LINE_SIDE_BOTTOM,
-} lv_draw_sw_mask_line_side_t;
-typedef lv_draw_sw_mask_res_t (*lv_draw_sw_mask_xcb_t)(lv_opa_t * mask_buf, int32_t abs_x, int32_t abs_y,
-                                                       int32_t len,
-                                                       void * p);
-void lv_draw_sw_mask_init(void);
-void lv_draw_sw_mask_deinit(void);
-lv_draw_sw_mask_res_t lv_draw_sw_mask_apply(void * masks[], lv_opa_t * mask_buf,
-                                                                        int32_t abs_x,
-                                                                        int32_t abs_y,
-                                                                        int32_t len);
-void lv_draw_sw_mask_free_param(void * p);
-void lv_draw_sw_mask_line_points_init(lv_draw_sw_mask_line_param_t * param, int32_t p1x, int32_t p1y,
-                                      int32_t p2x,
-                                      int32_t p2y, lv_draw_sw_mask_line_side_t side);
-void lv_draw_sw_mask_line_angle_init(lv_draw_sw_mask_line_param_t * param, int32_t px, int32_t py, int16_t angle,
-                                     lv_draw_sw_mask_line_side_t side);
-void lv_draw_sw_mask_angle_init(lv_draw_sw_mask_angle_param_t * param, int32_t vertex_x, int32_t vertex_y,
-                                int32_t start_angle, int32_t end_angle);
-void lv_draw_sw_mask_radius_init(lv_draw_sw_mask_radius_param_t * param, const lv_area_t * rect, int32_t radius,
-                                 bool inv);
-void lv_draw_sw_mask_fade_init(lv_draw_sw_mask_fade_param_t * param, const lv_area_t * coords, lv_opa_t opa_top,
-                               int32_t y_top,
-                               lv_opa_t opa_bottom, int32_t y_bottom);
-void lv_draw_sw_mask_map_init(lv_draw_sw_mask_map_param_t * param, const lv_area_t * coords, const lv_opa_t * map);
-typedef void (*lv_draw_sw_blend_handler_t)(lv_draw_task_t * t, const lv_draw_sw_blend_dsc_t * dsc);
-typedef struct {
-    lv_color_format_t dest_cf;
-    lv_draw_sw_blend_handler_t handler;
-} lv_draw_sw_custom_blend_handler_t;
-void lv_draw_sw_blend(lv_draw_task_t * t, const lv_draw_sw_blend_dsc_t * dsc);
-void lv_draw_sw_init(void);
-void lv_draw_sw_deinit(void);
-void lv_draw_sw_fill(lv_draw_task_t * t, lv_draw_fill_dsc_t * dsc, const lv_area_t * coords);
-void lv_draw_sw_border(lv_draw_task_t * t, const lv_draw_border_dsc_t * dsc, const lv_area_t * coords);
-void lv_draw_sw_box_shadow(lv_draw_task_t * t, const lv_draw_box_shadow_dsc_t * dsc, const lv_area_t * coords);
-void lv_draw_sw_image(lv_draw_task_t * t, const lv_draw_image_dsc_t * draw_dsc,
-                      const lv_area_t * coords);
-void lv_draw_sw_letter(lv_draw_task_t * t, const lv_draw_letter_dsc_t * dsc, const lv_area_t * coords);
-void lv_draw_sw_label(lv_draw_task_t * t, const lv_draw_label_dsc_t * dsc, const lv_area_t * coords);
-void lv_draw_sw_arc(lv_draw_task_t * t, const lv_draw_arc_dsc_t * dsc, const lv_area_t * coords);
-void lv_draw_sw_line(lv_draw_task_t * t, const lv_draw_line_dsc_t * dsc);
-void lv_draw_sw_layer(lv_draw_task_t * t, const lv_draw_image_dsc_t * draw_dsc, const lv_area_t * coords);
-void lv_draw_sw_triangle(lv_draw_task_t * t, const lv_draw_triangle_dsc_t * dsc);
-void lv_draw_sw_blur(lv_draw_task_t * t, const lv_draw_blur_dsc_t * dsc, const lv_area_t * coords);
-void lv_draw_sw_mask_rect(lv_draw_task_t * t, const lv_draw_mask_rect_dsc_t * dsc);
-void lv_draw_sw_transform(const lv_area_t * dest_area, const void * src_buf,
-                          int32_t src_w, int32_t src_h, int32_t src_stride,
-                          const lv_draw_image_dsc_t * draw_dsc, const lv_draw_image_sup_t * sup, lv_color_format_t cf, void * dest_buf);
-bool lv_draw_sw_register_blend_handler(lv_draw_sw_custom_blend_handler_t * handler);
-bool lv_draw_sw_unregister_blend_handler(lv_color_format_t dest_cf);
-lv_draw_sw_blend_handler_t lv_draw_sw_get_blend_handler(lv_color_format_t dest_cf);
+typedef lv_display_rotation_t lv_disp_rotation_t;
+static inline int lv_version_major(void)
+{
+    return 9;
+}
+static inline int lv_version_minor(void)
+{
+    return 6;
+}
+static inline int lv_version_patch(void)
+{
+    return 0;
+}
+static inline const char * lv_version_info(void)
+{
+    return "";
+}
 typedef union {
     struct {
         uint32_t user, nice, system, idle, irq, softirq,
@@ -5181,78 +4498,26 @@ static inline lv_result_t lv_thread_sync_delete(lv_thread_sync_t * sync)
     ((void)sync);
     return LV_RESULT_INVALID;
 }
-struct _lv_timer_t {
-    uint32_t period;
-    uint32_t last_run;
-    lv_timer_cb_t timer_cb;
-    void * user_data;
-    int32_t repeat_count;
-    volatile int paused;
-    uint32_t auto_delete : 1;
-};
-typedef struct {
-    lv_ll_t timer_ll;
-    bool lv_timer_run;
-    uint8_t idle_last;
-    bool timer_deleted;
-    bool timer_created;
-    volatile uint32_t timer_time_until_next;
-    bool already_running;
-    uint32_t periodic_last_tick;
-    uint32_t busy_time;
-    uint32_t idle_period_start;
-    uint32_t run_cnt;
-    lv_timer_handler_resume_cb_t resume_cb;
-    void * resume_data;
-} lv_timer_state_t;
-void lv_timer_core_init(void);
-void lv_timer_core_deinit(void);
-typedef struct {
-    bool anim_list_changed;
-    bool anim_run_round;
-    bool anim_vsync_registered;
-    lv_timer_t * timer;
-    lv_ll_t anim_ll;
-} lv_anim_state_t;
-void lv_anim_core_init(void);
-void lv_anim_core_deinit(void);
-void lv_anim_enable_vsync_mode(bool enable);
-typedef struct {
-    volatile uint32_t sys_time;
-    volatile uint8_t sys_irq_flag;
-    lv_tick_get_cb_t tick_get_cb;
-    lv_delay_cb_t delay_cb;
-} lv_tick_state_t;
-struct _lv_draw_buf_handlers_t {
-    lv_draw_buf_malloc_cb_t buf_malloc_cb;
-    lv_draw_buf_free_cb_t buf_free_cb;
-    lv_draw_buf_copy_cb_t buf_copy_cb;
-    lv_draw_buf_align_cb_t align_pointer_cb;
-    lv_draw_buf_cache_operation_cb_t invalidate_cache_cb;
-    lv_draw_buf_cache_operation_cb_t flush_cache_cb;
-    lv_draw_buf_width_to_stride_cb_t width_to_stride_cb;
-};
-void lv_draw_buf_init_handlers(void);
-uint32_t lv_cache_entry_get_size(const uint32_t node_size);
-int32_t lv_cache_entry_get_ref(lv_cache_entry_t * entry);
-uint32_t lv_cache_entry_get_node_size(lv_cache_entry_t * entry);
-bool lv_cache_entry_is_invalid(lv_cache_entry_t * entry);
-void * lv_cache_entry_get_data(lv_cache_entry_t * entry);
-const lv_cache_t * lv_cache_entry_get_cache(const lv_cache_entry_t * entry);
-lv_cache_entry_t * lv_cache_entry_get_entry(void * data, const uint32_t node_size);
-lv_cache_entry_t * lv_cache_entry_alloc(const uint32_t node_size, const lv_cache_t * cache);
-void lv_cache_entry_init(lv_cache_entry_t * entry, const lv_cache_t * cache, const uint32_t node_size);
-void lv_cache_entry_delete(lv_cache_entry_t * entry);
+typedef struct _lv_iter_t lv_iter_t;
+typedef lv_result_t (*lv_iter_next_cb)(void * instance, void * context, void * elem);
+typedef void (*lv_iter_inspect_cb)(void * elem);
+lv_iter_t * lv_iter_create(void * instance, uint32_t elem_size, uint32_t context_size, lv_iter_next_cb next_cb);
+void * lv_iter_get_context(const lv_iter_t * iter);
+void lv_iter_destroy(lv_iter_t * iter);
+lv_result_t lv_iter_next(lv_iter_t * iter, void * elem);
+void lv_iter_make_peekable(lv_iter_t * iter, uint32_t capacity);
+lv_result_t lv_iter_peek(lv_iter_t * iter, void * elem);
+lv_result_t lv_iter_peek_advance(lv_iter_t * iter);
+lv_result_t lv_iter_peek_reset(lv_iter_t * iter);
+void lv_iter_inspect(lv_iter_t * iter, lv_iter_inspect_cb inspect_cb);
+typedef struct _lv_cache_entry_t lv_cache_entry_t;
+typedef struct _lv_cache_t lv_cache_t;
 typedef enum {
     LV_CACHE_RESERVE_COND_OK,
     LV_CACHE_RESERVE_COND_TOO_LARGE,
     LV_CACHE_RESERVE_COND_NEED_VICTIM,
     LV_CACHE_RESERVE_COND_ERROR
 } lv_cache_reserve_cond_res_t;
-struct _lv_cache_ops_t;
-struct _lv_cache_t;
-struct _lv_cache_class_t;
-struct _lv_cache_entry_t;
 typedef struct _lv_cache_ops_t lv_cache_ops_t;
 typedef struct _lv_cache_class_t lv_cache_class_t;
 typedef int32_t lv_cache_compare_res_t;
@@ -5303,23 +4568,6 @@ typedef struct _lv_cache_slot_size_t lv_cache_slot_size_t;
 struct _lv_cache_slot_size_t {
     size_t size;
 };
- extern const lv_cache_class_t lv_cache_class_lru_rb_count;
- extern const lv_cache_class_t lv_cache_class_lru_rb_size;
- extern const lv_cache_class_t lv_cache_class_lru_ll_count;
- extern const lv_cache_class_t lv_cache_class_lru_ll_size;
- extern const lv_cache_class_t lv_cache_class_sc_da;
-lv_result_t lv_image_header_cache_init(uint32_t count);
-void lv_image_header_cache_resize(uint32_t count, bool evict_now);
-void lv_image_header_cache_drop(const void * src);
-bool lv_image_header_cache_is_enabled(void);
-lv_iter_t * lv_image_header_cache_iter_create(void);
-void lv_image_header_cache_dump(void);
-lv_result_t lv_image_cache_init(uint32_t size);
-void lv_image_cache_resize(uint32_t new_size, bool evict_now);
-void lv_image_cache_drop(const void * src);
-bool lv_image_cache_is_enabled(void);
-lv_iter_t * lv_image_cache_iter_create(void);
-void lv_image_cache_dump(void);
 lv_cache_t * lv_cache_create(const lv_cache_class_t * cache_class,
                              size_t node_size, size_t max_size,
                              lv_cache_ops_t ops);
@@ -5343,12 +4591,31 @@ void lv_cache_set_free_cb(lv_cache_t * cache, lv_cache_free_cb_t free_cb, void *
 void lv_cache_set_name(lv_cache_t * cache, const char * name);
 const char * lv_cache_get_name(lv_cache_t * cache);
 lv_iter_t * lv_cache_iter_create(lv_cache_t * cache);
+const lv_cache_t * lv_cache_entry_get_cache(const lv_cache_entry_t * entry);
+lv_cache_entry_t * lv_cache_entry_alloc(const uint32_t node_size, const lv_cache_t * cache);
+void lv_cache_entry_init(lv_cache_entry_t * entry, const lv_cache_t * cache, const uint32_t node_size);
+void lv_cache_entry_delete(lv_cache_entry_t * entry);
+ extern const lv_cache_class_t lv_cache_class_lru_rb_count;
+ extern const lv_cache_class_t lv_cache_class_lru_rb_size;
+ extern const lv_cache_class_t lv_cache_class_lru_ll_count;
+ extern const lv_cache_class_t lv_cache_class_lru_ll_size;
+ extern const lv_cache_class_t lv_cache_class_sc_da;
+lv_result_t lv_image_cache_init(uint32_t size);
+void lv_image_cache_resize(uint32_t new_size, bool evict_now);
+bool lv_image_cache_is_enabled(void);
+lv_iter_t * lv_image_cache_iter_create(void);
+void lv_image_cache_dump(void);
+uint32_t lv_cache_entry_get_size(const uint32_t node_size);
+int32_t lv_cache_entry_get_ref(lv_cache_entry_t * entry);
+uint32_t lv_cache_entry_get_node_size(lv_cache_entry_t * entry);
+bool lv_cache_entry_is_invalid(lv_cache_entry_t * entry);
+void * lv_cache_entry_get_data(lv_cache_entry_t * entry);
+lv_cache_entry_t * lv_cache_entry_get_entry(void * data, const uint32_t node_size);
 struct _lv_draw_task_t {
     lv_draw_task_t * next;
     lv_draw_task_type_t type;
     lv_area_t area;
     lv_area_t _real_area;
-    lv_area_t clip_area_original;
     lv_area_t clip_area;
     lv_layer_t * target_layer;
     lv_draw_unit_t * draw_unit;
@@ -5379,19 +4646,143 @@ typedef struct {
     lv_mutex_t circle_cache_mutex;
     bool task_running;
 } lv_draw_global_info_t;
+void lv_draw_cleanup_task(lv_draw_task_t * t);
+typedef void (*lv_draw_sw_blend_handler_t)(lv_draw_task_t * t, const lv_draw_sw_blend_dsc_t * dsc);
 typedef struct {
-    lv_draw_task_t * task_act;
+    lv_color_format_t dest_cf;
+    lv_draw_sw_blend_handler_t handler;
+} lv_draw_sw_custom_blend_handler_t;
+void lv_draw_sw_blend(lv_draw_task_t * t, const lv_draw_sw_blend_dsc_t * dsc);
+void lv_draw_sw_init(void);
+void lv_draw_sw_deinit(void);
+void lv_draw_sw_fill(lv_draw_task_t * t, lv_draw_fill_dsc_t * dsc, const lv_area_t * coords);
+void lv_draw_sw_border(lv_draw_task_t * t, const lv_draw_border_dsc_t * dsc, const lv_area_t * coords);
+void lv_draw_sw_box_shadow(lv_draw_task_t * t, const lv_draw_box_shadow_dsc_t * dsc, const lv_area_t * coords);
+void lv_draw_sw_image(lv_draw_task_t * t, const lv_draw_image_dsc_t * draw_dsc,
+                      const lv_area_t * coords);
+void lv_draw_sw_letter(lv_draw_task_t * t, const lv_draw_letter_dsc_t * dsc, const lv_area_t * coords);
+void lv_draw_sw_label(lv_draw_task_t * t, const lv_draw_label_dsc_t * dsc, const lv_area_t * coords);
+void lv_draw_sw_arc(lv_draw_task_t * t, const lv_draw_arc_dsc_t * dsc, const lv_area_t * coords);
+void lv_draw_sw_line(lv_draw_task_t * t, const lv_draw_line_dsc_t * dsc);
+void lv_draw_sw_layer(lv_draw_task_t * t, const lv_draw_image_dsc_t * draw_dsc, const lv_area_t * coords);
+void lv_draw_sw_triangle(lv_draw_task_t * t, const lv_draw_triangle_dsc_t * dsc);
+void lv_draw_sw_blur(lv_draw_task_t * t, const lv_draw_blur_dsc_t * dsc, const lv_area_t * coords);
+void lv_draw_sw_mask_rect(lv_draw_task_t * t, const lv_draw_mask_rect_dsc_t * dsc);
+void lv_draw_sw_transform(const lv_area_t * dest_area, const void * src_buf,
+                          int32_t src_w, int32_t src_h, int32_t src_stride,
+                          const lv_draw_image_dsc_t * draw_dsc, const lv_draw_image_sup_t * sup, lv_color_format_t src_cf, void * dest_buf);
+bool lv_draw_sw_register_blend_handler(lv_draw_sw_custom_blend_handler_t * handler);
+bool lv_draw_sw_unregister_blend_handler(lv_color_format_t dest_cf);
+lv_draw_sw_blend_handler_t lv_draw_sw_get_blend_handler(lv_color_format_t dest_cf);
+struct _lv_timer_t {
+    uint32_t period;
+    uint32_t last_run;
+    lv_timer_cb_t timer_cb;
+    void * user_data;
+    int32_t repeat_count;
+    volatile int paused;
+    uint32_t auto_delete : 1;
+};
+typedef struct {
+    lv_ll_t timer_ll;
+    bool lv_timer_run;
+    uint8_t idle_last;
+    bool timer_deleted;
+    bool timer_created;
+    volatile uint32_t timer_time_until_next;
+    bool already_running;
+    uint32_t periodic_last_tick;
+    uint32_t busy_time;
+    uint32_t idle_period_start;
+    uint32_t run_cnt;
+    lv_timer_handler_resume_cb_t resume_cb;
+    void * resume_data;
+} lv_timer_state_t;
+void lv_timer_core_init(void);
+void lv_timer_core_deinit(void);
+typedef struct {
+    bool anim_list_changed;
+    bool anim_run_round;
+    bool anim_vsync_registered;
+    lv_timer_t * timer;
+    lv_ll_t anim_ll;
+} lv_anim_state_t;
+void lv_anim_core_init(void);
+void lv_anim_core_deinit(void);
+void lv_anim_enable_vsync_mode(bool enable);
+typedef struct {
+    volatile uint32_t sys_time;
+    volatile uint8_t sys_irq_flag;
+    lv_tick_get_cb_t tick_get_cb;
+    lv_delay_cb_t delay_cb;
+} lv_tick_state_t;
+struct _lv_draw_buf_handlers_t {
+    lv_draw_buf_malloc_cb_t buf_malloc_cb;
+    lv_draw_buf_free_cb_t buf_free_cb;
+    lv_draw_buf_copy_cb_t buf_copy_cb;
+    lv_draw_buf_align_cb_t align_pointer_cb;
+    lv_draw_buf_cache_operation_cb_t invalidate_cache_cb;
+    lv_draw_buf_cache_operation_cb_t flush_cache_cb;
+    lv_draw_buf_width_to_stride_cb_t width_to_stride_cb;
+    lv_draw_buf_clear_cb_t buf_clear_cb;
+};
+void lv_draw_buf_init_handlers(void);
+void lv_draw_buf_clear_ex(lv_draw_buf_t * draw_buf, const lv_area_t * a, lv_layer_t * layer);
+typedef struct {
+    lv_draw_task_t * volatile task_act;
     lv_thread_t thread;
-    lv_thread_sync_t sync;
+    lv_thread_sync_t new_task_sync;
+    lv_thread_sync_t task_done_sync;
     lv_draw_unit_t * draw_unit;
     uint32_t idx;
-    volatile bool inited;
     volatile bool exit_status;
 } lv_draw_sw_thread_dsc_t;
 struct _lv_draw_sw_unit_t {
     lv_draw_unit_t base_unit;
     lv_draw_task_t * task_act;
 };
+typedef enum {
+    LV_DRAW_SW_MASK_RES_TRANSP,
+    LV_DRAW_SW_MASK_RES_FULL_COVER,
+    LV_DRAW_SW_MASK_RES_CHANGED,
+    LV_DRAW_SW_MASK_RES_UNKNOWN
+} lv_draw_sw_mask_res_t;
+typedef enum {
+    LV_DRAW_SW_MASK_TYPE_LINE,
+    LV_DRAW_SW_MASK_TYPE_ANGLE,
+    LV_DRAW_SW_MASK_TYPE_RADIUS,
+    LV_DRAW_SW_MASK_TYPE_FADE,
+    LV_DRAW_SW_MASK_TYPE_MAP,
+} lv_draw_sw_mask_type_t;
+typedef enum {
+    LV_DRAW_SW_MASK_LINE_SIDE_LEFT = 0,
+    LV_DRAW_SW_MASK_LINE_SIDE_RIGHT,
+    LV_DRAW_SW_MASK_LINE_SIDE_TOP,
+    LV_DRAW_SW_MASK_LINE_SIDE_BOTTOM,
+} lv_draw_sw_mask_line_side_t;
+typedef lv_draw_sw_mask_res_t (*lv_draw_sw_mask_xcb_t)(lv_opa_t * mask_buf, int32_t abs_x, int32_t abs_y,
+                                                       int32_t len,
+                                                       void * p);
+void lv_draw_sw_mask_init(void);
+void lv_draw_sw_mask_deinit(void);
+lv_draw_sw_mask_res_t lv_draw_sw_mask_apply(void * masks[], lv_opa_t * mask_buf,
+                                                                        int32_t abs_x,
+                                                                        int32_t abs_y,
+                                                                        int32_t len);
+void lv_draw_sw_mask_free_param(void * p);
+void lv_draw_sw_mask_line_points_init(lv_draw_sw_mask_line_param_t * param, int32_t p1x, int32_t p1y,
+                                      int32_t p2x,
+                                      int32_t p2y, lv_draw_sw_mask_line_side_t side);
+void lv_draw_sw_mask_line_angle_init(lv_draw_sw_mask_line_param_t * param, int32_t px, int32_t py, int16_t angle,
+                                     lv_draw_sw_mask_line_side_t side);
+void lv_draw_sw_mask_angle_init(lv_draw_sw_mask_angle_param_t * param, int32_t vertex_x, int32_t vertex_y,
+                                int32_t start_angle, int32_t end_angle);
+lv_result_t lv_draw_sw_mask_radius_init(lv_draw_sw_mask_radius_param_t * param, const lv_area_t * rect, int32_t radius,
+                                        bool inv);
+void lv_draw_sw_mask_fade_init(lv_draw_sw_mask_fade_param_t * param, const lv_area_t * coords, lv_opa_t opa_top,
+                               int32_t y_top,
+                               lv_opa_t opa_bottom, int32_t y_bottom);
+void lv_draw_sw_mask_map_init(lv_draw_sw_mask_map_param_t * param, const lv_area_t * coords, const lv_opa_t * map);
 typedef struct {
     uint8_t * buf;
     lv_opa_t * cir_opa;
@@ -5477,6 +4868,7 @@ typedef struct _lv_global_t {
     lv_display_t * disp_default;
     lv_ll_t style_trans_ll;
     bool style_refresh;
+    uint32_t blur_obj_cnt;
     uint32_t style_custom_table_size;
     uint32_t style_last_custom_prop_id;
     uint8_t * style_custom_prop_flag_lookup_table;
@@ -5503,6 +4895,7 @@ typedef struct _lv_global_t {
     lv_cache_t * img_header_cache;
     lv_draw_global_info_t draw_info;
     lv_ll_t draw_sw_blend_handler_ll;
+    lv_ll_t subject_ll;
     lv_draw_sw_mask_radius_circle_dsc_arr_t sw_circle_cache;
     void * theme_default;
     lv_ll_t fsdrv_ll;
@@ -5510,6 +4903,1139 @@ typedef struct _lv_global_t {
     lv_linux_proc_stat_t linux_last_proc_stat;
 } lv_global_t;
 lv_global_t * lv_global_default(void);
+struct _lv_group_t {
+    lv_ll_t obj_ll;
+    lv_obj_t ** obj_focus;
+    lv_group_focus_cb_t focus_cb;
+    lv_group_edge_cb_t edge_cb;
+    void * user_data;
+    uint8_t frozen : 1;
+    uint8_t editing : 1;
+    uint8_t refocus_policy : 1;
+    uint8_t wrap : 1;
+};
+void lv_group_init(void);
+void lv_group_deinit(void);
+struct _lv_obj_class_t {
+    const lv_obj_class_t * base_class;
+    void (*constructor_cb)(const lv_obj_class_t * class_p, lv_obj_t * obj);
+    void (*destructor_cb)(const lv_obj_class_t * class_p, lv_obj_t * obj);
+    void (*event_cb)(const lv_obj_class_t * class_p, lv_event_t * e);
+    void * user_data;
+    const char * name;
+    int32_t width_def;
+    int32_t height_def;
+    uint32_t editable : 2;
+    uint32_t group_def : 2;
+    uint32_t instance_size : 16;
+    uint32_t theme_inheritable : 1;
+};
+void lv_obj_destruct(lv_obj_t * obj);
+int32_t lv_obj_get_ext_draw_size(const lv_obj_t * obj);
+lv_layer_type_t lv_obj_get_layer_type(const lv_obj_t * obj);
+struct _lv_hit_test_info_t {
+    const lv_point_t * point;
+    bool res;
+};
+struct _lv_cover_check_info_t {
+    lv_cover_res_t res;
+    const lv_area_t * area;
+};
+typedef struct _lv_array_t {
+    uint8_t * data;
+    uint32_t size;
+    uint32_t capacity;
+    uint32_t element_size;
+    bool inner_alloc;
+} lv_array_t;
+lv_result_t lv_array_init(lv_array_t * array, uint32_t capacity, uint32_t element_size);
+void lv_array_init_from_buf(lv_array_t * array, void * buf, uint32_t capacity, uint32_t element_size);
+bool lv_array_resize(lv_array_t * array, uint32_t new_capacity);
+void lv_array_deinit(lv_array_t * array);
+static inline uint32_t lv_array_size(const lv_array_t * array)
+{
+    return array->size;
+}
+static inline uint32_t lv_array_capacity(const lv_array_t * array)
+{
+    return array->capacity;
+}
+static inline bool lv_array_is_empty(const lv_array_t * array)
+{
+    return array->size == 0;
+}
+static inline bool lv_array_is_full(const lv_array_t * array)
+{
+    return array->size == array->capacity;
+}
+void lv_array_copy(lv_array_t * target, const lv_array_t * source);
+static inline void lv_array_clear(lv_array_t * array)
+{
+    array->size = 0;
+}
+void lv_array_shrink(lv_array_t * array);
+lv_result_t lv_array_remove(lv_array_t * array, uint32_t index);
+lv_result_t lv_array_remove_unordered(lv_array_t * array, uint32_t index);
+lv_result_t lv_array_erase(lv_array_t * array, uint32_t start, uint32_t end);
+lv_result_t lv_array_concat(lv_array_t * array, const lv_array_t * other);
+lv_result_t lv_array_push_back(lv_array_t * array, const void * element);
+lv_result_t lv_array_assign(lv_array_t * array, uint32_t index, const void * value);
+void * lv_array_at(const lv_array_t * array, uint32_t index);
+static inline void * lv_array_front(const lv_array_t * array)
+{
+    return lv_array_at(array, 0);
+}
+static inline void * lv_array_back(const lv_array_t * array)
+{
+    return lv_array_at(array, lv_array_size(array) - 1);
+}
+struct _lv_event_dsc_t {
+    lv_event_cb_t cb;
+    void * user_data;
+    uint32_t filter;
+};
+struct _lv_event_t {
+    void * current_target;
+    void * original_target;
+    lv_event_code_t code;
+    void * user_data;
+    void * param;
+    lv_event_t * prev;
+    uint8_t deleted : 1;
+    uint8_t stop_processing : 1;
+    uint8_t stop_bubbling : 1;
+    uint8_t stop_trickling : 1;
+};
+struct _lv_event_list_t {
+    lv_array_t array;
+    uint8_t is_traversing: 1;
+    uint8_t has_marked_deleting: 1;
+};
+void lv_event_push(lv_event_t * e);
+void lv_event_pop(lv_event_t * e);
+lv_result_t lv_event_push_and_send(lv_event_list_t * event_list, lv_event_code_t code, void * original_target,
+                                   void * param);
+void lv_event_mark_deleted(void * target);
+typedef struct _lv_obj_spec_attr_t {
+    lv_obj_t ** children;
+    lv_group_t * group_p;
+    lv_event_list_t event_list;
+    lv_point_t scroll;
+    int32_t ext_click_pad;
+    int32_t ext_draw_size;
+    uint16_t child_cnt;
+    uint16_t scrollbar_mode : 2;
+    uint16_t scroll_snap_x : 2;
+    uint16_t scroll_snap_y : 2;
+    uint16_t scroll_dir : 4;
+    uint16_t layer_type : 2;
+    uint16_t name_static : 1;
+    uint16_t user_flags : 8;
+} lv_obj_spec_attr_t;
+struct _lv_obj_t {
+    const lv_obj_class_t * class_p;
+    lv_obj_t * parent;
+    lv_obj_spec_attr_t * spec_attr;
+    lv_obj_style_t * styles;
+    uint32_t style_main_prop_is_set;
+    uint32_t style_other_prop_is_set;
+    void * user_data;
+    lv_area_t coords;
+    uint32_t hidden : 1;
+    uint32_t clickable : 1;
+    uint32_t click_focusable : 1;
+    uint32_t checkable : 1;
+    uint32_t scrollable : 1;
+    uint32_t scroll_elastic : 1;
+    uint32_t scroll_momentum : 1;
+    uint32_t scroll_one : 1;
+    uint32_t scroll_chain_hor : 1;
+    uint32_t scroll_chain_ver : 1;
+    uint32_t scroll_on_focus : 1;
+    uint32_t scroll_with_arrow : 1;
+    uint32_t snappable : 1;
+    uint32_t press_lock : 1;
+    uint32_t event_bubble : 1;
+    uint32_t gesture_bubble : 1;
+    uint32_t adv_hittest : 1;
+    uint32_t ignore_layout : 1;
+    uint32_t floating : 1;
+    uint32_t send_draw_task_events : 1;
+    uint32_t overflow_visible : 1;
+    uint32_t event_trickle : 1;
+    uint32_t state_trickle : 1;
+    uint32_t radio_button : 1;
+    uint16_t state;
+    uint16_t layout_inv : 1;
+    uint16_t readjust_scroll_after_layout : 1;
+    uint16_t scr_layout_inv : 1;
+    uint16_t skip_trans : 1;
+    uint16_t style_cnt : 6;
+    uint16_t h_layout : 1;
+    uint16_t w_layout : 1;
+    uint16_t h_ignore_size : 1;
+    uint16_t w_ignore_size : 1;
+    uint16_t is_deleting : 1;
+    uint16_t rendered : 1;
+    uint16_t has_blur : 1;
+};
+lv_obj_spec_attr_t * lv_obj_allocate_spec_attr(lv_obj_t * obj);
+lv_result_t lv_obj_add_child(lv_obj_t * parent, lv_obj_t * child);
+void lv_obj_remove_child(lv_obj_t * parent, lv_obj_t * child);
+void lv_obj_invalidate_expand_blur(lv_display_t * disp);
+lv_result_t lv_obj_scroll_by_raw(lv_obj_t * obj, int32_t x, int32_t y);
+struct _lv_obj_style_t {
+    const lv_style_t * style;
+    uint32_t selector : 24;
+    uint32_t is_local : 1;
+    uint32_t is_trans : 1;
+    uint32_t is_disabled : 1;
+    uint32_t is_theme : 1;
+};
+struct _lv_obj_style_transition_dsc_t {
+    lv_anim_path_cb_t path_cb;
+    void * user_data;
+    lv_style_selector_t selector;
+    uint16_t time;
+    uint16_t delay;
+    lv_style_prop_t prop;
+};
+void lv_obj_style_init(void);
+void lv_obj_style_deinit(void);
+void lv_obj_style_create_transition(lv_obj_t * obj, lv_part_t part, lv_state_t prev_state,
+                                    lv_state_t new_state, const lv_obj_style_transition_dsc_t * tr_dsc);
+lv_style_state_cmp_t lv_obj_style_state_compare(lv_obj_t * obj, lv_state_t state1, lv_state_t state2,
+                                                lv_part_t * changed_part);
+void lv_obj_update_layer_type(lv_obj_t * obj);
+lv_style_value_t lv_obj_get_style_prop_internal(const lv_obj_t * obj, lv_part_t part, lv_style_prop_t prop);
+lv_style_value_t lv_obj_style_apply_color_filter_internal(const lv_obj_t * obj, lv_part_t part, lv_style_value_t v);
+void lv_obj_update_blur_status(lv_obj_t * obj);
+struct _lv_observer_t {
+    lv_subject_t * subject;
+    lv_observer_cb_t cb;
+    void * target;
+    void * user_data;
+    void (*user_cb)(void);
+    uint32_t auto_free_user_data : 1;
+    uint32_t notified : 1;
+    uint32_t for_obj : 1;
+};
+struct _lv_subject_increment_dsc_t {
+    lv_subject_t * subject;
+    int32_t step;
+    bool rollover;
+    int32_t min_value;
+    int32_t max_value;
+};
+void lv_subject_global_init(void);
+void lv_subject_global_deinit(void);
+void lv_refr_init(void);
+void lv_refr_deinit(void);
+lv_result_t lv_inv_area(lv_display_t * disp, const lv_area_t * area_p);
+lv_display_t * lv_refr_get_disp_refreshing(void);
+void lv_refr_set_disp_refreshing(lv_display_t * disp);
+lv_obj_t * lv_refr_get_top_obj(const lv_area_t * area_p, lv_obj_t * obj);
+void lv_obj_refr(lv_layer_t * layer, lv_obj_t * obj);
+static inline int32_t lv_obj_get_style_width_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 30); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_WIDTH);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_min_width_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 44); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_MIN_WIDTH);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_max_width_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 58); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_MAX_WIDTH);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_height_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 72); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_HEIGHT);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_min_height_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 86); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_MIN_HEIGHT);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_max_height_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 100); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_MAX_HEIGHT);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_length_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 114); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_LENGTH);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_x_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 129); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_X);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_y_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 144); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_Y);
+    return (int32_t)v.num;
+}
+static inline lv_align_t lv_obj_get_style_align_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 162); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_ALIGN);
+    return (lv_align_t)v.num;
+}
+static inline int32_t lv_obj_get_style_transform_width_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 176); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TRANSFORM_WIDTH);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_transform_height_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 190); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TRANSFORM_HEIGHT);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_translate_x_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 205); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TRANSLATE_X);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_translate_y_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 220); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TRANSLATE_Y);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_translate_radial_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 234); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TRANSLATE_RADIAL);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_transform_scale_x_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 248); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TRANSFORM_SCALE_X);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_transform_scale_y_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 262); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TRANSFORM_SCALE_Y);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_transform_rotation_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 275); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TRANSFORM_ROTATION);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_transform_pivot_x_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 288); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TRANSFORM_PIVOT_X);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_transform_pivot_y_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 301); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TRANSFORM_PIVOT_Y);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_transform_skew_x_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 315); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TRANSFORM_SKEW_X);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_transform_skew_y_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 329); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TRANSFORM_SKEW_Y);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_pad_top_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 342); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_PAD_TOP);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_pad_bottom_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 355); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_PAD_BOTTOM);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_pad_left_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 368); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_PAD_LEFT);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_pad_right_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 381); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_PAD_RIGHT);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_pad_row_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 394); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_PAD_ROW);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_pad_column_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 407); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_PAD_COLUMN);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_pad_radial_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 420); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_PAD_RADIAL);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_margin_top_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 433); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_MARGIN_TOP);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_margin_bottom_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 446); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_MARGIN_BOTTOM);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_margin_left_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 459); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_MARGIN_LEFT);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_margin_right_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 472); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_MARGIN_RIGHT);
+    return (int32_t)v.num;
+}
+static inline lv_color_t lv_obj_get_style_bg_color_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 485); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BG_COLOR);
+    return v.color;
+}
+static inline lv_color_t lv_obj_get_style_bg_color_filtered_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 498); } } while(0);
+    lv_style_value_t v = lv_obj_style_apply_color_filter_internal(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_BG_COLOR));
+    return v.color;
+}
+static inline lv_opa_t lv_obj_get_style_bg_opa_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 513); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BG_OPA);
+    return (lv_opa_t)v.num;
+}
+static inline lv_color_t lv_obj_get_style_bg_grad_color_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 526); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BG_GRAD_COLOR);
+    return v.color;
+}
+static inline lv_color_t lv_obj_get_style_bg_grad_color_filtered_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 539); } } while(0);
+    lv_style_value_t v = lv_obj_style_apply_color_filter_internal(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_BG_GRAD_COLOR));
+    return v.color;
+}
+static inline lv_grad_dir_t lv_obj_get_style_bg_grad_dir_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 553); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BG_GRAD_DIR);
+    return (lv_grad_dir_t)v.num;
+}
+static inline int32_t lv_obj_get_style_bg_main_stop_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 567); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BG_MAIN_STOP);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_bg_grad_stop_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 581); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BG_GRAD_STOP);
+    return (int32_t)v.num;
+}
+static inline lv_opa_t lv_obj_get_style_bg_main_opa_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 594); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BG_MAIN_OPA);
+    return (lv_opa_t)v.num;
+}
+static inline lv_opa_t lv_obj_get_style_bg_grad_opa_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 607); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BG_GRAD_OPA);
+    return (lv_opa_t)v.num;
+}
+static inline const lv_grad_dsc_t * lv_obj_get_style_bg_grad_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 623); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BG_GRAD);
+    return (const lv_grad_dsc_t *)v.ptr;
+}
+static inline const void * lv_obj_get_style_bg_image_src_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 637); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BG_IMAGE_SRC);
+    return (const void *)v.ptr;
+}
+static inline lv_opa_t lv_obj_get_style_bg_image_opa_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 652); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BG_IMAGE_OPA);
+    return (lv_opa_t)v.num;
+}
+static inline lv_color_t lv_obj_get_style_bg_image_recolor_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 665); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BG_IMAGE_RECOLOR);
+    return v.color;
+}
+static inline lv_color_t lv_obj_get_style_bg_image_recolor_filtered_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 678); } } while(0);
+    lv_style_value_t v = lv_obj_style_apply_color_filter_internal(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_BG_IMAGE_RECOLOR));
+    return v.color;
+}
+static inline lv_opa_t lv_obj_get_style_bg_image_recolor_opa_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 694); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BG_IMAGE_RECOLOR_OPA);
+    return (lv_opa_t)v.num;
+}
+static inline bool lv_obj_get_style_bg_image_tiled_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 707); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BG_IMAGE_TILED);
+    return (bool)v.num;
+}
+static inline lv_color_t lv_obj_get_style_border_color_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 720); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BORDER_COLOR);
+    return v.color;
+}
+static inline lv_color_t lv_obj_get_style_border_color_filtered_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 733); } } while(0);
+    lv_style_value_t v = lv_obj_style_apply_color_filter_internal(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_BORDER_COLOR));
+    return v.color;
+}
+static inline lv_opa_t lv_obj_get_style_border_opa_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 748); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BORDER_OPA);
+    return (lv_opa_t)v.num;
+}
+static inline int32_t lv_obj_get_style_border_width_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 761); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BORDER_WIDTH);
+    return (int32_t)v.num;
+}
+static inline lv_border_side_t lv_obj_get_style_border_side_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 776); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BORDER_SIDE);
+    return (lv_border_side_t)v.num;
+}
+static inline bool lv_obj_get_style_border_post_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 790); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BORDER_POST);
+    return (bool)v.num;
+}
+static inline int32_t lv_obj_get_style_outline_width_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 803); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_OUTLINE_WIDTH);
+    return (int32_t)v.num;
+}
+static inline lv_color_t lv_obj_get_style_outline_color_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 816); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_OUTLINE_COLOR);
+    return v.color;
+}
+static inline lv_color_t lv_obj_get_style_outline_color_filtered_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 829); } } while(0);
+    lv_style_value_t v = lv_obj_style_apply_color_filter_internal(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_OUTLINE_COLOR));
+    return v.color;
+}
+static inline lv_opa_t lv_obj_get_style_outline_opa_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 844); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_OUTLINE_OPA);
+    return (lv_opa_t)v.num;
+}
+static inline int32_t lv_obj_get_style_outline_pad_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 857); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_OUTLINE_PAD);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_shadow_width_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 870); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_SHADOW_WIDTH);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_shadow_offset_x_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 883); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_SHADOW_OFFSET_X);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_shadow_offset_y_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 896); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_SHADOW_OFFSET_Y);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_shadow_spread_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 910); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_SHADOW_SPREAD);
+    return (int32_t)v.num;
+}
+static inline lv_color_t lv_obj_get_style_shadow_color_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 923); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_SHADOW_COLOR);
+    return v.color;
+}
+static inline lv_color_t lv_obj_get_style_shadow_color_filtered_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 936); } } while(0);
+    lv_style_value_t v = lv_obj_style_apply_color_filter_internal(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_SHADOW_COLOR));
+    return v.color;
+}
+static inline lv_opa_t lv_obj_get_style_shadow_opa_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 951); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_SHADOW_OPA);
+    return (lv_opa_t)v.num;
+}
+static inline lv_opa_t lv_obj_get_style_image_opa_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 966); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_IMAGE_OPA);
+    return (lv_opa_t)v.num;
+}
+static inline lv_color_t lv_obj_get_style_image_recolor_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 979); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_IMAGE_RECOLOR);
+    return v.color;
+}
+static inline lv_color_t lv_obj_get_style_image_recolor_filtered_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 992); } } while(0);
+    lv_style_value_t v = lv_obj_style_apply_color_filter_internal(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_IMAGE_RECOLOR));
+    return v.color;
+}
+static inline lv_opa_t lv_obj_get_style_image_recolor_opa_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1007); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_IMAGE_RECOLOR_OPA);
+    return (lv_opa_t)v.num;
+}
+static inline const lv_image_colorkey_t * lv_obj_get_style_image_colorkey_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1022); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_IMAGE_COLORKEY);
+    return (const lv_image_colorkey_t *)v.ptr;
+}
+static inline int32_t lv_obj_get_style_line_width_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1035); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_LINE_WIDTH);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_line_dash_width_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1048); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_LINE_DASH_WIDTH);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_line_dash_gap_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1062); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_LINE_DASH_GAP);
+    return (int32_t)v.num;
+}
+static inline bool lv_obj_get_style_line_rounded_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1075); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_LINE_ROUNDED);
+    return (bool)v.num;
+}
+static inline lv_color_t lv_obj_get_style_line_color_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1088); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_LINE_COLOR);
+    return v.color;
+}
+static inline lv_color_t lv_obj_get_style_line_color_filtered_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1101); } } while(0);
+    lv_style_value_t v = lv_obj_style_apply_color_filter_internal(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_LINE_COLOR));
+    return v.color;
+}
+static inline lv_opa_t lv_obj_get_style_line_opa_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1114); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_LINE_OPA);
+    return (lv_opa_t)v.num;
+}
+static inline int32_t lv_obj_get_style_arc_width_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1127); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_ARC_WIDTH);
+    return (int32_t)v.num;
+}
+static inline bool lv_obj_get_style_arc_rounded_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1140); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_ARC_ROUNDED);
+    return (bool)v.num;
+}
+static inline lv_color_t lv_obj_get_style_arc_color_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1153); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_ARC_COLOR);
+    return v.color;
+}
+static inline lv_color_t lv_obj_get_style_arc_color_filtered_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1166); } } while(0);
+    lv_style_value_t v = lv_obj_style_apply_color_filter_internal(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_ARC_COLOR));
+    return v.color;
+}
+static inline lv_opa_t lv_obj_get_style_arc_opa_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1179); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_ARC_OPA);
+    return (lv_opa_t)v.num;
+}
+static inline const void * lv_obj_get_style_arc_image_src_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1193); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_ARC_IMAGE_SRC);
+    return (const void *)v.ptr;
+}
+static inline lv_color_t lv_obj_get_style_text_color_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1206); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TEXT_COLOR);
+    return v.color;
+}
+static inline lv_color_t lv_obj_get_style_text_color_filtered_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1219); } } while(0);
+    lv_style_value_t v = lv_obj_style_apply_color_filter_internal(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_TEXT_COLOR));
+    return v.color;
+}
+static inline lv_opa_t lv_obj_get_style_text_opa_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1234); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TEXT_OPA);
+    return (lv_opa_t)v.num;
+}
+static inline const lv_font_t * lv_obj_get_style_text_font_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1247); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TEXT_FONT);
+    return (const lv_font_t *)v.ptr;
+}
+static inline int32_t lv_obj_get_style_text_letter_space_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1260); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TEXT_LETTER_SPACE);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_text_line_space_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1273); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TEXT_LINE_SPACE);
+    return (int32_t)v.num;
+}
+static inline lv_text_decor_t lv_obj_get_style_text_decor_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1287); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TEXT_DECOR);
+    return (lv_text_decor_t)v.num;
+}
+static inline lv_text_align_t lv_obj_get_style_text_align_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1303); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TEXT_ALIGN);
+    return (lv_text_align_t)v.num;
+}
+static inline lv_color_t lv_obj_get_style_text_outline_stroke_color_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1316); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TEXT_OUTLINE_STROKE_COLOR);
+    return v.color;
+}
+static inline lv_color_t lv_obj_get_style_text_outline_stroke_color_filtered_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1329); } } while(0);
+    lv_style_value_t v = lv_obj_style_apply_color_filter_internal(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_TEXT_OUTLINE_STROKE_COLOR));
+    return v.color;
+}
+static inline int32_t lv_obj_get_style_text_outline_stroke_width_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1342); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TEXT_OUTLINE_STROKE_WIDTH);
+    return (int32_t)v.num;
+}
+static inline lv_opa_t lv_obj_get_style_text_outline_stroke_opa_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1357); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TEXT_OUTLINE_STROKE_OPA);
+    return (lv_opa_t)v.num;
+}
+static inline lv_text_leading_trim_t lv_obj_get_style_text_leading_trim_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1372); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TEXT_LEADING_TRIM);
+    return (lv_text_leading_trim_t)v.num;
+}
+static inline int32_t lv_obj_get_style_blur_radius_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1386); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BLUR_RADIUS);
+    return (int32_t)v.num;
+}
+static inline bool lv_obj_get_style_blur_backdrop_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1401); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BLUR_BACKDROP);
+    return (bool)v.num;
+}
+static inline lv_blur_quality_t lv_obj_get_style_blur_quality_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1416); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BLUR_QUALITY);
+    return (lv_blur_quality_t)v.num;
+}
+static inline int32_t lv_obj_get_style_drop_shadow_radius_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1430); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_DROP_SHADOW_RADIUS);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_drop_shadow_offset_x_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1443); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_DROP_SHADOW_OFFSET_X);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_drop_shadow_offset_y_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1456); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_DROP_SHADOW_OFFSET_Y);
+    return (int32_t)v.num;
+}
+static inline lv_color_t lv_obj_get_style_drop_shadow_color_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1469); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_DROP_SHADOW_COLOR);
+    return v.color;
+}
+static inline lv_color_t lv_obj_get_style_drop_shadow_color_filtered_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1482); } } while(0);
+    lv_style_value_t v = lv_obj_style_apply_color_filter_internal(obj, part, lv_obj_get_style_prop(obj, part, LV_STYLE_DROP_SHADOW_COLOR));
+    return v.color;
+}
+static inline lv_opa_t lv_obj_get_style_drop_shadow_opa_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1495); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_DROP_SHADOW_OPA);
+    return (lv_opa_t)v.num;
+}
+static inline lv_blur_quality_t lv_obj_get_style_drop_shadow_quality_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1510); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_DROP_SHADOW_QUALITY);
+    return (lv_blur_quality_t)v.num;
+}
+static inline int32_t lv_obj_get_style_radius_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1524); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_RADIUS);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_radial_offset_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1537); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_RADIAL_OFFSET);
+    return (int32_t)v.num;
+}
+static inline bool lv_obj_get_style_clip_corner_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1551); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_CLIP_CORNER);
+    return (bool)v.num;
+}
+static inline lv_opa_t lv_obj_get_style_opa_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1566); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_OPA);
+    return (lv_opa_t)v.num;
+}
+static inline lv_opa_t lv_obj_get_style_opa_layered_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1582); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_OPA_LAYERED);
+    return (lv_opa_t)v.num;
+}
+static inline const lv_color_filter_dsc_t * lv_obj_get_style_color_filter_dsc_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1595); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_COLOR_FILTER_DSC);
+    return (const lv_color_filter_dsc_t *)v.ptr;
+}
+static inline lv_opa_t lv_obj_get_style_color_filter_opa_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1608); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_COLOR_FILTER_OPA);
+    return (lv_opa_t)v.num;
+}
+static inline lv_color_t lv_obj_get_style_recolor_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1621); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_RECOLOR);
+    return v.color;
+}
+static inline lv_opa_t lv_obj_get_style_recolor_opa_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1637); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_RECOLOR_OPA);
+    return (lv_opa_t)v.num;
+}
+static inline const lv_anim_t * lv_obj_get_style_anim_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1653); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_ANIM);
+    return (const lv_anim_t *)v.ptr;
+}
+static inline uint32_t lv_obj_get_style_anim_duration_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1668); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_ANIM_DURATION);
+    return (uint32_t)v.num;
+}
+static inline const lv_style_transition_dsc_t * lv_obj_get_style_transition_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1681); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_TRANSITION);
+    return (const lv_style_transition_dsc_t *)v.ptr;
+}
+static inline lv_blend_mode_t lv_obj_get_style_blend_mode_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1695); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BLEND_MODE);
+    return (lv_blend_mode_t)v.num;
+}
+static inline uint16_t lv_obj_get_style_layout_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1709); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_LAYOUT);
+    return (uint16_t)v.num;
+}
+static inline lv_base_dir_t lv_obj_get_style_base_dir_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1722); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BASE_DIR);
+    return (lv_base_dir_t)v.num;
+}
+static inline const void * lv_obj_get_style_bitmap_mask_src_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1736); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_BITMAP_MASK_SRC);
+    return (const void *)v.ptr;
+}
+static inline uint32_t lv_obj_get_style_rotary_sensitivity_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1750); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_ROTARY_SENSITIVITY);
+    return (uint32_t)v.num;
+}
+static inline lv_flex_flow_t lv_obj_get_style_flex_flow_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1764); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_FLEX_FLOW);
+    return (lv_flex_flow_t)v.num;
+}
+static inline lv_flex_align_t lv_obj_get_style_flex_main_place_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1777); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_FLEX_MAIN_PLACE);
+    return (lv_flex_align_t)v.num;
+}
+static inline lv_flex_align_t lv_obj_get_style_flex_cross_place_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1790); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_FLEX_CROSS_PLACE);
+    return (lv_flex_align_t)v.num;
+}
+static inline lv_flex_align_t lv_obj_get_style_flex_track_place_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1803); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_FLEX_TRACK_PLACE);
+    return (lv_flex_align_t)v.num;
+}
+static inline uint8_t lv_obj_get_style_flex_grow_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1816); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_FLEX_GROW);
+    return (uint8_t)v.num;
+}
+static inline const int32_t * lv_obj_get_style_grid_column_dsc_array_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1832); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_GRID_COLUMN_DSC_ARRAY);
+    return (const int32_t *)v.ptr;
+}
+static inline lv_grid_align_t lv_obj_get_style_grid_column_align_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1845); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_GRID_COLUMN_ALIGN);
+    return (lv_grid_align_t)v.num;
+}
+static inline const int32_t * lv_obj_get_style_grid_row_dsc_array_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1858); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_GRID_ROW_DSC_ARRAY);
+    return (const int32_t *)v.ptr;
+}
+static inline lv_grid_align_t lv_obj_get_style_grid_row_align_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1871); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_GRID_ROW_ALIGN);
+    return (lv_grid_align_t)v.num;
+}
+static inline int32_t lv_obj_get_style_grid_cell_column_pos_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1884); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_GRID_CELL_COLUMN_POS);
+    return (int32_t)v.num;
+}
+static inline lv_grid_align_t lv_obj_get_style_grid_cell_x_align_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1897); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_GRID_CELL_X_ALIGN);
+    return (lv_grid_align_t)v.num;
+}
+static inline int32_t lv_obj_get_style_grid_cell_column_span_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1910); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_GRID_CELL_COLUMN_SPAN);
+    return (int32_t)v.num;
+}
+static inline int32_t lv_obj_get_style_grid_cell_row_pos_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1923); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_GRID_CELL_ROW_POS);
+    return (int32_t)v.num;
+}
+static inline lv_grid_align_t lv_obj_get_style_grid_cell_y_align_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1936); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_GRID_CELL_Y_ALIGN);
+    return (lv_grid_align_t)v.num;
+}
+static inline int32_t lv_obj_get_style_grid_cell_row_span_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal_gen.h", 1949); } } while(0);
+    lv_style_value_t v = lv_obj_get_style_prop_internal(obj, part, LV_STYLE_GRID_CELL_ROW_SPAN);
+    return (int32_t)v.num;
+}
+static inline lv_text_align_t lv_obj_calculate_style_text_align_internal(const lv_obj_t * obj, lv_part_t part,
+                                                                         const char * txt)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal.h", 31); } } while(0);
+    do { if(!(txt != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal.h", 32); } } while(0);
+    lv_text_align_t align = lv_obj_get_style_text_align_internal(obj, part);
+    lv_base_dir_t base_dir = lv_obj_get_style_base_dir_internal(obj, part);
+    lv_bidi_calculate_align(&align, &base_dir, txt);
+    return align;
+}
+static inline int32_t lv_obj_get_style_space_left_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal.h", 42); } } while(0);
+    int32_t padding = lv_obj_get_style_pad_left(obj, part);
+    int32_t border_width = lv_obj_get_style_border_width(obj, part);
+    lv_border_side_t border_side = lv_obj_get_style_border_side(obj, part);
+    return (border_side & LV_BORDER_SIDE_LEFT) ? padding + border_width : padding;
+}
+static inline int32_t lv_obj_get_style_space_right_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal.h", 51); } } while(0);
+    int32_t padding = lv_obj_get_style_pad_right(obj, part);
+    int32_t border_width = lv_obj_get_style_border_width(obj, part);
+    lv_border_side_t border_side = lv_obj_get_style_border_side(obj, part);
+    return (border_side & LV_BORDER_SIDE_RIGHT) ? padding + border_width : padding;
+}
+static inline int32_t lv_obj_get_style_space_top_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal.h", 60); } } while(0);
+    int32_t padding = lv_obj_get_style_pad_top(obj, part);
+    int32_t border_width = lv_obj_get_style_border_width(obj, part);
+    lv_border_side_t border_side = lv_obj_get_style_border_side(obj, part);
+    return (border_side & LV_BORDER_SIDE_TOP) ? padding + border_width : padding;
+}
+static inline int32_t lv_obj_get_style_space_bottom_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal.h", 69); } } while(0);
+    int32_t padding = lv_obj_get_style_pad_bottom(obj, part);
+    int32_t border_width = lv_obj_get_style_border_width(obj, part);
+    lv_border_side_t border_side = lv_obj_get_style_border_side(obj, part);
+    return (border_side & LV_BORDER_SIDE_BOTTOM) ? padding + border_width : padding;
+}
+static inline int32_t lv_obj_get_style_transform_scale_x_safe_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal.h", 78); } } while(0);
+    int32_t scale = lv_obj_get_style_transform_scale_x(obj, part);
+    return scale > 0 ? scale : 1;
+}
+static inline int32_t lv_obj_get_style_transform_scale_y_safe_internal(const lv_obj_t * obj, lv_part_t part)
+{
+    do { if(!(obj != 0)) { do {}while(0); lv_micropython_assert_failed("lv_obj_style_internal.h", 85); } } while(0);
+    int32_t scale = lv_obj_get_style_transform_scale_y(obj, part);
+    return scale > 0 ? scale : 1;
+}
 struct _lv_display_t {
     int32_t hor_res;
     int32_t ver_res;
@@ -5528,6 +6054,11 @@ struct _lv_display_t {
     volatile int flushing_last;
     volatile uint32_t last_area : 1;
     volatile uint32_t last_part : 1;
+    lv_display_sync_cb_t sync_cb;
+    lv_display_sync_wait_cb_t sync_wait_cb;
+    volatile int syncing;
+    volatile int syncing_last;
+    lv_ll_t sync_areas;
     lv_display_render_mode_t render_mode;
     uint32_t antialiasing : 1;
     uint32_t tile_cnt : 8;
@@ -5538,12 +6069,9 @@ struct _lv_display_t {
     uint8_t inv_area_joined[32];
     uint32_t inv_p;
     int32_t inv_en_cnt;
-    lv_ll_t sync_areas;
     lv_draw_buf_t _static_buf1;
     lv_draw_buf_t _static_buf2;
     lv_layer_t * layer_head;
-    void (*layer_init)(lv_display_t * disp, lv_layer_t * layer);
-    void (*layer_deinit)(lv_display_t * disp, lv_layer_t * layer);
     lv_obj_t ** screens;
     lv_obj_t * sys_layer;
     lv_obj_t * top_layer;
@@ -5565,256 +6093,8 @@ struct _lv_display_t {
     lv_area_t refreshed_area;
     uint32_t vsync_count;
 };
-void lv_indev_scroll_handler(lv_indev_t * indev);
-void lv_indev_scroll_throw_handler(lv_indev_t * indev);
-int32_t lv_indev_scroll_throw_predict(lv_indev_t * indev, lv_dir_t dir);
-void lv_indev_scroll_get_snap_dist(lv_obj_t * obj, lv_point_t * p);
-struct _lv_indev_t {
-    lv_indev_type_t type;
-    lv_indev_read_cb_t read_cb;
-    lv_indev_state_t state;
-    lv_indev_state_t prev_state;
-    lv_indev_mode_t mode;
-    uint8_t long_pr_sent : 1;
-    uint8_t reset_query : 1;
-    uint8_t enabled : 1;
-    uint8_t wait_until_release : 1;
-    uint8_t stop_processing_query : 1;
-    uint32_t timestamp;
-    uint32_t pr_timestamp;
-    uint32_t longpr_rep_timestamp;
-    void * driver_data;
-    void * user_data;
-    lv_display_t * disp;
-    lv_timer_t * read_timer;
-    uint8_t scroll_limit;
-    uint8_t scroll_throw;
-    uint8_t gesture_min_velocity;
-    uint8_t gesture_min_distance;
-    uint16_t long_press_time;
-    uint16_t long_press_repeat_time;
-    int32_t rotary_sensitivity;
-    struct {
-        lv_point_t act_point;
-        lv_point_t last_point;
-        lv_point_t last_raw_point;
-        lv_point_t vect;
-        lv_point_t vect_hist[8];
-        uint32_t vect_hist_timestamp[8];
-        uint8_t vect_hist_index;
-        lv_point_t scroll_sum;
-        lv_point_t scroll_throw_vect;
-        lv_point_t scroll_throw_vect_ori;
-        lv_obj_t * act_obj;
-        lv_obj_t * scroll_obj;
-        lv_obj_t * last_pressed;
-        lv_obj_t * last_hovered;
-        lv_area_t scroll_area;
-        lv_point_t gesture_sum;
-        int32_t diff;
-        uint8_t short_click_streak;
-        lv_point_t last_short_click_point;
-        uint32_t last_short_click_timestamp;
-        uint8_t scroll_dir : 4;
-        uint8_t gesture_dir : 4;
-        uint8_t gesture_sent : 1;
-        uint8_t press_moved : 1;
-        uint8_t pressed : 1;
-    } pointer;
-    struct {
-        lv_indev_state_t last_state;
-        uint32_t last_key;
-    } keypad;
-    lv_obj_t * cursor;
-    lv_group_t * group;
-    const lv_point_t * btn_points;
-    lv_event_list_t event_list;
-    lv_anim_t * scroll_throw_anim;
-    lv_indev_key_remap_cb_t key_remap_cb;
-    lv_indev_gesture_recognizer_t recognizers[LV_INDEV_GESTURE_CNT];
-    lv_indev_gesture_type_t cur_gesture;
-    void * gesture_data[LV_INDEV_GESTURE_CNT];
-    lv_indev_gesture_type_t gesture_type[LV_INDEV_GESTURE_CNT];
-};
-lv_obj_t * lv_indev_find_scroll_obj(lv_indev_t * indev);
-typedef enum {
-    LV_TEXT_CMD_STATE_WAIT,
-    LV_TEXT_CMD_STATE_PAR,
-    LV_TEXT_CMD_STATE_IN,
-} lv_text_cmd_state_t;
-typedef struct {
-    int32_t letter_space;
-    int32_t line_space;
-    int32_t max_width;
-    lv_text_flag_t text_flags;
-} lv_text_attributes_t;
-void lv_text_attributes_init(lv_text_attributes_t * attributes);
-void lv_text_get_size_attributes(lv_point_t * size_res, const char * text, const lv_font_t * font,
-                                 lv_text_attributes_t * attributes);
-int32_t lv_text_get_width(const char * txt, uint32_t length, const lv_font_t * font,
-                          const lv_text_attributes_t * attributes);
-bool lv_text_is_cmd(lv_text_cmd_state_t * state, uint32_t c);
-uint32_t lv_text_get_next_line(const char * txt, uint32_t len, const lv_font_t * font, int32_t * used_width,
-                               lv_text_attributes_t * attributes);
-void lv_text_ins(char * txt_buf, uint32_t pos, const char * ins_txt);
-void lv_text_cut(char * txt, uint32_t pos, uint32_t len);
-char * lv_text_set_text_vfmt(const char * fmt, va_list ap) ;
-void lv_text_encoded_letter_next_2(const char * txt, uint32_t * letter, uint32_t * letter_next, uint32_t * ofs);
-static inline bool lv_text_is_break_char(uint32_t letter)
-{
-    uint8_t i;
-    bool ret = 0;
-    for(i = 0; " ,.;:-_)]}"[i] != '\0'; i++) {
-        if(letter == (uint32_t)" ,.;:-_)]}"[i]) {
-            ret = 1;
-            break;
-        }
-    }
-    return ret;
-}
-static inline bool lv_text_is_a_word(uint32_t letter)
-{
-    if(letter == 0) return 0;
-    if(letter >= 0x4E00 && letter <= 0x9FFF) {
-        return 1;
-    }
-    if(letter >= 0xFF01 && letter <= 0xFF5E) {
-        return 1;
-    }
-    if(letter >= 0x3000 && letter <= 0x303F) {
-        return 1;
-    }
-    if(letter >= 0x2E80 && letter <= 0x2EFF) {
-        return 1;
-    }
-    if(letter >= 0x31C0 && letter <= 0x31EF) {
-        return 1;
-    }
-    if(letter >= 0x3040 && letter <= 0x30FF) {
-        return 1;
-    }
-    if(letter >= 0xFE10 && letter <= 0xFE1F) {
-        return 1;
-    }
-    if(letter >= 0xFE30 && letter <= 0xFE4F) {
-        return 1;
-    }
-    return 0;
-}
-static inline bool lv_text_is_marker(uint32_t letter)
-{
-    if(letter < 0x20) return 1;
-    if(letter == 0x061C) return 1;
-    if(letter == 0x115F) return 1;
-    if(letter == 0x1160) return 1;
-    if(letter >= 0x180B && letter <= 0x180E) return 1;
-    if(letter >= 0x200B && letter <= 0x200F) return 1;
-    if(letter >= 0x2028 && letter <= 0x202F) return 1;
-    if(letter >= 0x205F && letter <= 0x206F) return 1;
-    if(letter == 0xFEFF) return 1;
-    if(letter == 0xF8FF) return 1;
-    return 0;
-}
-extern uint8_t (*const lv_text_encoded_size)(const char * txt);
-extern uint32_t (*const lv_text_unicode_to_encoded)(uint32_t letter_uni);
-extern uint32_t (*const lv_text_encoded_conv_wc)(uint32_t c);
-extern uint32_t (*const lv_text_encoded_next)(const char * txt, uint32_t * i_start);
-extern uint32_t (*const lv_text_encoded_prev)(const char * txt, uint32_t * i_start);
-extern uint32_t (*const lv_text_encoded_get_byte_id)(const char * txt, uint32_t utf8_id);
-extern uint32_t (*const lv_text_encoded_get_char_id)(const char * txt, uint32_t byte_id);
-extern uint32_t (*const lv_text_get_encoded_length)(const char * txt);
-struct _lv_cache_entry_t {
-    const lv_cache_t * cache;
-    int32_t ref_cnt;
-    uint32_t node_size;
-    uint8_t flags;
-};
-void lv_cache_entry_reset_ref(lv_cache_entry_t * entry);
-void lv_cache_entry_inc_ref(lv_cache_entry_t * entry);
-void lv_cache_entry_dec_ref(lv_cache_entry_t * entry);
-void lv_cache_entry_set_node_size(lv_cache_entry_t * entry, uint32_t node_size);
-void lv_cache_entry_set_cache(lv_cache_entry_t * entry, const lv_cache_t * cache);
-void * lv_cache_entry_acquire_data(lv_cache_entry_t * entry);
-void lv_cache_entry_release_data(lv_cache_entry_t * entry, void * user_data);
-void lv_cache_entry_set_flag(lv_cache_entry_t * entry, uint8_t flags);
-void lv_cache_entry_remove_flag(lv_cache_entry_t * entry, uint8_t flags);
-bool lv_cache_entry_has_flag(lv_cache_entry_t * entry, uint8_t flags);
-struct _lv_obj_spec_attr_t {
-    lv_obj_t ** children;
-    lv_group_t * group_p;
-    lv_event_list_t event_list;
-    lv_point_t scroll;
-    int32_t ext_click_pad;
-    int32_t ext_draw_size;
-    uint16_t child_cnt;
-    uint16_t scrollbar_mode : 2;
-    uint16_t scroll_snap_x : 2;
-    uint16_t scroll_snap_y : 2;
-    uint16_t scroll_dir : 4;
-    uint16_t layer_type : 2;
-    uint16_t name_static : 1;
-};
-struct _lv_obj_t {
-    const lv_obj_class_t * class_p;
-    lv_obj_t * parent;
-    lv_obj_spec_attr_t * spec_attr;
-    lv_obj_style_t * styles;
-    uint32_t style_main_prop_is_set;
-    uint32_t style_other_prop_is_set;
-    void * user_data;
-    lv_area_t coords;
-    lv_obj_flag_t flags;
-    uint16_t state;
-    uint16_t layout_inv : 1;
-    uint16_t readjust_scroll_after_layout : 1;
-    uint16_t scr_layout_inv : 1;
-    uint16_t skip_trans : 1;
-    uint16_t style_cnt : 6;
-    uint16_t h_layout : 1;
-    uint16_t w_layout : 1;
-    uint16_t h_ignore_size : 1;
-    uint16_t w_ignore_size : 1;
-    uint16_t is_deleting : 1;
-    uint16_t radio_button : 1;
-    uint16_t rendered : 1;
-};
-struct _lv_image_t {
-    lv_obj_t obj;
-    const void * src;
-    const lv_image_dsc_t * bitmap_mask_src;
-    lv_point_t offset;
-    int32_t w;
-    int32_t h;
-    uint32_t rotation;
-    uint32_t scale_x;
-    uint32_t scale_y;
-    lv_point_t pivot;
-    uint32_t src_type : 2;
-    uint32_t cf : 5;
-    uint32_t antialias : 1;
-    uint32_t align: 4;
-    uint32_t blend_mode: 4;
-};
-struct _lv_canvas_t {
-    lv_image_t img;
-    lv_draw_buf_t * draw_buf;
-    lv_draw_buf_t static_buf;
-};
-struct _lv_qrcode_t {
-    lv_canvas_t canvas;
-    lv_color_t dark_color;
-    lv_color_t light_color;
-    int32_t quiet_zone;
-};
-struct _lv_barcode_t {
-    lv_canvas_t canvas;
-    lv_color_t dark_color;
-    lv_color_t light_color;
-    uint16_t scale;
-    lv_dir_t direction;
-    bool tiled;
-    lv_barcode_encoding_t encoding;
-};
+void lv_display_set_draw_buf_handlers(lv_display_t * disp, const lv_draw_buf_handlers_t * handlers);
+lv_result_t lv_draw_buf_convert_premultiply(lv_draw_buf_t * draw_buf);
 struct _lv_draw_image_sup_t {
     lv_color_t alpha_color;
     const lv_color32_t * palette;
@@ -5828,6 +6108,211 @@ void lv_draw_image_tiled_helper(lv_draw_task_t * t, const lv_draw_image_dsc_t * 
                                 const lv_image_decoder_args_t * decoder_args);
 void lv_image_buf_get_transformed_area(lv_area_t * res, int32_t w, int32_t h, int32_t angle,
                                        uint16_t scale_x, uint16_t scale_y, const lv_point_t * pivot);
+struct _lv_draw_label_hint_t {
+    int32_t line_start;
+    int32_t y;
+    int32_t coord_y;
+};
+struct _lv_draw_glyph_dsc_t {
+    const void * glyph_data;
+    lv_font_glyph_format_t format;
+    const lv_area_t * letter_coords;
+    const lv_area_t * bg_coords;
+    lv_font_glyph_dsc_t * g;
+    lv_color_t color;
+    lv_opa_t opa;
+    lv_color_t outline_stroke_color;
+    lv_opa_t outline_stroke_opa;
+    int32_t outline_stroke_width;
+    int32_t rotation;
+    lv_point_t pivot;
+    lv_draw_buf_t * _draw_buf;
+};
+void lv_draw_unit_draw_letter_internal(lv_draw_task_t * t, lv_draw_glyph_dsc_t * dsc, const lv_point_t * pos,
+                                       const lv_font_t * font, uint32_t letter, lv_draw_glyph_cb_t cb);
+void lv_area_set_pos(lv_area_t * area_p, int32_t x, int32_t y);
+bool lv_area_intersect(lv_area_t * res_p, const lv_area_t * a1_p, const lv_area_t * a2_p);
+int8_t lv_area_diff(lv_area_t res_p[], const lv_area_t * a1_p, const lv_area_t * a2_p);
+void lv_area_join(lv_area_t * a_res_p, const lv_area_t * a1_p, const lv_area_t * a2_p);
+bool lv_area_is_point_on(const lv_area_t * a_p, const lv_point_t * p_p, int32_t radius);
+bool lv_area_is_on(const lv_area_t * a1_p, const lv_area_t * a2_p);
+bool lv_area_is_in(const lv_area_t * ain_p, const lv_area_t * aholder_p, int32_t radius);
+bool lv_area_is_out(const lv_area_t * aout_p, const lv_area_t * aholder_p, int32_t radius);
+bool lv_area_is_equal(const lv_area_t * a, const lv_area_t * b);
+struct _lv_draw_sw_blend_dsc_t {
+    const lv_area_t * blend_area;
+    const void * src_buf;
+    uint32_t src_stride;
+    lv_color_format_t src_color_format;
+    const lv_area_t * src_area;
+    lv_opa_t opa;
+    lv_color_t color;
+    const lv_opa_t * mask_buf;
+    lv_draw_sw_mask_res_t mask_res;
+    const lv_area_t * mask_area;
+    int32_t mask_stride;
+    lv_blend_mode_t blend_mode;
+};
+struct _lv_draw_sw_blend_fill_dsc_t {
+    void * dest_buf;
+    int32_t dest_w;
+    int32_t dest_h;
+    int32_t dest_stride;
+    const lv_opa_t * mask_buf;
+    int32_t mask_stride;
+    lv_color_t color;
+    lv_opa_t opa;
+    lv_area_t relative_area;
+};
+struct _lv_draw_sw_blend_image_dsc_t {
+    void * dest_buf;
+    int32_t dest_w;
+    int32_t dest_h;
+    int32_t dest_stride;
+    const lv_opa_t * mask_buf;
+    int32_t mask_stride;
+    const void * src_buf;
+    int32_t src_stride;
+    lv_color_format_t src_color_format;
+    lv_opa_t opa;
+    lv_blend_mode_t blend_mode;
+    lv_area_t relative_area;
+    lv_area_t src_area;
+};
+typedef union {
+    uint32_t u32;
+    uint16_t u16[2];
+    uint8_t u8[4];
+    lv_color32_t c32;
+} lv_draw_sw_word_t;
+typedef union {
+    uint16_t u16;
+    uint8_t u8[2];
+    lv_color16_t c16;
+} lv_draw_sw_halfword_t;
+static inline lv_color32_t lv_color32_unpremultiply(lv_color32_t c)
+{
+    if(c.alpha == 0) {
+        c.red = 0;
+        c.green = 0;
+        c.blue = 0;
+    }
+    else if(c.alpha != LV_OPA_COVER) {
+        uint32_t reciprocal = (255u * 256u) / c.alpha;
+        uint32_t r = (c.red * reciprocal) >> 8;
+        uint32_t g = (c.green * reciprocal) >> 8;
+        uint32_t b = (c.blue * reciprocal) >> 8;
+        c.red = (uint8_t)(r > 255 ? 255 : r);
+        c.green = (uint8_t)(g > 255 ? 255 : g);
+        c.blue = (uint8_t)(b > 255 ? 255 : b);
+    }
+    return c;
+}
+static inline uint8_t lv_color32_lumi_of(lv_color32_t c, bool premultiplied)
+{
+    if(!premultiplied || c.alpha == 0 || c.alpha == LV_OPA_COVER) return lv_color32_luminance(c);
+    uint32_t lumi = (lv_color32_luminance(c) * ((255u * 256u) / c.alpha)) >> 8;
+    return (uint8_t)(lumi > 255 ? 255 : lumi);
+}
+static inline uint16_t lv_color_16_16_mix_inlined(uint16_t c1, uint16_t c2, uint8_t mix)
+{
+    if(mix == 255) return c1;
+    if(mix == 0) return c2;
+    if(c1 == c2) return c1;
+    uint32_t mix5 = ((uint32_t)mix + 4) >> 3;
+    uint32_t bg = (uint32_t)(c2 | ((uint32_t)c2 << 16)) & 0x7E0F81F;
+    uint32_t fg = (uint32_t)(c1 | ((uint32_t)c1 << 16)) & 0x7E0F81F;
+    uint32_t result = ((((fg - bg) * mix5) >> 5) + bg) & 0x7E0F81F;
+    return (uint16_t)((result >> 16) | result);
+}
+static inline lv_color32_t lv_color_mix32_inlined(lv_color32_t fg, lv_color32_t bg)
+{
+    if(fg.alpha >= 253) {
+        fg.alpha = bg.alpha;
+        return fg;
+    }
+    if(fg.alpha <= 2) {
+        return bg;
+    }
+    uint32_t mix_inv = 255 - fg.alpha;
+    bg.red = (uint8_t)((((uint32_t)fg.red * fg.alpha + (uint32_t)bg.red * mix_inv) * 0x8081U) >> 0x17);
+    bg.green = (uint8_t)((((uint32_t)fg.green * fg.alpha + (uint32_t)bg.green * mix_inv) * 0x8081U) >> 0x17);
+    bg.blue = (uint8_t)((((uint32_t)fg.blue * fg.alpha + (uint32_t)bg.blue * mix_inv) * 0x8081U) >> 0x17);
+    return bg;
+}
+static inline lv_color32_t lv_color_mix32_premultiplied_inlined(lv_color32_t fg,
+                                                                                      lv_color32_t bg)
+{
+    if(fg.alpha >= 253) {
+        return fg;
+    }
+    if(fg.alpha <= 2) {
+        return bg;
+    }
+    uint32_t mix_inv = 253 - fg.alpha;
+    bg.red = (uint8_t)(fg.red + (((uint32_t)bg.red * mix_inv) >> 8));
+    bg.green = (uint8_t)(fg.green + (((uint32_t)bg.green * mix_inv) >> 8));
+    bg.blue = (uint8_t)(fg.blue + (((uint32_t)bg.blue * mix_inv) >> 8));
+    return bg;
+}
+void lv_draw_sw_blend_color_to_a8(lv_draw_sw_blend_fill_dsc_t * dsc);
+void lv_draw_sw_blend_image_to_a8(lv_draw_sw_blend_image_dsc_t * dsc);
+void lv_draw_sw_blend_color_to_al88(lv_draw_sw_blend_fill_dsc_t * dsc);
+void lv_draw_sw_blend_image_to_al88(lv_draw_sw_blend_image_dsc_t * dsc);
+void lv_draw_sw_blend_color_to_argb8888(lv_draw_sw_blend_fill_dsc_t * dsc);
+void lv_draw_sw_blend_image_to_argb8888(lv_draw_sw_blend_image_dsc_t * dsc);
+void lv_draw_sw_blend_color_to_argb8888_premultiplied(lv_draw_sw_blend_fill_dsc_t * dsc);
+void lv_draw_sw_blend_image_to_argb8888_premultiplied(lv_draw_sw_blend_image_dsc_t * dsc);
+void lv_draw_sw_blend_color_to_i1(lv_draw_sw_blend_fill_dsc_t * dsc);
+void lv_draw_sw_blend_image_to_i1(lv_draw_sw_blend_image_dsc_t * dsc);
+void lv_draw_sw_blend_color_to_l8(lv_draw_sw_blend_fill_dsc_t * dsc);
+void lv_draw_sw_blend_image_to_l8(lv_draw_sw_blend_image_dsc_t * dsc);
+void lv_draw_sw_blend_color_to_rgb565(lv_draw_sw_blend_fill_dsc_t * dsc);
+void lv_draw_sw_blend_image_to_rgb565(lv_draw_sw_blend_image_dsc_t * dsc);
+void lv_draw_sw_blend_color_to_rgb565_swapped(lv_draw_sw_blend_fill_dsc_t * dsc);
+void lv_draw_sw_blend_image_to_rgb565_swapped(lv_draw_sw_blend_image_dsc_t * dsc);
+void lv_draw_sw_blend_color_to_rgb888(lv_draw_sw_blend_fill_dsc_t * dsc,
+                                                                  uint32_t dest_px_size);
+void lv_draw_sw_blend_image_to_rgb888(lv_draw_sw_blend_image_dsc_t * dsc,
+                                                                  uint32_t dest_px_size);
+typedef struct {
+    lv_color_t * color_map;
+    lv_opa_t * opa_map;
+    uint32_t size;
+} lv_draw_sw_grad_calc_t;
+void lv_draw_sw_grad_color_calculate(const lv_grad_dsc_t * dsc, int32_t range,
+                                                                 int32_t frac, lv_color_t * color_out, lv_opa_t * opa_out);
+lv_draw_sw_grad_calc_t * lv_draw_sw_grad_get(const lv_grad_dsc_t * gradient, int32_t w, int32_t h);
+void lv_draw_sw_grad_cleanup(lv_draw_sw_grad_calc_t * grad);
+struct _lv_font_fmt_txt_glyph_loader_t {
+    const uint8_t * (*get_glyph_bitmap_cb)(lv_font_fmt_txt_glyph_loader_t * loader, uint32_t gid);
+    lv_mutex_t lock;
+};
+int32_t lv_font_glyph_dsc_compare(const lv_font_glyph_dsc_t * lhs, const lv_font_glyph_dsc_t * rhs);
+const void * lv_font_get_glyph_bitmap_internal(lv_font_glyph_dsc_t * g_dsc, lv_draw_buf_t * draw_buf);
+const void * lv_font_get_glyph_static_bitmap_internal(lv_font_glyph_dsc_t * g_dsc);
+void lv_font_glyph_release_draw_data_internal(lv_font_glyph_dsc_t * g_dsc);
+bool lv_font_get_glyph_dsc_internal(const lv_font_t * font, lv_font_glyph_dsc_t * dsc_out, uint32_t letter,
+                                    uint32_t letter_next);
+uint16_t lv_font_get_glyph_width_internal(const lv_font_t * font, uint32_t letter, uint32_t letter_next);
+static inline int32_t lv_font_get_line_height_internal(const lv_font_t * font)
+{
+    do { if(!(font)) { do {}while(0); lv_micropython_assert_failed("lv_font_private.h", 63); } } while(0);
+    return font->line_height;
+}
+static inline bool lv_font_has_static_bitmap_internal(const lv_font_t * font)
+{
+    do { if(!(font)) { do {}while(0); lv_micropython_assert_failed("lv_font_private.h", 72); } } while(0);
+    return font->static_bitmap;
+}
+struct _lv_fs_file_cache_t {
+    uint32_t start;
+    uint32_t end;
+    uint32_t file_position;
+    void * buffer;
+};
+void lv_fs_init(void);
+void lv_fs_deinit(void);
 struct _lv_image_decoder_args_t {
     bool stride_align;
     bool premultiply;
@@ -5876,66 +6361,443 @@ struct _lv_image_decoder_dsc_t {
 };
 void lv_image_decoder_init(uint32_t image_cache_size, uint32_t image_header_count);
 void lv_image_decoder_deinit(void);
-struct _lv_draw_label_hint_t {
-    int32_t line_start;
-    int32_t y;
-    int32_t coord_y;
+lv_cache_entry_t * lv_image_decoder_add_to_cache(lv_image_decoder_t * decoder,
+                                                 lv_image_cache_data_t * search_key,
+                                                 const lv_draw_buf_t * decoded, void * user_data);
+struct lv_indev_gesture_motion {
+    int8_t finger;
+    lv_point_t start_point;
+    lv_point_t point;
+    lv_indev_state_t state;
 };
-struct _lv_draw_glyph_dsc_t {
-    const void * glyph_data;
-    lv_font_glyph_format_t format;
-    const lv_area_t * letter_coords;
-    const lv_area_t * bg_coords;
-    lv_font_glyph_dsc_t * g;
-    lv_color_t color;
-    lv_opa_t opa;
-    lv_color_t outline_stroke_color;
-    lv_opa_t outline_stroke_opa;
-    int32_t outline_stroke_width;
-    int32_t rotation;
-    lv_point_t pivot;
-    lv_draw_buf_t * _draw_buf;
+typedef struct lv_indev_gesture_motion lv_indev_gesture_motion_t;
+struct lv_indev_gesture {
+    lv_indev_gesture_motion_t motions[2];
+    lv_point_t center;
+    float scale;
+    float p_scale;
+    float scale_factors_x[2];
+    float scale_factors_y[2];
+    float delta_x;
+    float delta_y;
+    float p_delta_x;
+    float p_delta_y;
+    float rotation;
+    float p_rotation;
+    uint8_t finger_cnt;
 };
-struct _lv_draw_sw_blend_dsc_t {
-    const lv_area_t * blend_area;
-    const void * src_buf;
-    uint32_t src_stride;
-    lv_color_format_t src_color_format;
-    const lv_area_t * src_area;
-    lv_opa_t opa;
-    lv_color_t color;
-    const lv_opa_t * mask_buf;
-    lv_draw_sw_mask_res_t mask_res;
-    const lv_area_t * mask_area;
-    int32_t mask_stride;
-    lv_blend_mode_t blend_mode;
+struct lv_indev_gesture_configuration {
+    float pinch_up_threshold;
+    float pinch_down_threshold;
+    float rotation_angle_rad_threshold;
 };
-struct _lv_draw_sw_blend_fill_dsc_t {
-    void * dest_buf;
-    int32_t dest_w;
-    int32_t dest_h;
-    int32_t dest_stride;
-    const lv_opa_t * mask_buf;
-    int32_t mask_stride;
-    lv_color_t color;
-    lv_opa_t opa;
-    lv_area_t relative_area;
+void lv_indev_scroll_handler(lv_indev_t * indev);
+void lv_indev_scroll_throw_handler(lv_indev_t * indev);
+int32_t lv_indev_scroll_throw_predict(lv_indev_t * indev, lv_dir_t dir);
+void lv_indev_scroll_get_snap_dist(lv_obj_t * obj, lv_point_t * p);
+struct _lv_indev_t {
+    lv_indev_type_t type;
+    lv_indev_read_cb_t read_cb;
+    lv_indev_state_t state;
+    lv_indev_state_t prev_state;
+    lv_indev_mode_t mode;
+    uint8_t long_pr_sent : 1;
+    uint8_t reset_query : 1;
+    uint8_t enabled : 1;
+    uint8_t wait_until_release : 1;
+    uint8_t stop_processing_query : 1;
+    uint32_t timestamp;
+    uint32_t pr_timestamp;
+    uint32_t longpr_rep_timestamp;
+    void * driver_data;
+    void * user_data;
+    lv_display_t * disp;
+    lv_timer_t * read_timer;
+    uint8_t scroll_limit;
+    uint8_t scroll_throw;
+    uint8_t gesture_min_velocity;
+    uint8_t gesture_min_distance;
+    uint16_t long_press_time;
+    uint16_t double_click_time;
+    uint16_t long_press_repeat_time;
+    int32_t rotary_sensitivity;
+    struct {
+        lv_point_t act_point;
+        lv_point_t last_point;
+        lv_point_t last_raw_point;
+        lv_point_t vect;
+        lv_point_t vect_hist[8];
+        uint32_t vect_hist_timestamp[8];
+        uint8_t vect_hist_index;
+        lv_point_t scroll_sum;
+        lv_point_t scroll_throw_vect;
+        lv_point_t scroll_throw_vect_ori;
+        lv_obj_t * act_obj;
+        lv_obj_t * scroll_obj;
+        lv_obj_t * last_pressed;
+        lv_obj_t * last_hovered;
+        lv_area_t scroll_area;
+        lv_point_t gesture_sum;
+        int32_t diff;
+        uint8_t short_click_streak;
+        lv_point_t last_short_click_point;
+        uint32_t last_short_click_timestamp;
+        uint8_t scroll_dir : 4;
+        uint8_t gesture_dir : 4;
+        uint8_t gesture_sent : 1;
+        uint8_t press_moved : 1;
+        uint8_t pressed : 1;
+        uint8_t ccw_rotation : 1;
+    } pointer;
+    struct {
+        lv_indev_state_t last_state;
+        uint32_t last_key;
+    } keypad;
+    lv_obj_t * cursor;
+    lv_group_t * group;
+    const lv_point_t * btn_points;
+    lv_event_list_t event_list;
+    lv_anim_t * scroll_throw_anim;
+    lv_indev_key_remap_cb_t key_remap_cb;
+    lv_indev_gesture_recognizer_t recognizers[LV_INDEV_GESTURE_CNT];
+    lv_indev_gesture_type_t cur_gesture;
+    void * gesture_data[LV_INDEV_GESTURE_CNT];
+    lv_indev_gesture_type_t gesture_type[LV_INDEV_GESTURE_CNT];
 };
-struct _lv_draw_sw_blend_image_dsc_t {
-    void * dest_buf;
-    int32_t dest_w;
-    int32_t dest_h;
-    int32_t dest_stride;
-    const lv_opa_t * mask_buf;
-    int32_t mask_stride;
-    const void * src_buf;
-    int32_t src_stride;
-    lv_color_format_t src_color_format;
-    lv_opa_t opa;
-    lv_blend_mode_t blend_mode;
-    lv_area_t relative_area;
-    lv_area_t src_area;
+lv_obj_t * lv_indev_find_scroll_obj(lv_indev_t * indev);
+static inline bool lv_style_is_const_internal(const lv_style_t * style)
+{
+    do { if(!(style != 0)) { do {}while(0); lv_micropython_assert_failed("lv_style_private.h", 32); } } while(0);
+    return style->prop_cnt == 255;
+}
+static inline lv_style_res_t lv_style_get_prop_internal(const lv_style_t * style, lv_style_prop_t prop,
+                                                        lv_style_value_t * value)
+{
+    do { if(!(style != 0)) { do {}while(0); lv_micropython_assert_failed("lv_style_private.h", 39); } } while(0);
+    do { if(!(value != 0)) { do {}while(0); lv_micropython_assert_failed("lv_style_private.h", 40); } } while(0);
+    if(lv_style_is_const_internal(style)) {
+        lv_style_const_prop_t * props = (lv_style_const_prop_t *)style->values_and_props;
+        uint32_t i;
+        for(i = 0; props[i].prop != LV_STYLE_PROP_INV; i++) {
+            if(props[i].prop == prop) {
+                *value = props[i].value;
+                return LV_STYLE_RES_FOUND;
+            }
+        }
+    }
+    else {
+        lv_style_prop_t * props = (lv_style_prop_t *)style->values_and_props + style->prop_cnt * sizeof(lv_style_value_t);
+        uint32_t i;
+        for(i = 0; i < style->prop_cnt; i++) {
+            if(props[i] == prop) {
+                lv_style_value_t * values = (lv_style_value_t *)style->values_and_props;
+                *value = values[i];
+                return LV_STYLE_RES_FOUND;
+            }
+        }
+    }
+    return LV_STYLE_RES_NOT_FOUND;
+}
+lv_result_t lv_image_header_cache_init(uint32_t count);
+void lv_image_header_cache_resize(uint32_t count, bool evict_now);
+void lv_image_header_cache_drop(const void * src);
+bool lv_image_header_cache_is_enabled(void);
+lv_iter_t * lv_image_header_cache_iter_create(void);
+void lv_image_header_cache_dump(void);
+struct _lv_cache_entry_t {
+    const lv_cache_t * cache;
+    int32_t ref_cnt;
+    uint32_t node_size;
+    uint8_t flags;
 };
+void lv_cache_entry_reset_ref(lv_cache_entry_t * entry);
+void lv_cache_entry_inc_ref(lv_cache_entry_t * entry);
+void lv_cache_entry_dec_ref(lv_cache_entry_t * entry);
+void lv_cache_entry_set_node_size(lv_cache_entry_t * entry, uint32_t node_size);
+void lv_cache_entry_set_cache(lv_cache_entry_t * entry, const lv_cache_t * cache);
+void * lv_cache_entry_acquire_data(lv_cache_entry_t * entry);
+void lv_cache_entry_release_data(lv_cache_entry_t * entry, void * user_data);
+void lv_cache_entry_set_flag(lv_cache_entry_t * entry, uint8_t flags);
+void lv_cache_entry_remove_flag(lv_cache_entry_t * entry, uint8_t flags);
+bool lv_cache_entry_has_flag(lv_cache_entry_t * entry, uint8_t flags);
+struct _lv_anim_timeline_dsc_t;
+struct _lv_anim_timeline_t {
+    struct _lv_anim_timeline_dsc_t * anim_dsc;
+    uint32_t anim_dsc_cnt;
+    uint32_t act_time;
+    bool reverse;
+    uint32_t delay;
+    uint32_t repeat_count;
+    uint32_t repeat_delay;
+    void * user_data;
+};
+static inline void lv_bidi_calculate_align_internal(lv_text_align_t * align, lv_base_dir_t * base_dir,
+                                                    const char * txt)
+{
+    ((void)txt);
+    ((void)base_dir);
+    do { if(!(align != 0)) { do {}while(0); lv_micropython_assert_failed("lv_bidi_private.h", 118); } } while(0);
+    if(*align == LV_TEXT_ALIGN_AUTO) * align = LV_TEXT_ALIGN_LEFT;
+}
+typedef struct _lv_circle_buf_t lv_circle_buf_t;
+typedef bool (*lv_circle_buf_fill_cb_t)(void * buf, uint32_t buff_len, int32_t index, void * user_data);
+lv_circle_buf_t * lv_circle_buf_create(uint32_t capacity, uint32_t element_size);
+lv_circle_buf_t * lv_circle_buf_create_from_buf(void * buf, uint32_t capacity, uint32_t element_size);
+lv_circle_buf_t * lv_circle_buf_create_from_array(const lv_array_t * array);
+lv_result_t lv_circle_buf_resize(lv_circle_buf_t * circle_buf, uint32_t capacity);
+void lv_circle_buf_destroy(lv_circle_buf_t * circle_buf);
+uint32_t lv_circle_buf_size(const lv_circle_buf_t * circle_buf);
+uint32_t lv_circle_buf_capacity(const lv_circle_buf_t * circle_buf);
+uint32_t lv_circle_buf_remain(const lv_circle_buf_t * circle_buf);
+bool lv_circle_buf_is_empty(const lv_circle_buf_t * circle_buf);
+bool lv_circle_buf_is_full(const lv_circle_buf_t * circle_buf);
+void lv_circle_buf_reset(lv_circle_buf_t * circle_buf);
+void * lv_circle_buf_head(const lv_circle_buf_t * circle_buf);
+void * lv_circle_buf_tail(const lv_circle_buf_t * circle_buf);
+lv_result_t lv_circle_buf_read(lv_circle_buf_t * circle_buf, void * data);
+lv_result_t lv_circle_buf_write(lv_circle_buf_t * circle_buf, const void * data);
+uint32_t lv_circle_buf_fill(lv_circle_buf_t * circle_buf, uint32_t count, lv_circle_buf_fill_cb_t fill_cb,
+                            void * user_data);
+lv_result_t lv_circle_buf_skip(lv_circle_buf_t * circle_buf);
+lv_result_t lv_circle_buf_peek(const lv_circle_buf_t * circle_buf, void * data);
+lv_result_t lv_circle_buf_peek_at(const lv_circle_buf_t * circle_buf, uint32_t index, void * data);
+typedef enum {
+    LV_LRU_OK = 0,
+    LV_LRU_MISSING_CACHE,
+    LV_LRU_MISSING_KEY,
+    LV_LRU_MISSING_VALUE,
+    LV_LRU_LOCK_ERROR,
+    LV_LRU_VALUE_TOO_LARGE
+} lv_lru_res_t;
+typedef void (*lv_lru_free_cb_t)(void * v);
+typedef struct _lv_lru_item_t lv_lru_item_t;
+typedef struct _lv_lru_t {
+    lv_lru_item_t ** items;
+    uint64_t access_count;
+    size_t free_memory;
+    size_t total_memory;
+    size_t average_item_length;
+    size_t hash_table_size;
+    uint32_t seed;
+    lv_lru_free_cb_t value_free;
+    lv_lru_free_cb_t key_free;
+    lv_lru_item_t * free_items;
+} lv_lru_t;
+lv_lru_t * lv_lru_create(size_t cache_size, size_t average_length, lv_lru_free_cb_t value_free,
+                         lv_lru_free_cb_t key_free);
+void lv_lru_delete(lv_lru_t * cache);
+lv_lru_res_t lv_lru_set(lv_lru_t * cache, const void * key, size_t key_length, void * value, size_t value_length);
+lv_lru_res_t lv_lru_get(lv_lru_t * cache, const void * key, size_t key_size, void ** value);
+lv_lru_res_t lv_lru_remove(lv_lru_t * cache, const void * key, size_t key_size);
+void lv_lru_remove_lru_item(lv_lru_t * cache);
+typedef struct _lv_pending_t lv_pending_t;
+typedef void (*lv_pending_free_cb_t)(void * obj, void * user_data);
+lv_pending_t * lv_pending_create(size_t obj_size, uint32_t capacity_default);
+void lv_pending_destroy(lv_pending_t * pending);
+void lv_pending_set_free_cb(lv_pending_t * pending, lv_pending_free_cb_t free_cb,
+                            void * user_data);
+void lv_pending_add(lv_pending_t * pending, void * obj);
+void lv_pending_remove_all(lv_pending_t * pending);
+void lv_pending_swap(lv_pending_t * pending);
+typedef int32_t lv_rb_compare_res_t;
+typedef lv_rb_compare_res_t (*lv_rb_compare_t)(const void * a, const void * b);
+typedef enum {
+    LV_RB_COLOR_RED,
+    LV_RB_COLOR_BLACK
+} lv_rb_color_t;
+typedef struct _lv_rb_node_t {
+    struct _lv_rb_node_t * parent;
+    struct _lv_rb_node_t * left;
+    struct _lv_rb_node_t * right;
+    lv_rb_color_t color;
+    void * data;
+} lv_rb_node_t;
+typedef struct _lv_rb_t {
+    lv_rb_node_t * root;
+    lv_rb_compare_t compare;
+    size_t size;
+} lv_rb_t;
+bool lv_rb_init(lv_rb_t * tree, lv_rb_compare_t compare, size_t node_size);
+lv_rb_node_t * lv_rb_insert(lv_rb_t * tree, void * key);
+lv_rb_node_t * lv_rb_find(lv_rb_t * tree, const void * key);
+void * lv_rb_remove_node(lv_rb_t * tree, lv_rb_node_t * node);
+void * lv_rb_remove(lv_rb_t * tree, const void * key);
+bool lv_rb_drop_node(lv_rb_t * tree, lv_rb_node_t * node);
+bool lv_rb_drop(lv_rb_t * tree, const void * key);
+lv_rb_node_t * lv_rb_minimum(lv_rb_t * node);
+lv_rb_node_t * lv_rb_maximum(lv_rb_t * node);
+lv_rb_node_t * lv_rb_minimum_from(lv_rb_node_t * node);
+lv_rb_node_t * lv_rb_maximum_from(lv_rb_node_t * node);
+void lv_rb_destroy(lv_rb_t * tree);
+typedef enum {
+    LV_TEXT_CMD_STATE_WAIT,
+    LV_TEXT_CMD_STATE_PAR,
+    LV_TEXT_CMD_STATE_IN,
+} lv_text_cmd_state_t;
+typedef struct {
+    int32_t letter_space;
+    int32_t line_space;
+    int32_t max_width;
+    lv_text_flag_t text_flags;
+} lv_text_attributes_t;
+void lv_text_attributes_init(lv_text_attributes_t * attributes);
+void lv_text_get_size_attributes(lv_point_t * size_res, const char * text, const lv_font_t * font,
+                                 lv_text_attributes_t * attributes);
+int32_t lv_text_get_width(const char * txt, uint32_t length, const lv_font_t * font,
+                          const lv_text_attributes_t * attributes);
+int32_t lv_text_get_line_width(const char * txt, uint32_t length, const lv_font_t * font,
+                               const lv_text_attributes_t * attributes);
+bool lv_text_is_cmd(lv_text_cmd_state_t * state, uint32_t c);
+uint32_t lv_text_get_next_line(const char * txt, uint32_t len, const lv_font_t * font, int32_t * used_width,
+                               lv_text_attributes_t * attributes);
+void lv_text_ins(char * txt_buf, uint32_t pos, const char * ins_txt);
+void lv_text_cut(char * txt, uint32_t pos, uint32_t len);
+char * lv_text_set_text_vfmt(const char * fmt, va_list ap) ;
+void lv_text_encoded_letter_next_2(const char * txt, uint32_t * letter, uint32_t * letter_next, uint32_t * ofs);
+void lv_text_get_size_internal(lv_point_t * size_res, const char * text, const lv_font_t * font, int32_t letter_space,
+                               int32_t line_space, int32_t max_width, lv_text_flag_t flag);
+static inline bool lv_text_is_break_char(uint32_t letter)
+{
+    uint8_t i;
+    bool ret = 0;
+    for(i = 0; " ,.;:-_)]}"[i] != '\0'; i++) {
+        if(letter == (uint32_t)" ,.;:-_)]}"[i]) {
+            ret = 1;
+            break;
+        }
+    }
+    return ret;
+}
+static inline bool lv_text_is_hanging_space(uint32_t letter)
+{
+    return letter == ' ' || letter == '\n' || letter == '\r';
+}
+static inline bool lv_text_is_a_word(uint32_t letter)
+{
+    if(letter == 0) return 0;
+    if(letter >= 0x4E00 && letter <= 0x9FFF) {
+        return 1;
+    }
+    if(letter >= 0xFF01 && letter <= 0xFF5E) {
+        return 1;
+    }
+    if(letter >= 0x3000 && letter <= 0x303F) {
+        return 1;
+    }
+    if(letter >= 0x2E80 && letter <= 0x2EFF) {
+        return 1;
+    }
+    if(letter >= 0x31C0 && letter <= 0x31EF) {
+        return 1;
+    }
+    if(letter >= 0x3040 && letter <= 0x30FF) {
+        return 1;
+    }
+    if(letter >= 0xFE10 && letter <= 0xFE1F) {
+        return 1;
+    }
+    if(letter >= 0xFE30 && letter <= 0xFE4F) {
+        return 1;
+    }
+    return 0;
+}
+static inline bool lv_text_is_marker(uint32_t letter)
+{
+    if(letter < 0x20) return 1;
+    if(letter == 0x061C) return 1;
+    if(letter == 0x115F) return 1;
+    if(letter == 0x1160) return 1;
+    if(letter >= 0x180B && letter <= 0x180E) return 1;
+    if(letter >= 0x200B && letter <= 0x200F) return 1;
+    if(letter >= 0x2028 && letter <= 0x202F) return 1;
+    if(letter >= 0x205F && letter <= 0x206F) return 1;
+    if(letter == 0xFEFF) return 1;
+    if(letter == 0xF8FF) return 1;
+    return 0;
+}
+static inline int32_t lv_font_get_bottom_trim_internal(const lv_font_t * font, lv_text_leading_trim_t trim)
+{
+    do { if(!(font != 0)) { do {}while(0); lv_micropython_assert_failed("lv_text_private.h", 279); } } while(0);
+    switch(trim) {
+        case LV_TEXT_LEADING_TRIM_CAPITAL_BASELINE:
+        case LV_TEXT_LEADING_TRIM_LOWER_BASELINE:
+            return font->base_line;
+        case LV_TEXT_LEADING_TRIM_NONE:
+        case LV_TEXT_LEADING_TRIM_CAPITAL:
+        case LV_TEXT_LEADING_TRIM_LOWER:
+            return 0;
+    }
+    __builtin_unreachable();
+}
+static inline int32_t lv_font_get_top_trim_internal(const lv_font_t * font, lv_text_leading_trim_t trim)
+{
+    do { if(!(font != 0)) { do {}while(0); lv_micropython_assert_failed("lv_text_private.h", 294); } } while(0);
+    switch(trim) {
+        case LV_TEXT_LEADING_TRIM_CAPITAL_BASELINE:
+        case LV_TEXT_LEADING_TRIM_CAPITAL:
+            return (font->line_height - font->base_line) - font->cap_height;
+        case LV_TEXT_LEADING_TRIM_LOWER_BASELINE:
+        case LV_TEXT_LEADING_TRIM_LOWER:
+            return (font->line_height - font->base_line) - font->x_height;
+        case LV_TEXT_LEADING_TRIM_NONE:
+            return 0;
+    }
+    __builtin_unreachable();
+}
+extern uint8_t (*const lv_text_encoded_size)(const char * txt);
+extern uint32_t (*const lv_text_unicode_to_encoded)(uint32_t letter_uni);
+extern uint32_t (*const lv_text_encoded_conv_wc)(uint32_t c);
+extern uint32_t (*const lv_text_encoded_next)(const char * txt, uint32_t * i_start);
+extern uint32_t (*const lv_text_encoded_prev)(const char * txt, uint32_t * i_start);
+extern uint32_t (*const lv_text_encoded_get_byte_id)(const char * txt, uint32_t utf8_id);
+extern uint32_t (*const lv_text_encoded_get_char_id)(const char * txt, uint32_t byte_id);
+extern uint32_t (*const lv_text_get_encoded_length)(const char * txt);
+typedef void (*lv_tree_constructor_cb_t)(const lv_tree_class_t * class_p, lv_tree_node_t * node);
+typedef void (*lv_tree_destructor_cb_t)(const lv_tree_class_t * class_p, lv_tree_node_t * node);
+struct _lv_tree_class_t {
+    const lv_tree_class_t * base_class;
+    uint32_t instance_size;
+    lv_tree_constructor_cb_t constructor_cb;
+    lv_tree_destructor_cb_t destructor_cb;
+};
+struct _lv_tree_node_t {
+    lv_tree_node_t * parent;
+    lv_tree_node_t ** children;
+    uint32_t child_cnt;
+    uint32_t child_cap;
+    const lv_tree_class_t * class_p;
+};
+enum _lv_tree_walk_mode_t {
+    LV_TREE_WALK_PRE_ORDER = 0,
+    LV_TREE_WALK_POST_ORDER,
+};
+typedef uint8_t lv_tree_walk_mode_t;
+typedef bool (*lv_tree_traverse_cb_t)(const lv_tree_node_t * node, void * user_data);
+typedef bool (*lv_tree_before_cb_t)(const lv_tree_node_t * node, void * user_data);
+typedef void (*lv_tree_after_cb_t)(const lv_tree_node_t * node, void * user_data);
+extern const lv_tree_class_t lv_tree_node_class;
+lv_tree_node_t * lv_tree_node_create(const lv_tree_class_t * class_p, lv_tree_node_t * parent);
+void lv_tree_node_delete(lv_tree_node_t * node);
+bool lv_tree_walk(const lv_tree_node_t * node,
+                  lv_tree_walk_mode_t mode,
+                  lv_tree_traverse_cb_t cb,
+                  lv_tree_before_cb_t bcb,
+                  lv_tree_after_cb_t acb,
+                  void * user_data);
+void * lv_utils_bsearch(const void * key, const void * base, size_t n, size_t size,
+                        int (*cmp)(const void * pRef, const void * pElement));
+lv_result_t lv_draw_buf_save_to_file(const lv_draw_buf_t * draw_buf, const char * path);
+static inline uint32_t lv_swap_bytes_32(uint32_t x)
+{
+    return (x << 24)
+           | ((x & 0x0000ff00U) << 8)
+           | ((x & 0x00ff0000U) >> 8)
+           | (x >> 24);
+}
+static inline uint16_t lv_swap_bytes_16(uint16_t x)
+{
+    return (uint16_t)(x << 8) | (x >> 8);
+}
 struct _lv_theme_t {
     lv_theme_apply_cb_t apply_cb;
     lv_theme_t * parent;
@@ -5948,169 +6810,65 @@ struct _lv_theme_t {
     const lv_font_t * font_large;
     uint32_t flags;
 };
-void lv_refr_init(void);
-void lv_refr_deinit(void);
-lv_result_t lv_inv_area(lv_display_t * disp, const lv_area_t * area_p);
-lv_display_t * lv_refr_get_disp_refreshing(void);
-void lv_refr_set_disp_refreshing(lv_display_t * disp);
-lv_obj_t * lv_refr_get_top_obj(const lv_area_t * area_p, lv_obj_t * obj);
-void lv_obj_refr(lv_layer_t * layer, lv_obj_t * obj);
-struct _lv_obj_style_t {
-    const lv_style_t * style;
-    uint32_t selector : 24;
-    uint32_t is_local : 1;
-    uint32_t is_trans : 1;
-    uint32_t is_disabled : 1;
-    uint32_t is_theme : 1;
+struct _lv_image_t {
+    lv_obj_t obj;
+    const void * src;
+    const lv_image_dsc_t * bitmap_mask_src;
+    lv_point_t offset;
+    int32_t w;
+    int32_t h;
+    uint32_t rotation;
+    uint32_t scale_x;
+    uint32_t scale_y;
+    lv_point_t pivot;
+    uint32_t src_type : 2;
+    uint32_t cf : 5;
+    uint32_t antialias : 1;
+    uint32_t align: 4;
+    uint32_t blend_mode: 4;
 };
-struct _lv_obj_style_transition_dsc_t {
-    uint16_t time;
-    uint16_t delay;
-    lv_style_selector_t selector;
-    lv_style_prop_t prop;
-    lv_anim_path_cb_t path_cb;
-    void * user_data;
+struct _lv_animimg_t {
+    lv_image_t img;
+    lv_anim_t anim;
+    const void ** dsc;
+    int8_t pic_count;
 };
-void lv_obj_style_init(void);
-void lv_obj_style_deinit(void);
-void lv_obj_style_create_transition(lv_obj_t * obj, lv_part_t part, lv_state_t prev_state,
-                                    lv_state_t new_state, const lv_obj_style_transition_dsc_t * tr);
-lv_style_state_cmp_t lv_obj_style_state_compare(lv_obj_t * obj, lv_state_t state1, lv_state_t state2);
-void lv_obj_update_layer_type(lv_obj_t * obj);
-lv_result_t lv_obj_scroll_by_raw(lv_obj_t * obj, int32_t x, int32_t y);
-int32_t lv_obj_get_ext_draw_size(const lv_obj_t * obj);
-lv_layer_type_t lv_obj_get_layer_type(const lv_obj_t * obj);
-struct _lv_obj_class_t {
-    const lv_obj_class_t * base_class;
-    void (*constructor_cb)(const lv_obj_class_t * class_p, lv_obj_t * obj);
-    void (*destructor_cb)(const lv_obj_class_t * class_p, lv_obj_t * obj);
-    void (*event_cb)(const lv_obj_class_t * class_p, lv_event_t * e);
-    void * user_data;
-    const char * name;
-    int32_t width_def;
-    int32_t height_def;
-    uint32_t editable : 2;
-    uint32_t group_def : 2;
-    uint32_t instance_size : 16;
-    uint32_t theme_inheritable : 1;
-};
-void lv_obj_destruct(lv_obj_t * obj);
-struct _lv_group_t {
-    lv_ll_t obj_ll;
-    lv_obj_t ** obj_focus;
-    lv_group_focus_cb_t focus_cb;
-    lv_group_edge_cb_t edge_cb;
-    void * user_data;
-    uint8_t frozen : 1;
-    uint8_t editing : 1;
-    uint8_t refocus_policy : 1;
-    uint8_t wrap : 1;
-};
-void lv_group_init(void);
-void lv_group_deinit(void);
-struct _lv_hit_test_info_t {
-    const lv_point_t * point;
-    bool res;
-};
-struct _lv_cover_check_info_t {
-    lv_cover_res_t res;
-    const lv_area_t * area;
-};
-struct _lv_observer_t {
-    lv_subject_t * subject;
-    lv_observer_cb_t cb;
-    void * target;
-    void * user_data;
-    uint32_t auto_free_user_data : 1;
-    uint32_t notified : 1;
-    uint32_t for_obj : 1;
-};
-struct _lv_subject_increment_dsc_t {
-    lv_subject_t * subject;
-    int32_t step;
-    bool rollover;
+struct _lv_arc_t {
+    lv_obj_t obj;
+    int32_t rotation;
+    lv_value_precise_t indic_angle_start;
+    lv_value_precise_t indic_angle_end;
+    lv_value_precise_t bg_angle_start;
+    lv_value_precise_t bg_angle_end;
+    int32_t value;
     int32_t min_value;
     int32_t max_value;
+    uint32_t dragging : 1;
+    uint32_t type : 2;
+    uint32_t min_close : 1;
+    uint32_t in_out : 1;
+    uint32_t chg_rate;
+    uint32_t last_tick;
+    lv_value_precise_t last_angle;
+    int16_t knob_offset;
 };
-void lv_area_set_pos(lv_area_t * area_p, int32_t x, int32_t y);
-bool lv_area_intersect(lv_area_t * res_p, const lv_area_t * a1_p, const lv_area_t * a2_p);
-int8_t lv_area_diff(lv_area_t res_p[], const lv_area_t * a1_p, const lv_area_t * a2_p);
-void lv_area_join(lv_area_t * a_res_p, const lv_area_t * a1_p, const lv_area_t * a2_p);
-bool lv_area_is_point_on(const lv_area_t * a_p, const lv_point_t * p_p, int32_t radius);
-bool lv_area_is_on(const lv_area_t * a1_p, const lv_area_t * a2_p);
-bool lv_area_is_in(const lv_area_t * ain_p, const lv_area_t * aholder_p, int32_t radius);
-bool lv_area_is_out(const lv_area_t * aout_p, const lv_area_t * aholder_p, int32_t radius);
-bool lv_area_is_equal(const lv_area_t * a, const lv_area_t * b);
-struct _lv_fs_file_cache_t {
-    uint32_t start;
-    uint32_t end;
-    uint32_t file_position;
-    void * buffer;
-};
-void lv_fs_init(void);
-void lv_fs_deinit(void);
-struct _lv_event_dsc_t {
-    lv_event_cb_t cb;
-    void * user_data;
-    uint32_t filter;
-};
-struct _lv_event_t {
-    void * current_target;
-    void * original_target;
-    lv_event_code_t code;
-    void * user_data;
-    void * param;
-    lv_event_t * prev;
-    uint8_t deleted : 1;
-    uint8_t stop_processing : 1;
-    uint8_t stop_bubbling : 1;
-    uint8_t stop_trickling : 1;
-};
-void lv_event_push(lv_event_t * e);
-void lv_event_pop(lv_event_t * e);
-lv_result_t lv_event_push_and_send(lv_event_list_t * event_list, lv_event_code_t code, void * original_target,
-                                   void * param);
-void lv_event_mark_deleted(void * target);
-struct _lv_rb_node_t {
-    struct _lv_rb_node_t * parent;
-    struct _lv_rb_node_t * left;
-    struct _lv_rb_node_t * right;
-    lv_rb_color_t color;
-    void * data;
-};
-struct _lv_rb_t {
-    lv_rb_node_t * root;
-    lv_rb_compare_t compare;
-    size_t size;
-};
-struct _lv_anim_timeline_dsc_t;
-struct _lv_anim_timeline_t {
-    struct _lv_anim_timeline_dsc_t * anim_dsc;
-    uint32_t anim_dsc_cnt;
-    uint32_t act_time;
-    bool reverse;
-    uint32_t delay;
-    uint32_t repeat_count;
-    uint32_t repeat_delay;
-    void * user_data;
-};
-struct _lv_msgbox_t {
+struct _lv_arclabel_t {
     lv_obj_t obj;
-    lv_obj_t * header;
-    lv_obj_t * content;
-    lv_obj_t * footer;
-    lv_obj_t * title;
-};
-struct _lv_buttonmatrix_t {
-    lv_obj_t obj;
-    const char * const * map_p;
-    lv_area_t * button_areas;
-    lv_buttonmatrix_ctrl_t * ctrl_bits;
-    uint32_t btn_cnt;
-    uint32_t row_cnt;
-    uint32_t btn_id_sel;
-    uint32_t one_check : 1;
-    uint32_t auto_free_map : 1;
+    char * text;
+    char dot[3 + 1];
+    uint32_t dot_begin;
+    lv_value_precise_t angle_start;
+    lv_value_precise_t angle_size;
+    uint32_t offset;
+    uint32_t radius;
+    lv_point_t center_offset;
+    lv_arclabel_dir_t dir;
+    lv_arclabel_text_align_t text_align_v;
+    lv_arclabel_text_align_t text_align_h;
+    uint8_t static_txt : 1;
+    uint8_t recolor : 1;
+    uint8_t overflow : 2;
+    bool end_overlap : 1;
 };
 struct _lv_bar_anim_t {
     lv_obj_t * bar;
@@ -6131,19 +6889,40 @@ struct _lv_bar_t {
     lv_bar_mode_t mode : 3;
     lv_bar_orientation_t orientation : 3;
 };
-struct _lv_slider_t {
-    lv_bar_t bar;
-    lv_area_t left_knob_area;
-    lv_area_t right_knob_area;
-    lv_point_t pressed_point;
-    int32_t * value_to_set;
-    uint8_t dragging : 1;
-    uint8_t left_knob_focus : 1;
+struct _lv_canvas_t {
+    lv_image_t img;
+    lv_draw_buf_t * draw_buf;
+    lv_draw_buf_t static_buf;
 };
-struct _lv_switch_t {
+struct _lv_barcode_t {
+    lv_canvas_t canvas;
+    lv_color_t dark_color;
+    lv_color_t light_color;
+    char * data;
+    uint8_t * pattern;
+    int32_t bar_count;
+    uint16_t scale;
+    lv_dir_t direction;
+    lv_barcode_encoding_t encoding;
+    uint8_t tiled : 1;
+    uint8_t update_mode : 1;
+    uint8_t needs_update : 1;
+    uint8_t render_valid : 1;
+    uint8_t fitting : 1;
+};
+struct _lv_button_t {
     lv_obj_t obj;
-    int32_t anim_state;
-    lv_switch_orientation_t orientation : 3;
+};
+struct _lv_buttonmatrix_t {
+    lv_obj_t obj;
+    const char * const * map_p;
+    lv_area_t * button_areas;
+    lv_buttonmatrix_ctrl_t * ctrl_bits;
+    uint32_t btn_cnt;
+    uint32_t row_cnt;
+    uint32_t btn_id_sel;
+    uint32_t one_check : 1;
+    uint32_t auto_free_map : 1;
 };
 struct _lv_calendar_t {
     lv_obj_t obj;
@@ -6156,94 +6935,44 @@ struct _lv_calendar_t {
     bool use_chinese_calendar;
     char nums [7 * 6][20];
 };
-struct _lv_imagebutton_src_info_t {
-    const void * img_src;
-    lv_image_header_t header;
+struct _lv_chart_series_t {
+    int32_t * x_points;
+    int32_t * y_points;
+    lv_color_t color;
+    uint32_t start_point;
+    uint32_t hidden : 1;
+    uint32_t x_ext_buf_assigned : 1;
+    uint32_t y_ext_buf_assigned : 1;
+    uint32_t x_axis_sec : 1;
+    uint32_t y_axis_sec : 1;
 };
-struct _lv_imagebutton_t {
+struct _lv_chart_cursor_t {
+    lv_point_t pos;
+    int32_t point_id;
+    lv_color_t color;
+    lv_chart_series_t * ser;
+    lv_dir_t dir;
+    uint32_t pos_set: 1;
+};
+struct _lv_chart_t {
     lv_obj_t obj;
-    lv_imagebutton_src_info_t src_mid[LV_IMAGEBUTTON_STATE_NUM];
-    lv_imagebutton_src_info_t src_left[LV_IMAGEBUTTON_STATE_NUM];
-    lv_imagebutton_src_info_t src_right[LV_IMAGEBUTTON_STATE_NUM];
-};
-struct _lv_textarea_t {
-    lv_obj_t obj;
-    lv_obj_t * label;
-    char * placeholder_txt;
-    char * pwd_tmp;
-    char * pwd_bullet;
-    char * accepted_chars;
-    uint32_t max_length;
-    uint32_t pwd_show_time;
-    struct {
-        int32_t valid_x;
-        uint32_t pos;
-        lv_area_t area;
-        uint32_t txt_byte_pos;
-        uint8_t show : 1;
-        uint8_t click_pos : 1;
-    } cursor;
-    uint32_t sel_start;
-    uint32_t sel_end;
-    uint8_t text_sel_in_prog : 1;
-    uint8_t text_sel_en : 1;
-    uint8_t pwd_mode : 1;
-    uint8_t one_line : 1;
-    uint8_t static_accepted_chars : 1;
-};
-struct _lv_table_cell_t {
-    lv_table_cell_ctrl_t ctrl;
-    void * user_data;
-    char txt[1];
-};
-struct _lv_table_t {
-    lv_obj_t obj;
-    uint32_t col_cnt;
-    uint32_t row_cnt;
-    lv_table_cell_t ** cell_data;
-    int32_t * row_h;
-    int32_t * col_w;
-    uint32_t col_act;
-    uint32_t row_act;
+    lv_ll_t series_ll;
+    lv_ll_t cursor_ll;
+    int32_t ymin[2];
+    int32_t ymax[2];
+    int32_t xmin[2];
+    int32_t xmax[2];
+    int32_t pressed_point_id;
+    uint32_t hdiv_cnt;
+    uint32_t vdiv_cnt;
+    uint32_t point_cnt;
+    lv_chart_type_t type : 4;
+    lv_chart_update_mode_t update_mode : 2;
 };
 struct _lv_checkbox_t {
     lv_obj_t obj;
     char * txt;
     uint32_t static_txt : 1;
-};
-struct _lv_roller_t {
-    lv_obj_t obj;
-    uint32_t option_cnt;
-    uint32_t sel_opt_id;
-    uint32_t sel_opt_id_ori;
-    uint32_t inf_page_cnt;
-    lv_roller_mode_t mode : 2;
-    uint32_t moved : 1;
-};
-struct _lv_win_t {
-    lv_obj_t obj;
-};
-struct _lv_keyboard_t {
-    lv_buttonmatrix_t btnm;
-    lv_obj_t * ta;
-    lv_keyboard_mode_t mode;
-    uint8_t popovers : 1;
-};
-struct _lv_line_t {
-    lv_obj_t obj;
-    union {
-        const lv_point_precise_t * constant;
-        lv_point_precise_t * mut;
-    } point_array;
-    uint32_t point_num;
-    uint32_t y_inv : 1;
-    uint32_t point_array_is_mutable : 1;
-};
-struct _lv_animimg_t {
-    lv_image_t img;
-    lv_anim_t anim;
-    const void ** dsc;
-    int8_t pic_count;
 };
 struct _lv_dropdown_t {
     lv_obj_t obj;
@@ -6263,6 +6992,56 @@ struct _lv_dropdown_t {
 struct _lv_dropdown_list_t {
     lv_obj_t obj;
     lv_obj_t * dropdown;
+};
+struct _lv_imagebutton_src_info_t {
+    const void * img_src;
+    lv_image_header_t header;
+};
+struct _lv_imagebutton_t {
+    lv_obj_t obj;
+    lv_imagebutton_src_info_t src_mid[LV_IMAGEBUTTON_STATE_NUM];
+    lv_imagebutton_src_info_t src_left[LV_IMAGEBUTTON_STATE_NUM];
+    lv_imagebutton_src_info_t src_right[LV_IMAGEBUTTON_STATE_NUM];
+};
+struct _lv_keyboard_t {
+    lv_buttonmatrix_t btnm;
+    lv_obj_t * ta;
+    lv_keyboard_mode_t mode;
+    uint8_t popovers : 1;
+};
+struct _lv_label_t {
+    lv_obj_t obj;
+    char * text;
+    char dot[3 + 1];
+    uint32_t dot_begin;
+    int32_t max_lines;
+    lv_draw_label_hint_t hint;
+    uint32_t sel_start;
+    uint32_t sel_end;
+    lv_point_t size_cache;
+    lv_point_t offset;
+    lv_label_long_mode_t long_mode : 4;
+    uint8_t static_txt : 1;
+    uint8_t recolor : 1;
+    uint8_t expand : 1;
+    uint8_t invalid_size_cache : 1;
+    uint8_t need_refr_text : 1;
+    lv_point_t text_size;
+};
+struct _lv_led_t {
+    lv_obj_t obj;
+    lv_color_t color;
+    uint8_t bright;
+};
+struct _lv_line_t {
+    lv_obj_t obj;
+    union {
+        const lv_point_precise_t * constant;
+        lv_point_precise_t * mut;
+    } point_array;
+    uint32_t point_num;
+    uint32_t y_inv : 1;
+    uint32_t point_array_is_mutable : 1;
 };
 struct _lv_menu_load_page_event_data_t {
     lv_obj_t * menu;
@@ -6299,42 +7078,33 @@ struct _lv_menu_page_t {
     char * title;
     bool static_title;
 };
-struct _lv_chart_series_t {
-    int32_t * x_points;
-    int32_t * y_points;
-    lv_color_t color;
-    uint32_t start_point;
-    uint32_t hidden : 1;
-    uint32_t x_ext_buf_assigned : 1;
-    uint32_t y_ext_buf_assigned : 1;
-    uint32_t x_axis_sec : 1;
-    uint32_t y_axis_sec : 1;
-};
-struct _lv_chart_cursor_t {
-    lv_point_t pos;
-    int32_t point_id;
-    lv_color_t color;
-    lv_chart_series_t * ser;
-    lv_dir_t dir;
-    uint32_t pos_set: 1;
-};
-struct _lv_chart_t {
+struct _lv_msgbox_t {
     lv_obj_t obj;
-    lv_ll_t series_ll;
-    lv_ll_t cursor_ll;
-    int32_t ymin[2];
-    int32_t ymax[2];
-    int32_t xmin[2];
-    int32_t xmax[2];
-    int32_t pressed_point_id;
-    uint32_t hdiv_cnt;
-    uint32_t vdiv_cnt;
-    uint32_t point_cnt;
-    lv_chart_type_t type : 4;
-    lv_chart_update_mode_t update_mode : 2;
+    lv_obj_t * header;
+    lv_obj_t * content;
+    lv_obj_t * footer;
+    lv_obj_t * title;
+    uint32_t auto_parent : 1;
 };
-struct _lv_button_t {
+struct _lv_qrcode_t {
+    lv_canvas_t canvas;
+    lv_color_t dark_color;
+    lv_color_t light_color;
+    uint8_t * data;
+    uint16_t data_len : 12;
+    uint16_t quiet_zone : 1;
+    uint16_t update_mode : 1;
+    uint16_t needs_update : 1;
+    uint16_t render_valid : 1;
+};
+struct _lv_roller_t {
     lv_obj_t obj;
+    uint32_t option_cnt;
+    uint32_t sel_opt_id;
+    uint32_t sel_opt_id_ori;
+    uint32_t inf_page_cnt;
+    lv_roller_mode_t mode : 2;
+    uint32_t moved : 1;
 };
 struct _lv_scale_section_t {
     const lv_style_t * main_style;
@@ -6375,48 +7145,14 @@ struct _lv_scale_t {
     int32_t first_tick_width;
     lv_array_t needles;
 };
-struct _lv_led_t {
-    lv_obj_t obj;
-    lv_color_t color;
-    uint8_t bright;
-};
-struct _lv_arc_t {
-    lv_obj_t obj;
-    int32_t rotation;
-    lv_value_precise_t indic_angle_start;
-    lv_value_precise_t indic_angle_end;
-    lv_value_precise_t bg_angle_start;
-    lv_value_precise_t bg_angle_end;
-    int32_t value;
-    int32_t min_value;
-    int32_t max_value;
-    uint32_t dragging : 1;
-    uint32_t type : 2;
-    uint32_t min_close : 1;
-    uint32_t in_out : 1;
-    uint32_t chg_rate;
-    uint32_t last_tick;
-    lv_value_precise_t last_angle;
-    int16_t knob_offset;
-};
-struct _lv_tileview_t {
-    lv_obj_t obj;
-    lv_obj_t * tile_act;
-};
-struct _lv_tileview_tile_t {
-    lv_obj_t obj;
-    lv_dir_t dir;
-};
-struct _lv_spinbox_t {
-    lv_textarea_t ta;
-    int32_t value;
-    int32_t range_max;
-    int32_t range_min;
-    int32_t step;
-    uint32_t digit_count : 4;
-    uint32_t dec_point_pos : 4;
-    uint32_t rollover : 1;
-    uint32_t digit_step_dir : 2;
+struct _lv_slider_t {
+    lv_bar_t bar;
+    lv_area_t left_knob_area;
+    lv_area_t right_knob_area;
+    lv_point_t pressed_point;
+    int32_t * value_to_set;
+    uint8_t dragging : 1;
+    uint8_t left_knob_focus : 1;
 };
 struct _lv_span_t {
     char * txt;
@@ -6435,23 +7171,67 @@ struct _lv_spangroup_t {
     uint32_t overflow : 1;
     uint32_t refresh : 1;
 };
-struct _lv_label_t {
+struct _lv_textarea_t {
     lv_obj_t obj;
-    char * text;
-    char dot[3 + 1];
-    uint32_t dot_begin;
-    lv_draw_label_hint_t hint;
+    lv_obj_t * label;
+    char * placeholder_txt;
+    lv_point_t placeholder_txt_size;
+    char * pwd_tmp;
+    char * pwd_bullet;
+    char * accepted_chars;
+    uint32_t max_length;
+    uint32_t pwd_show_time;
+    struct {
+        int32_t valid_x;
+        uint32_t pos;
+        lv_area_t area;
+        uint32_t txt_byte_pos;
+        uint8_t show : 1;
+        uint8_t click_pos : 1;
+    } cursor;
     uint32_t sel_start;
     uint32_t sel_end;
-    lv_point_t size_cache;
-    lv_point_t offset;
-    lv_label_long_mode_t long_mode : 4;
-    uint8_t static_txt : 1;
-    uint8_t recolor : 1;
-    uint8_t expand : 1;
-    uint8_t invalid_size_cache : 1;
-    uint8_t need_refr_text : 1;
-    lv_point_t text_size;
+    uint8_t text_sel_in_prog : 1;
+    uint8_t text_sel_en : 1;
+    uint8_t pwd_mode : 1;
+    uint8_t one_line : 1;
+    uint8_t static_accepted_chars : 1;
+};
+struct _lv_spinbox_t {
+    lv_textarea_t ta;
+    int32_t value;
+    int32_t range_max;
+    int32_t range_min;
+    int32_t step;
+    uint32_t digit_count : 4;
+    uint32_t dec_point_pos : 4;
+    uint32_t rollover : 1;
+    uint32_t digit_step_dir : 2;
+};
+struct _lv_spinner_t {
+    lv_arc_t arc;
+    uint32_t duration;
+    uint32_t angle;
+};
+struct _lv_switch_t {
+    lv_obj_t obj;
+    int32_t anim_state;
+    lv_switch_orientation_t orientation : 3;
+};
+struct _lv_table_cell_t {
+    lv_table_cell_ctrl_t ctrl;
+    void * user_data;
+    char txt[1];
+};
+struct _lv_table_t {
+    lv_obj_t obj;
+    uint32_t col_cnt;
+    uint32_t row_cnt;
+    lv_table_cell_t ** cell_data;
+    int32_t * row_h;
+    int32_t * col_w;
+    uint32_t col_act;
+    uint32_t row_act;
 };
 struct _lv_tabview_t {
     lv_obj_t obj;
@@ -6459,19 +7239,14 @@ struct _lv_tabview_t {
     lv_dir_t tab_pos;
     int32_t tab_bar_size;
 };
-static inline int lv_version_major(void)
-{
-    return 9;
-}
-static inline int lv_version_minor(void)
-{
-    return 5;
-}
-static inline int lv_version_patch(void)
-{
-    return 0;
-}
-static inline const char * lv_version_info(void)
-{
-    return "";
-}
+struct _lv_tileview_t {
+    lv_obj_t obj;
+    lv_obj_t * tile_act;
+};
+struct _lv_tileview_tile_t {
+    lv_obj_t obj;
+    lv_dir_t dir;
+};
+struct _lv_win_t {
+    lv_obj_t obj;
+};

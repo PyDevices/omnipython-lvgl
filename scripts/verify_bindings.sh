@@ -58,8 +58,9 @@ line_count = len(lines)
 
 errors = []
 
-if line_count < 45000 or line_count > 52000:
-    errors.append(f"lvgl_circuitpython.c line count {line_count} outside expected 45000–52000")
+# LVGL 9.6's added API took the file from about 49,000 lines to 54,000.
+if line_count < 45000 or line_count > 60000:
+    errors.append(f"lvgl_circuitpython.c line count {line_count} outside expected 45000–60000")
 
 if "Target: circuitpython" not in text:
     errors.append("missing Target: circuitpython banner")

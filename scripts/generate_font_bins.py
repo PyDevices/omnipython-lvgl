@@ -39,6 +39,11 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BUILT_IN_FONT_DIR = REPO_ROOT / "lvgl" / "scripts" / "built_in_font"
+# LVGL 9.6 moved the generator and its font files to scripts/generators/,
+# leaving the os.system() recipe list where it was.
+FONT_TOOL_DIR = REPO_ROOT / "lvgl" / "scripts" / "generators" / "built_in_font"
+if not FONT_TOOL_DIR.is_dir():
+    FONT_TOOL_DIR = BUILT_IN_FONT_DIR
 FONTS_DIR = REPO_ROOT / "fonts"
 
 FONTAWESOME = "FontAwesome5-Solid+Brands+Regular.woff"
@@ -76,7 +81,7 @@ def os_system_commands(path):
 
 def fontawesome_codepoints():
     """The built-in symbol set, from built_in_font_gen.py's `syms = "..."`."""
-    src = (BUILT_IN_FONT_DIR / "built_in_font_gen.py").read_text(encoding="utf-8")
+    src = (FONT_TOOL_DIR / "built_in_font_gen.py").read_text(encoding="utf-8")
     match = re.search(r'^syms\s*=\s*"([0-9,]+)"', src, re.MULTILINE)
     if not match:
         sys.exit("error: FontAwesome symbol list not found in built_in_font_gen.py")
@@ -165,7 +170,7 @@ def main():
         print(f"Generating {out.relative_to(REPO_ROOT)}")
         subprocess.run(
             conv + args + ["--format", "bin", "-o", str(out)],
-            cwd=BUILT_IN_FONT_DIR,
+            cwd=FONT_TOOL_DIR,
             check=True,
         )
 

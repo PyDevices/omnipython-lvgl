@@ -2,7 +2,7 @@
 // jpegio's LVGL image decoder: baseline JPEG through jpegio's own TJpgDec,
 // registered with LVGL's public lv_image_decoder_create API. Phase 2 of the
 // org's docs/jpegio-vision.md: LVGL's built-in TJPGD is off (LV_USE_TJPGD 0
-// in lvgl-bindings' lv_conf.h on MicroPython), so a firmware with both
+// in omnipython-lvgl's lv_conf.h on MicroPython), so a firmware with both
 // usermods carries one TJpgDec -- jpegio's, vendored in tjpgd/ -- and this
 // file is that object code's second user.
 //
@@ -30,8 +30,11 @@
 // decoder instead of being claimed.
 
 #include "lvgl/lvgl.h"
-#include "lvgl/src/draw/lv_image_decoder_private.h"  // lv_image_decoder_t.info_cb, lv_image_cache_data_t
-#include "lvgl/src/core/lv_global.h"                 // LV_GLOBAL_DEFAULT()->image_cache_draw_buf_handlers
+// lv_image_decoder_t.info_cb, lv_image_cache_data_t and
+// LV_GLOBAL_DEFAULT()->image_cache_draw_buf_handlers. lvgl_private.h is where
+// every LVGL release keeps them: 9.6 moved the decoder's header from src/draw/
+// to src/image/.
+#include "lvgl/src/lvgl_private.h"
 
 #include <string.h>
 

@@ -37,7 +37,7 @@ done
 
 read_lvgl_version() {
     local version_file
-    for version_file in "$LVGL_DIR/lv_version.h" "$LVGL_DIR/lvgl.h"; do
+    for version_file in "$LVGL_DIR/include/lvgl/lv_version.h" "$LVGL_DIR/lv_version.h" "$LVGL_DIR/lvgl.h"; do
         [[ -f "$version_file" ]] || continue
         LVGL_MAJOR=$(grep -E '^#define LVGL_VERSION_MAJOR' "$version_file" | awk '{print $3}')
         LVGL_MINOR=$(grep -E '^#define LVGL_VERSION_MINOR' "$version_file" | awk '{print $3}')

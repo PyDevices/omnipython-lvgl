@@ -29,8 +29,9 @@
    COLOR SETTINGS
  *====================*/
 
-/*Color depth: 8 (A8), 16 (RGB565), 24 (RGB888), 32 (XRGB8888)*/
-#define LV_COLOR_DEPTH 16
+/*The color format LVGL renders in: RGB565, 16 bits a pixel.
+ *LV_COLOR_DEPTH is derived from it.*/
+#define LV_COLOR_FORMAT_DEFAULT LV_COLOR_FORMAT_RGB565
 
 /*=========================
    STDLIB WRAPPER SETTINGS
@@ -69,9 +70,6 @@
 #if LV_USE_STDLIB_MALLOC == LV_STDLIB_BUILTIN
     /*Size of the memory available for `lv_malloc()` in bytes (>= 2kB)*/
     #define LV_MEM_SIZE (64 * 1024U)          /*[bytes]*/
-
-    /*Size of the memory expand for `lv_malloc()` in bytes*/
-    #define LV_MEM_POOL_EXPAND_SIZE 0
 
     /*Set an address for the memory pool instead of allocating it as a normal array. Can be in external SRAM too.*/
     #define LV_MEM_ADR 0     /*0: unused*/
@@ -281,12 +279,31 @@
  *-----------*/
 
 /*Enable asserts if an operation is failed or an invalid data is found.
- *If LV_USE_LOG is enabled an error message will be printed on failure*/
+ *If LV_USE_LOG is enabled an error message will be printed on failure.
+ *LV_USE_ASSERT is the master switch, and LVGL turns it off by default:
+ *without it the two checks below compile to nothing.*/
+#define LV_USE_ASSERT               1
 #define LV_USE_ASSERT_NULL          1   /*Check if the parameter is NULL. (Very fast, recommended)*/
 #define LV_USE_ASSERT_MALLOC        1   /*Checks is the memory is successfully allocated or no. (Very fast, recommended)*/
 #define LV_USE_ASSERT_STYLE         0   /*Check if the styles are properly initialized. (Very fast, recommended)*/
 #define LV_USE_ASSERT_MEM_INTEGRITY 0   /*Check the integrity of `lv_mem` after critical operations. (Slow)*/
 #define LV_USE_ASSERT_OBJ           0   /*Check the object's type and existence (e.g. not deleted). (Slow)*/
+
+/*Argument checks: a public function given a NULL pointer, or an argument out
+ *of range, logs (when LV_USE_LOG is on) and returns instead of dereferencing
+ *it. LVGL turns them on by default; set them here so the choice is ours.
+ *Several of LVGL 9.5's asserts became these checks in 9.6.
+ *
+ *On MicroPython a failed check also goes to the assert handler, which raises
+ *RuntimeError, so a bad argument from Python still raises as it did when
+ *these were asserts. CircuitPython's handler reboots into safe mode and
+ *CPython's halts, so there the call just returns.*/
+#define LV_USE_CHECK_ARG            1
+#if defined(LV_CIRCUITPYTHON_BUILD) || defined(LV_CPYTHON_BUILD)
+#define LV_CHECK_ARG_ASSERT_ON_FAIL 0
+#else
+#define LV_CHECK_ARG_ASSERT_ON_FAIL 1
+#endif
 
 /*Add a custom handler when assert happens e.g. to restart the MCU*/
 #if defined(LV_CIRCUITPYTHON_BUILD)
@@ -296,11 +313,9 @@
      * "Third-party firmware fatal error." and leaves CIRCUITPY reachable.
      * The CircuitPython port provides the function; it is weak here, so a
      * consumer without it still links and halts as before. */
-    #define LV_ASSERT_HANDLER_INCLUDE <stdint.h>
     __attribute__((weak)) void lv_circuitpython_assert_failed(void);
     #define LV_ASSERT_HANDLER { if (lv_circuitpython_assert_failed) { lv_circuitpython_assert_failed(); } while(1); }
 #elif defined(LV_CPYTHON_BUILD)
-#define LV_ASSERT_HANDLER_INCLUDE <stdint.h>
 #define LV_ASSERT_HANDLER while(1);   /*Halt by default*/
 #else
     /* On MicroPython a spinning assert locks the scheduler out: USB serial and
@@ -314,7 +329,6 @@
      * follows the call. Passing the full path and the function name as well
      * cost about 50 KB of flash on an ESP32-S3, and with code run from PSRAM
      * (XIP) it took 128 KB of PSRAM from the heap. */
-    #define LV_ASSERT_HANDLER_INCLUDE <stdint.h>
     #if !defined(PYCPARSER) && !defined(__ASSEMBLY__)
     __attribute__((noreturn)) void lv_micropython_assert_failed(const char *file, int line);
     #endif
@@ -639,13 +653,6 @@ extern void mp_lv_deinit_gc(void);
 #define LV_USE_CALENDAR   1
 #if LV_USE_CALENDAR
     #define LV_CALENDAR_WEEK_STARTS_MONDAY 0
-    #if LV_CALENDAR_WEEK_STARTS_MONDAY
-        #define LV_CALENDAR_DEFAULT_DAY_NAMES {"Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"}
-    #else
-        #define LV_CALENDAR_DEFAULT_DAY_NAMES {"Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"}
-    #endif
-
-    #define LV_CALENDAR_DEFAULT_MONTH_NAMES {"January", "February", "March",  "April", "May",  "June", "July", "August", "September", "October", "November", "December"}
     #define LV_USE_CALENDAR_HEADER_ARROW 1
     #define LV_USE_CALENDAR_HEADER_DROPDOWN 1
 #endif  /*LV_USE_CALENDAR*/
@@ -889,14 +896,10 @@ extern void mp_lv_deinit_gc(void);
 /* Enable ThorVG (vector graphics library) from the src/libs folder */
 #define LV_USE_THORVG_INTERNAL 0
 
-/* Enable ThorVG by assuming that its installed and linked to the project */
-#define LV_USE_THORVG_EXTERNAL 0
 
 /*Use lvgl built-in LZ4 lib*/
 #define LV_USE_LZ4_INTERNAL  0
 
-/*Use external LZ4 library*/
-#define LV_USE_LZ4_EXTERNAL  0
 
 /*FFmpeg library for image decoding and playing videos
  *Supports all major image formats so do not enable other image decoder with it*/
