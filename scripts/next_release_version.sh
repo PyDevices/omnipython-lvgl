@@ -60,17 +60,19 @@ next_version() {
             | awk '{print $2}' \
             | sed 's|refs/tags/||' \
             | grep -v '\^{}$' \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' \
             | sort -V \
             | tail -n 1
     )
     if [[ -n "$remote_tag" ]]; then
         latest=$remote_tag
     else
-        latest=$(git tag -l "${prefix}*" | sort -V | tail -n 1)
+        latest=$(git tag -l "${prefix}*" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)
     fi
     local committed
     committed=$(tr -d '[:space:]' < "$SOURCE_REPO/VERSION" 2>/dev/null || true)
-    if [[ "$committed" == "${LVGL_MAJOR}.${LVGL_MINOR}."* ]]; then
+    # Pre-releases (X.Y.Z.devN, X.Y.ZrcN) don't count as released versions.
+    if [[ "$committed" =~ ^${LVGL_MAJOR}\.${LVGL_MINOR}\.[0-9]+$ ]]; then
         latest=$(printf '%s\n' "$latest" "v$committed" | grep -v '^$' | sort -V | tail -n 1)
     fi
     if [[ -z "$latest" ]]; then

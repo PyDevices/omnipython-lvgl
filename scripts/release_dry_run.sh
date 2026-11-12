@@ -26,8 +26,8 @@ echo "==> Binding contract checks"
 echo "==> Expected release version"
 VERSION=$(./scripts/next_release_version.sh)
 case "$VERSION" in
-    9.5.*) ;;
-    *) echo "Error: expected a 9.5.N version, got $VERSION" >&2; exit 1 ;;
+    9.6.*) ;;
+    *) echo "Error: expected a 9.6.N version, got $VERSION" >&2; exit 1 ;;
 esac
 echo "Release dry run passed; expected version: $VERSION"
 echo "No commits, tags, pushes, workflow dispatches, or publications were made."
