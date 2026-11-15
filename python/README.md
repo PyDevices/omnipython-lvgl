@@ -27,4 +27,4 @@ it needs.
 mip.install("github:PyDevices/omnipython-lvgl/packages/fs_driver.json")
 ```
 
-`display_driver` comes with `mip.install("pydevices", index="https://PyDevices.github.io/mip")`.
+`display_driver` comes with `omip.install("pydevices")`.
