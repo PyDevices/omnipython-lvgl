@@ -141,6 +141,37 @@ def test_import_and_constants(lv):
     print("OK: import lvgl; init/deinit")
 
 
+def test_before_init(lv):
+    """A call that reaches LVGL before lv.init() raises RuntimeError.
+
+    The embedded ports (MicroPython and CircuitPython) used to hard-fault.
+    Pure helpers that never reach LVGL's state keep working.
+    """
+    if _is_cpython():
+        return
+    if lv.is_initialized():
+        _fail("LVGL is initialised where the before-init test starts")
+
+    def expect_error(what, call):
+        try:
+            call()
+        except RuntimeError as exc:
+            if "lv.init()" not in str(exc):
+                _fail("{}: RuntimeError without a hint: {}".format(what, exc))
+            return
+        _fail("{} did not raise before lv.init()".format(what))
+
+    expect_error("timer_create", lambda: lv.timer_create(lambda t: None, 1000, None))
+    expect_error("screen_active", lambda: lv.screen_active())
+    expect_error("obj()", lambda: lv.obj(None))
+    expect_error("label()", lambda: lv.label(None))
+    expect_error("tick_get", lambda: lv.tick_get())
+    # No exception, and no fault, from helpers that never touch LVGL's state.
+    lv.color_hex(0x123456)
+    lv.pct(50)
+    print("OK: LVGL calls before lv.init() raise RuntimeError")
+
+
 def test_basic(lv):
     lv.init()
     if hasattr(lv, "is_initialized") and not lv.is_initialized():
@@ -780,6 +811,7 @@ def main():
     lv = _import_lv()
 
     test_import_and_constants(lv)
+    test_before_init(lv)
     test_string_constants(lv)
     test_enums(lv)
     test_enum_dir(lv)
@@ -791,6 +823,7 @@ def main():
 
     if _is_initialized(lv):
         lv.deinit()
+    test_before_init(lv)
 
     test_basic(lv)
     disp, buf = _setup_display(lv)

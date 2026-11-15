@@ -82,7 +82,10 @@ typedef struct mp_lv_obj_fun_builtin_var_t {
     mp_uint_t n_args;
     mp_fun_ptr_var_t mp_fun;
     void *lv_fun;
+    bool needs_init;
 } mp_lv_obj_fun_builtin_var_t;
+
+void *mp_lv_get_roots(void);
 
 static mp_obj_t lv_fun_builtin_var_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args);
 static mp_int_t mp_func_get_buffer(mp_obj_t self_in, mp_buffer_info_t *bufinfo, mp_uint_t flags);
@@ -110,6 +113,12 @@ static mp_obj_t lv_fun_builtin_var_call(mp_obj_t self_in, size_t n_args, size_t 
            MP_OBJ_IS_TYPE(self_in, &mp_lv_type_fun_builtin_static_var));
     mp_lv_obj_fun_builtin_var_t *self = MP_OBJ_TO_PTR(self_in);
     mp_arg_check_num(n_args, n_kw, self->n_args, self->n_args, false);
+    // LVGL keeps its state behind lv.init(); before it, a call that reaches
+    // that state hard-faults. mp_lv_get_roots() is NULL until lv.init()
+    // allocates it, so this is one load and a compare.
+    if (self->needs_init && mp_lv_get_roots() == NULL) {
+        mp_raise_msg(&mp_type_RuntimeError, MP_ERROR_TEXT("LVGL is not initialised: call lv.init() first"));
+    }
     return self->mp_fun(n_args, args, self->lv_fun);
 }
 
@@ -125,13 +134,13 @@ static mp_int_t mp_func_get_buffer(mp_obj_t self_in, mp_buffer_info_t *bufinfo, 
     return 0;
 }
 
-#define MP_DEFINE_CONST_LV_FUN_OBJ_VAR(obj_name, n_args, mp_fun, lv_fun) \
+#define MP_DEFINE_CONST_LV_FUN_OBJ_VAR(obj_name, n_args, mp_fun, lv_fun, needs_init) \
     const mp_lv_obj_fun_builtin_var_t obj_name = \
-        {{&mp_lv_type_fun_builtin_var}, n_args, mp_fun, lv_fun}
+        {{&mp_lv_type_fun_builtin_var}, n_args, mp_fun, lv_fun, needs_init}
 
-#define MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(obj_name, n_args, mp_fun, lv_fun) \
+#define MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(obj_name, n_args, mp_fun, lv_fun, needs_init) \
     const mp_lv_obj_fun_builtin_var_t obj_name = \
-        {{&mp_lv_type_fun_builtin_static_var}, n_args, mp_fun, lv_fun}
+        {{&mp_lv_type_fun_builtin_static_var}, n_args, mp_fun, lv_fun, needs_init}
 
 // Casting
 
@@ -6336,7 +6345,7 @@ static mp_obj_t mp_lv_obj_style_get_selector_state(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_style_get_selector_state_mpobj, 1, mp_lv_obj_style_get_selector_state, lv_obj_style_get_selector_state);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_style_get_selector_state_mpobj, 1, mp_lv_obj_style_get_selector_state, lv_obj_style_get_selector_state, 1);
     
 
 /*
@@ -6353,7 +6362,7 @@ static mp_obj_t mp_lv_obj_style_get_selector_part(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_style_get_selector_part_mpobj, 1, mp_lv_obj_style_get_selector_part, lv_obj_style_get_selector_part);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_style_get_selector_part_mpobj, 1, mp_lv_obj_style_get_selector_part, lv_obj_style_get_selector_part, 1);
     
 
 /*
@@ -6370,11 +6379,11 @@ static mp_obj_t mp_lv_obj_move_foreground(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_move_foreground_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_move_foreground);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_move_foreground_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_move_foreground, 1);
     
 /* Reusing lv_obj_move_foreground for lv_obj_move_background */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_move_background_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_move_background);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_move_background_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_move_background, 1);
     
 
 /*
@@ -6392,7 +6401,7 @@ static mp_obj_t mp_lv_obj_set_flex_flow(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_flex_flow_mpobj, 2, mp_lv_obj_set_flex_flow, lv_obj_set_flex_flow);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_flex_flow_mpobj, 2, mp_lv_obj_set_flex_flow, lv_obj_set_flex_flow, 1);
     
 
 /*
@@ -6412,7 +6421,7 @@ static mp_obj_t mp_lv_obj_set_flex_align(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_flex_align_mpobj, 4, mp_lv_obj_set_flex_align, lv_obj_set_flex_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_flex_align_mpobj, 4, mp_lv_obj_set_flex_align, lv_obj_set_flex_align, 1);
     
 
 /*
@@ -6430,7 +6439,7 @@ static mp_obj_t mp_lv_obj_set_flex_grow(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_flex_grow_mpobj, 2, mp_lv_obj_set_flex_grow, lv_obj_set_flex_grow);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_flex_grow_mpobj, 2, mp_lv_obj_set_flex_grow, lv_obj_set_flex_grow, 1);
     
 
 /*
@@ -6480,7 +6489,7 @@ static mp_obj_t mp_lv_obj_set_grid_dsc_array(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_grid_dsc_array_mpobj, 3, mp_lv_obj_set_grid_dsc_array, lv_obj_set_grid_dsc_array);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_grid_dsc_array_mpobj, 3, mp_lv_obj_set_grid_dsc_array, lv_obj_set_grid_dsc_array, 1);
     
 
 /*
@@ -6499,7 +6508,7 @@ static mp_obj_t mp_lv_obj_set_grid_align(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_grid_align_mpobj, 3, mp_lv_obj_set_grid_align, lv_obj_set_grid_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_grid_align_mpobj, 3, mp_lv_obj_set_grid_align, lv_obj_set_grid_align, 1);
     
 
 /*
@@ -6522,15 +6531,15 @@ static mp_obj_t mp_lv_obj_set_grid_cell(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_grid_cell_mpobj, 7, mp_lv_obj_set_grid_cell, lv_obj_set_grid_cell);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_grid_cell_mpobj, 7, mp_lv_obj_set_grid_cell, lv_obj_set_grid_cell, 1);
     
 /* Reusing lv_obj_move_foreground for lv_obj_delete */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_delete_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_delete_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_delete, 1);
     
 /* Reusing lv_obj_move_foreground for lv_obj_clean */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_clean_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_clean);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_clean_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_clean, 1);
     
 
 /*
@@ -6548,7 +6557,7 @@ static mp_obj_t mp_lv_obj_delete_delayed(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_delete_delayed_mpobj, 2, mp_lv_obj_delete_delayed, lv_obj_delete_delayed);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_delete_delayed_mpobj, 2, mp_lv_obj_delete_delayed, lv_obj_delete_delayed, 1);
     
 #define funcptr_lv_anim_exec_xcb_t NULL
 
@@ -6568,7 +6577,7 @@ static mp_obj_t mp_funcptr_lv_anim_exec_xcb_t(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_anim_exec_xcb_t_mpobj, 2, mp_funcptr_lv_anim_exec_xcb_t, funcptr_lv_anim_exec_xcb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_anim_exec_xcb_t_mpobj, 2, mp_funcptr_lv_anim_exec_xcb_t, funcptr_lv_anim_exec_xcb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_anim_exec_xcb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_anim_exec_xcb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -6597,7 +6606,7 @@ static mp_obj_t mp_funcptr_lv_anim_custom_exec_cb_t(size_t mp_n_args, const mp_o
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_anim_custom_exec_cb_t_mpobj, 2, mp_funcptr_lv_anim_custom_exec_cb_t, funcptr_lv_anim_custom_exec_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_anim_custom_exec_cb_t_mpobj, 2, mp_funcptr_lv_anim_custom_exec_cb_t, funcptr_lv_anim_custom_exec_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_anim_custom_exec_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_anim_custom_exec_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -6619,7 +6628,7 @@ static mp_obj_t mp_funcptr_lv_anim_start_cb_t(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_anim_start_cb_t_mpobj, 1, mp_funcptr_lv_anim_start_cb_t, funcptr_lv_anim_start_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_anim_start_cb_t_mpobj, 1, mp_funcptr_lv_anim_start_cb_t, funcptr_lv_anim_start_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_anim_start_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_anim_start_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -6643,7 +6652,7 @@ static mp_obj_t mp_funcptr_lv_anim_get_value_cb_t(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_anim_get_value_cb_t_mpobj, 1, mp_funcptr_lv_anim_get_value_cb_t, funcptr_lv_anim_get_value_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_anim_get_value_cb_t_mpobj, 1, mp_funcptr_lv_anim_get_value_cb_t, funcptr_lv_anim_get_value_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_anim_get_value_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_anim_get_value_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -6957,11 +6966,11 @@ static mp_obj_t mp_lv_obj_delete_anim_completed_cb(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_delete_anim_completed_cb_mpobj, 1, mp_lv_obj_delete_anim_completed_cb, lv_obj_delete_anim_completed_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_delete_anim_completed_cb_mpobj, 1, mp_lv_obj_delete_anim_completed_cb, lv_obj_delete_anim_completed_cb, 1);
     
 /* Reusing lv_obj_move_foreground for lv_obj_delete_async */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_delete_async_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_delete_async);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_delete_async_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_delete_async, 1);
     
 
 /*
@@ -6979,11 +6988,11 @@ static mp_obj_t mp_lv_obj_set_parent(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_parent_mpobj, 2, mp_lv_obj_set_parent, lv_obj_set_parent);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_parent_mpobj, 2, mp_lv_obj_set_parent, lv_obj_set_parent, 1);
     
 /* Reusing lv_obj_set_parent for lv_obj_swap */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_swap_mpobj, 2, mp_lv_obj_set_parent, lv_obj_swap);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_swap_mpobj, 2, mp_lv_obj_set_parent, lv_obj_swap, 1);
     
 
 /*
@@ -7001,7 +7010,7 @@ static mp_obj_t mp_lv_obj_move_to_index(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_move_to_index_mpobj, 2, mp_lv_obj_move_to_index, lv_obj_move_to_index);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_move_to_index_mpobj, 2, mp_lv_obj_move_to_index, lv_obj_move_to_index, 1);
     
 
 /*
@@ -7018,7 +7027,7 @@ static mp_obj_t mp_lv_obj_get_screen(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_screen_mpobj, 1, mp_lv_obj_get_screen, lv_obj_get_screen);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_screen_mpobj, 1, mp_lv_obj_get_screen, lv_obj_get_screen, 1);
     
 
 /*
@@ -7128,7 +7137,7 @@ static mp_obj_t mp_funcptr_lv_draw_buf_malloc_cb_t(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_buf_malloc_cb_t_mpobj, 2, mp_funcptr_lv_draw_buf_malloc_cb_t, funcptr_lv_draw_buf_malloc_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_buf_malloc_cb_t_mpobj, 2, mp_funcptr_lv_draw_buf_malloc_cb_t, funcptr_lv_draw_buf_malloc_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_draw_buf_malloc_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_draw_buf_malloc_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -7156,7 +7165,7 @@ static mp_obj_t mp_funcptr_lv_draw_buf_free_cb_t(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_buf_free_cb_t_mpobj, 1, mp_funcptr_lv_draw_buf_free_cb_t, funcptr_lv_draw_buf_free_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_buf_free_cb_t_mpobj, 1, mp_funcptr_lv_draw_buf_free_cb_t, funcptr_lv_draw_buf_free_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_draw_buf_free_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_draw_buf_free_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -7271,7 +7280,7 @@ static mp_obj_t mp_funcptr_lv_draw_buf_copy_cb_t(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_buf_copy_cb_t_mpobj, 4, mp_funcptr_lv_draw_buf_copy_cb_t, funcptr_lv_draw_buf_copy_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_buf_copy_cb_t_mpobj, 4, mp_funcptr_lv_draw_buf_copy_cb_t, funcptr_lv_draw_buf_copy_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_draw_buf_copy_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_draw_buf_copy_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -7300,7 +7309,7 @@ static mp_obj_t mp_funcptr_lv_draw_buf_align_cb_t(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_buf_align_cb_t_mpobj, 2, mp_funcptr_lv_draw_buf_align_cb_t, funcptr_lv_draw_buf_align_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_buf_align_cb_t_mpobj, 2, mp_funcptr_lv_draw_buf_align_cb_t, funcptr_lv_draw_buf_align_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_draw_buf_align_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_draw_buf_align_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -7329,7 +7338,7 @@ static mp_obj_t mp_funcptr_lv_draw_buf_cache_operation_cb_t(size_t mp_n_args, co
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_buf_cache_operation_cb_t_mpobj, 2, mp_funcptr_lv_draw_buf_cache_operation_cb_t, funcptr_lv_draw_buf_cache_operation_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_buf_cache_operation_cb_t_mpobj, 2, mp_funcptr_lv_draw_buf_cache_operation_cb_t, funcptr_lv_draw_buf_cache_operation_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_draw_buf_cache_operation_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_draw_buf_cache_operation_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -7365,7 +7374,7 @@ static mp_obj_t mp_funcptr_lv_draw_buf_width_to_stride_cb_t(size_t mp_n_args, co
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_buf_width_to_stride_cb_t_mpobj, 2, mp_funcptr_lv_draw_buf_width_to_stride_cb_t, funcptr_lv_draw_buf_width_to_stride_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_buf_width_to_stride_cb_t_mpobj, 2, mp_funcptr_lv_draw_buf_width_to_stride_cb_t, funcptr_lv_draw_buf_width_to_stride_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_draw_buf_width_to_stride_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_draw_buf_width_to_stride_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -7396,7 +7405,7 @@ static mp_obj_t mp_funcptr_dispatch_cb(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_dispatch_cb_mpobj, 2, mp_funcptr_dispatch_cb, funcptr_dispatch_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_dispatch_cb_mpobj, 2, mp_funcptr_dispatch_cb, funcptr_dispatch_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_dispatch_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_dispatch_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -7425,7 +7434,7 @@ static mp_obj_t mp_funcptr_evaluate_cb(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_evaluate_cb_mpobj, 2, mp_funcptr_evaluate_cb, funcptr_evaluate_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_evaluate_cb_mpobj, 2, mp_funcptr_evaluate_cb, funcptr_evaluate_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_evaluate_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_evaluate_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -7453,7 +7462,7 @@ static mp_obj_t mp_funcptr_wait_for_finish_cb(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_wait_for_finish_cb_mpobj, 1, mp_funcptr_wait_for_finish_cb, funcptr_wait_for_finish_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_wait_for_finish_cb_mpobj, 1, mp_funcptr_wait_for_finish_cb, funcptr_wait_for_finish_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_wait_for_finish_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_wait_for_finish_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -7584,7 +7593,7 @@ static mp_obj_t mp_funcptr_event_cb(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_event_cb_mpobj, 1, mp_funcptr_event_cb, funcptr_event_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_event_cb_mpobj, 1, mp_funcptr_event_cb, funcptr_event_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_event_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_event_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -7994,7 +8003,7 @@ static mp_obj_t mp_funcptr_lv_draw_buf_clear_cb_t(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_buf_clear_cb_t_mpobj, 3, mp_funcptr_lv_draw_buf_clear_cb_t, funcptr_lv_draw_buf_clear_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_buf_clear_cb_t_mpobj, 3, mp_funcptr_lv_draw_buf_clear_cb_t, funcptr_lv_draw_buf_clear_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_draw_buf_clear_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_draw_buf_clear_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -8202,7 +8211,7 @@ static mp_obj_t mp_funcptr_lv_display_flush_cb_t(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_display_flush_cb_t_mpobj, 3, mp_funcptr_lv_display_flush_cb_t, funcptr_lv_display_flush_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_display_flush_cb_t_mpobj, 3, mp_funcptr_lv_display_flush_cb_t, funcptr_lv_display_flush_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_display_flush_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_display_flush_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -8224,7 +8233,7 @@ static mp_obj_t mp_funcptr_lv_display_flush_wait_cb_t(size_t mp_n_args, const mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_display_flush_wait_cb_t_mpobj, 1, mp_funcptr_lv_display_flush_wait_cb_t, funcptr_lv_display_flush_wait_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_display_flush_wait_cb_t_mpobj, 1, mp_funcptr_lv_display_flush_wait_cb_t, funcptr_lv_display_flush_wait_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_display_flush_wait_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_display_flush_wait_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -8247,7 +8256,7 @@ static mp_obj_t mp_funcptr_lv_display_sync_cb_t(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_display_sync_cb_t_mpobj, 2, mp_funcptr_lv_display_sync_cb_t, funcptr_lv_display_sync_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_display_sync_cb_t_mpobj, 2, mp_funcptr_lv_display_sync_cb_t, funcptr_lv_display_sync_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_display_sync_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_display_sync_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -8591,7 +8600,7 @@ static mp_obj_t mp_funcptr_lv_theme_apply_cb_t(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_theme_apply_cb_t_mpobj, 2, mp_funcptr_lv_theme_apply_cb_t, funcptr_lv_theme_apply_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_theme_apply_cb_t_mpobj, 2, mp_funcptr_lv_theme_apply_cb_t, funcptr_lv_theme_apply_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_theme_apply_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_theme_apply_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -8881,7 +8890,7 @@ static mp_obj_t mp_funcptr_get_glyph_dsc(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_get_glyph_dsc_mpobj, 4, mp_funcptr_get_glyph_dsc, funcptr_get_glyph_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_get_glyph_dsc_mpobj, 4, mp_funcptr_get_glyph_dsc, funcptr_get_glyph_dsc, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_get_glyph_dsc(void *func){ return mp_lv_funcptr(&mp_funcptr_get_glyph_dsc_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -8904,7 +8913,7 @@ static mp_obj_t mp_funcptr_get_glyph_bitmap(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_get_glyph_bitmap_mpobj, 2, mp_funcptr_get_glyph_bitmap, funcptr_get_glyph_bitmap);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_get_glyph_bitmap_mpobj, 2, mp_funcptr_get_glyph_bitmap, funcptr_get_glyph_bitmap, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_get_glyph_bitmap(void *func){ return mp_lv_funcptr(&mp_funcptr_get_glyph_bitmap_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -8933,7 +8942,7 @@ static mp_obj_t mp_funcptr_release_glyph(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_release_glyph_mpobj, 2, mp_funcptr_release_glyph, funcptr_release_glyph);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_release_glyph_mpobj, 2, mp_funcptr_release_glyph, funcptr_release_glyph, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_release_glyph(void *func){ return mp_lv_funcptr(&mp_funcptr_release_glyph_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -9157,7 +9166,7 @@ static mp_obj_t mp_funcptr_lv_timer_cb_t(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_timer_cb_t_mpobj, 1, mp_funcptr_lv_timer_cb_t, funcptr_lv_timer_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_timer_cb_t_mpobj, 1, mp_funcptr_lv_timer_cb_t, funcptr_lv_timer_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_timer_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_timer_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -9453,11 +9462,11 @@ static mp_obj_t mp_lv_obj_get_display(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_display_mpobj, 1, mp_lv_obj_get_display, lv_obj_get_display);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_display_mpobj, 1, mp_lv_obj_get_display, lv_obj_get_display, 1);
     
 /* Reusing lv_obj_get_screen for lv_obj_get_parent */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_parent_mpobj, 1, mp_lv_obj_get_screen, lv_obj_get_parent);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_parent_mpobj, 1, mp_lv_obj_get_screen, lv_obj_get_parent, 1);
     
 
 /*
@@ -9475,7 +9484,7 @@ static mp_obj_t mp_lv_obj_get_child(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_child_mpobj, 2, mp_lv_obj_get_child, lv_obj_get_child);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_child_mpobj, 2, mp_lv_obj_get_child, lv_obj_get_child, 1);
     
 #define funcptr_constructor_cb NULL
 
@@ -9495,7 +9504,7 @@ static mp_obj_t mp_funcptr_constructor_cb(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_constructor_cb_mpobj, 2, mp_funcptr_constructor_cb, funcptr_constructor_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_constructor_cb_mpobj, 2, mp_funcptr_constructor_cb, funcptr_constructor_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_constructor_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_constructor_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -9519,7 +9528,7 @@ static mp_obj_t mp_funcptr_event_cb_1(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_event_cb_1_mpobj, 2, mp_funcptr_event_cb_1, funcptr_event_cb_1);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_event_cb_1_mpobj, 2, mp_funcptr_event_cb_1, funcptr_event_cb_1, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_event_cb_1(void *func){ return mp_lv_funcptr(&mp_funcptr_event_cb_1_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -9641,15 +9650,15 @@ static mp_obj_t mp_lv_obj_get_child_by_type(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_child_by_type_mpobj, 3, mp_lv_obj_get_child_by_type, lv_obj_get_child_by_type);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_child_by_type_mpobj, 3, mp_lv_obj_get_child_by_type, lv_obj_get_child_by_type, 1);
     
 /* Reusing lv_obj_get_child for lv_obj_get_sibling */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_sibling_mpobj, 2, mp_lv_obj_get_child, lv_obj_get_sibling);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_sibling_mpobj, 2, mp_lv_obj_get_child, lv_obj_get_sibling, 1);
     
 /* Reusing lv_obj_get_child_by_type for lv_obj_get_sibling_by_type */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_sibling_by_type_mpobj, 3, mp_lv_obj_get_child_by_type, lv_obj_get_sibling_by_type);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_sibling_by_type_mpobj, 3, mp_lv_obj_get_child_by_type, lv_obj_get_sibling_by_type, 1);
     
 
 /*
@@ -9666,7 +9675,7 @@ static mp_obj_t mp_lv_obj_get_child_count(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_child_count_mpobj, 1, mp_lv_obj_get_child_count, lv_obj_get_child_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_child_count_mpobj, 1, mp_lv_obj_get_child_count, lv_obj_get_child_count, 1);
     
 
 /*
@@ -9684,7 +9693,7 @@ static mp_obj_t mp_lv_obj_get_child_count_by_type(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_child_count_by_type_mpobj, 2, mp_lv_obj_get_child_count_by_type, lv_obj_get_child_count_by_type);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_child_count_by_type_mpobj, 2, mp_lv_obj_get_child_count_by_type, lv_obj_get_child_count_by_type, 1);
     
 
 /*
@@ -9701,7 +9710,7 @@ static mp_obj_t mp_lv_obj_get_index(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_index_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_index);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_index_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_index, 1);
     
 
 /*
@@ -9719,7 +9728,7 @@ static mp_obj_t mp_lv_obj_get_index_by_type(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_index_by_type_mpobj, 2, mp_lv_obj_get_index_by_type, lv_obj_get_index_by_type);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_index_by_type_mpobj, 2, mp_lv_obj_get_index_by_type, lv_obj_get_index_by_type, 1);
     
 
 /*
@@ -9754,11 +9763,11 @@ static mp_obj_t mp_lv_obj_tree_walk(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_tree_walk_mpobj, 3, mp_lv_obj_tree_walk, lv_obj_tree_walk);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_tree_walk_mpobj, 3, mp_lv_obj_tree_walk, lv_obj_tree_walk, 1);
     
 /* Reusing lv_obj_move_foreground for lv_obj_dump_tree */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_dump_tree_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_dump_tree);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_dump_tree_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_dump_tree, 1);
     
 
 /*
@@ -9777,19 +9786,19 @@ static mp_obj_t mp_lv_obj_set_pos(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_pos_mpobj, 3, mp_lv_obj_set_pos, lv_obj_set_pos);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_pos_mpobj, 3, mp_lv_obj_set_pos, lv_obj_set_pos, 1);
     
 /* Reusing lv_obj_move_to_index for lv_obj_set_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_x_mpobj, 2, mp_lv_obj_move_to_index, lv_obj_set_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_x_mpobj, 2, mp_lv_obj_move_to_index, lv_obj_set_x, 1);
     
 /* Reusing lv_obj_move_to_index for lv_obj_set_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_y_mpobj, 2, mp_lv_obj_move_to_index, lv_obj_set_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_y_mpobj, 2, mp_lv_obj_move_to_index, lv_obj_set_y, 1);
     
 /* Reusing lv_obj_set_pos for lv_obj_set_size */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_size_mpobj, 3, mp_lv_obj_set_pos, lv_obj_set_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_size_mpobj, 3, mp_lv_obj_set_pos, lv_obj_set_size, 1);
     
 
 /*
@@ -9806,27 +9815,27 @@ static mp_obj_t mp_lv_obj_refr_size(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_refr_size_mpobj, 1, mp_lv_obj_refr_size, lv_obj_refr_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_refr_size_mpobj, 1, mp_lv_obj_refr_size, lv_obj_refr_size, 1);
     
 /* Reusing lv_obj_move_to_index for lv_obj_set_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_width_mpobj, 2, mp_lv_obj_move_to_index, lv_obj_set_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_width_mpobj, 2, mp_lv_obj_move_to_index, lv_obj_set_width, 1);
     
 /* Reusing lv_obj_move_to_index for lv_obj_set_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_height_mpobj, 2, mp_lv_obj_move_to_index, lv_obj_set_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_height_mpobj, 2, mp_lv_obj_move_to_index, lv_obj_set_height, 1);
     
 /* Reusing lv_obj_move_to_index for lv_obj_set_content_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_content_width_mpobj, 2, mp_lv_obj_move_to_index, lv_obj_set_content_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_content_width_mpobj, 2, mp_lv_obj_move_to_index, lv_obj_set_content_width, 1);
     
 /* Reusing lv_obj_move_to_index for lv_obj_set_content_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_content_height_mpobj, 2, mp_lv_obj_move_to_index, lv_obj_set_content_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_content_height_mpobj, 2, mp_lv_obj_move_to_index, lv_obj_set_content_height, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_obj_set_layout */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_layout_mpobj, 2, mp_lv_obj_delete_delayed, lv_obj_set_layout);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_layout_mpobj, 2, mp_lv_obj_delete_delayed, lv_obj_set_layout, 1);
     
 
 /*
@@ -9843,11 +9852,11 @@ static mp_obj_t mp_lv_obj_is_layout_positioned(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_layout_positioned_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_layout_positioned);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_layout_positioned_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_layout_positioned, 1);
     
 /* Reusing lv_obj_move_foreground for lv_obj_mark_layout_as_dirty */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_mark_layout_as_dirty_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_mark_layout_as_dirty);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_mark_layout_as_dirty_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_mark_layout_as_dirty, 1);
     
 
 /*
@@ -9864,7 +9873,7 @@ static mp_obj_t mp_lv_obj_update_layout(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_update_layout_mpobj, 1, mp_lv_obj_update_layout, lv_obj_update_layout);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_update_layout_mpobj, 1, mp_lv_obj_update_layout, lv_obj_update_layout, 1);
     
 
 /*
@@ -9882,7 +9891,7 @@ static mp_obj_t mp_lv_obj_set_align(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_align_mpobj, 2, mp_lv_obj_set_align, lv_obj_set_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_align_mpobj, 2, mp_lv_obj_set_align, lv_obj_set_align, 1);
     
 
 /*
@@ -9902,7 +9911,7 @@ static mp_obj_t mp_lv_obj_align(size_t mp_n_args, const mp_obj_t *mp_args, void 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_align_mpobj, 4, mp_lv_obj_align, lv_obj_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_align_mpobj, 4, mp_lv_obj_align, lv_obj_align, 1);
     
 
 /*
@@ -9923,11 +9932,11 @@ static mp_obj_t mp_lv_obj_align_to(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_align_to_mpobj, 5, mp_lv_obj_align_to, lv_obj_align_to);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_align_to_mpobj, 5, mp_lv_obj_align_to, lv_obj_align_to, 1);
     
 /* Reusing lv_obj_move_foreground for lv_obj_center */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_center_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_center);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_center_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_center, 1);
     
 
 /*
@@ -10023,11 +10032,11 @@ static mp_obj_t mp_lv_obj_set_transform(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_transform_mpobj, 2, mp_lv_obj_set_transform, lv_obj_set_transform);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_transform_mpobj, 2, mp_lv_obj_set_transform, lv_obj_set_transform, 1);
     
 /* Reusing lv_obj_move_foreground for lv_obj_reset_transform */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_reset_transform_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_reset_transform);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_reset_transform_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_reset_transform, 1);
     
 
 /*
@@ -10045,59 +10054,59 @@ static mp_obj_t mp_lv_obj_get_coords(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_coords_mpobj, 2, mp_lv_obj_get_coords, lv_obj_get_coords);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_coords_mpobj, 2, mp_lv_obj_get_coords, lv_obj_get_coords, 1);
     
 /* Reusing lv_obj_get_index for lv_obj_get_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_x_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_x_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_x, 1);
     
 /* Reusing lv_obj_get_index for lv_obj_get_x2 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_x2_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_x2);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_x2_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_x2, 1);
     
 /* Reusing lv_obj_get_index for lv_obj_get_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_y_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_y_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_y, 1);
     
 /* Reusing lv_obj_get_index for lv_obj_get_y2 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_y2_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_y2);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_y2_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_y2, 1);
     
 /* Reusing lv_obj_get_index for lv_obj_get_x_aligned */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_x_aligned_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_x_aligned);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_x_aligned_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_x_aligned, 1);
     
 /* Reusing lv_obj_get_index for lv_obj_get_y_aligned */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_y_aligned_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_y_aligned);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_y_aligned_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_y_aligned, 1);
     
 /* Reusing lv_obj_get_index for lv_obj_get_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_width_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_width_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_width, 1);
     
 /* Reusing lv_obj_get_index for lv_obj_get_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_height_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_height_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_height, 1);
     
 /* Reusing lv_obj_get_index for lv_obj_get_content_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_content_width_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_content_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_content_width_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_content_width, 1);
     
 /* Reusing lv_obj_get_index for lv_obj_get_content_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_content_height_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_content_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_content_height_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_content_height, 1);
     
 /* Reusing lv_obj_get_coords for lv_obj_get_content_coords */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_content_coords_mpobj, 2, mp_lv_obj_get_coords, lv_obj_get_content_coords);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_content_coords_mpobj, 2, mp_lv_obj_get_coords, lv_obj_get_content_coords, 1);
     
 /* Reusing lv_obj_get_index for lv_obj_get_self_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_self_width_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_self_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_self_width_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_self_width, 1);
     
 /* Reusing lv_obj_get_index for lv_obj_get_self_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_self_height_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_self_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_self_height_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_self_height, 1);
     
 
 /*
@@ -10114,47 +10123,47 @@ static mp_obj_t mp_lv_obj_get_style_clamped_width(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_clamped_width_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_obj_get_style_clamped_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_clamped_width_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_obj_get_style_clamped_width, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_obj_get_style_clamped_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_clamped_height_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_obj_get_style_clamped_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_clamped_height_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_obj_get_style_clamped_height, 1);
     
 /* Reusing lv_obj_refr_size for lv_obj_is_style_any_width_content */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_style_any_width_content_mpobj, 1, mp_lv_obj_refr_size, lv_obj_is_style_any_width_content);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_style_any_width_content_mpobj, 1, mp_lv_obj_refr_size, lv_obj_is_style_any_width_content, 1);
     
 /* Reusing lv_obj_refr_size for lv_obj_is_style_any_height_content */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_style_any_height_content_mpobj, 1, mp_lv_obj_refr_size, lv_obj_is_style_any_height_content);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_style_any_height_content_mpobj, 1, mp_lv_obj_refr_size, lv_obj_is_style_any_height_content, 1);
     
 /* Reusing lv_obj_refr_size for lv_obj_is_width_min */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_width_min_mpobj, 1, mp_lv_obj_refr_size, lv_obj_is_width_min);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_width_min_mpobj, 1, mp_lv_obj_refr_size, lv_obj_is_width_min, 1);
     
 /* Reusing lv_obj_refr_size for lv_obj_is_height_min */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_height_min_mpobj, 1, mp_lv_obj_refr_size, lv_obj_is_height_min);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_height_min_mpobj, 1, mp_lv_obj_refr_size, lv_obj_is_height_min, 1);
     
 /* Reusing lv_obj_refr_size for lv_obj_is_width_max */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_width_max_mpobj, 1, mp_lv_obj_refr_size, lv_obj_is_width_max);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_width_max_mpobj, 1, mp_lv_obj_refr_size, lv_obj_is_width_max, 1);
     
 /* Reusing lv_obj_refr_size for lv_obj_is_height_max */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_height_max_mpobj, 1, mp_lv_obj_refr_size, lv_obj_is_height_max);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_height_max_mpobj, 1, mp_lv_obj_refr_size, lv_obj_is_height_max, 1);
     
 /* Reusing lv_obj_refr_size for lv_obj_refresh_self_size */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_refresh_self_size_mpobj, 1, mp_lv_obj_refr_size, lv_obj_refresh_self_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_refresh_self_size_mpobj, 1, mp_lv_obj_refr_size, lv_obj_refresh_self_size, 1);
     
 /* Reusing lv_obj_move_foreground for lv_obj_refr_pos */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_refr_pos_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_refr_pos);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_refr_pos_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_refr_pos, 1);
     
 /* Reusing lv_obj_set_pos for lv_obj_move_to */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_move_to_mpobj, 3, mp_lv_obj_set_pos, lv_obj_move_to);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_move_to_mpobj, 3, mp_lv_obj_set_pos, lv_obj_move_to, 1);
     
 
 /*
@@ -10174,7 +10183,7 @@ static mp_obj_t mp_lv_obj_move_children_by(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_move_children_by_mpobj, 4, mp_lv_obj_move_children_by, lv_obj_move_children_by);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_move_children_by_mpobj, 4, mp_lv_obj_move_children_by, lv_obj_move_children_by, 1);
     
 
 /*
@@ -10191,7 +10200,7 @@ static mp_obj_t mp_lv_obj_get_transform(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_transform_mpobj, 1, mp_lv_obj_get_transform, lv_obj_get_transform);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_transform_mpobj, 1, mp_lv_obj_get_transform, lv_obj_get_transform, 1);
     
 
 /*
@@ -10290,7 +10299,7 @@ static mp_obj_t mp_lv_obj_transform_point(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_transform_point_mpobj, 3, mp_lv_obj_transform_point, lv_obj_transform_point);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_transform_point_mpobj, 3, mp_lv_obj_transform_point, lv_obj_transform_point, 1);
     
 
 /*
@@ -10341,7 +10350,7 @@ static mp_obj_t mp_lv_obj_transform_point_array(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_transform_point_array_mpobj, 4, mp_lv_obj_transform_point_array, lv_obj_transform_point_array);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_transform_point_array_mpobj, 4, mp_lv_obj_transform_point_array, lv_obj_transform_point_array, 1);
     
 
 /*
@@ -10360,7 +10369,7 @@ static mp_obj_t mp_lv_obj_get_transformed_area(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_transformed_area_mpobj, 3, mp_lv_obj_get_transformed_area, lv_obj_get_transformed_area);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_transformed_area_mpobj, 3, mp_lv_obj_get_transformed_area, lv_obj_get_transformed_area, 1);
     
 
 /*
@@ -10378,7 +10387,7 @@ static mp_obj_t mp_lv_obj_invalidate_area(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_invalidate_area_mpobj, 2, mp_lv_obj_invalidate_area, lv_obj_invalidate_area);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_invalidate_area_mpobj, 2, mp_lv_obj_invalidate_area, lv_obj_invalidate_area, 1);
     
 
 /*
@@ -10395,7 +10404,7 @@ static mp_obj_t mp_lv_obj_invalidate(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_invalidate_mpobj, 1, mp_lv_obj_invalidate, lv_obj_invalidate);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_invalidate_mpobj, 1, mp_lv_obj_invalidate, lv_obj_invalidate, 1);
     
 
 /*
@@ -10413,19 +10422,19 @@ static mp_obj_t mp_lv_obj_area_is_visible(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_area_is_visible_mpobj, 2, mp_lv_obj_area_is_visible, lv_obj_area_is_visible);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_area_is_visible_mpobj, 2, mp_lv_obj_area_is_visible, lv_obj_area_is_visible, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_visible */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_visible_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_visible);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_visible_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_visible, 1);
     
 /* Reusing lv_obj_move_to_index for lv_obj_set_ext_click_area */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_ext_click_area_mpobj, 2, mp_lv_obj_move_to_index, lv_obj_set_ext_click_area);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_ext_click_area_mpobj, 2, mp_lv_obj_move_to_index, lv_obj_set_ext_click_area, 1);
     
 /* Reusing lv_obj_get_coords for lv_obj_get_click_area */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_click_area_mpobj, 2, mp_lv_obj_get_coords, lv_obj_get_click_area);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_click_area_mpobj, 2, mp_lv_obj_get_coords, lv_obj_get_click_area, 1);
     
 
 /*
@@ -10443,7 +10452,7 @@ static mp_obj_t mp_lv_obj_hit_test(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_hit_test_mpobj, 2, mp_lv_obj_hit_test, lv_obj_hit_test);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_hit_test_mpobj, 2, mp_lv_obj_hit_test, lv_obj_hit_test, 1);
     
 
 /*
@@ -10461,11 +10470,11 @@ static mp_obj_t mp_lv_obj_calc_dynamic_width(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_calc_dynamic_width_mpobj, 2, mp_lv_obj_calc_dynamic_width, lv_obj_calc_dynamic_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_calc_dynamic_width_mpobj, 2, mp_lv_obj_calc_dynamic_width, lv_obj_calc_dynamic_width, 1);
     
 /* Reusing lv_obj_calc_dynamic_width for lv_obj_calc_dynamic_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_calc_dynamic_height_mpobj, 2, mp_lv_obj_calc_dynamic_width, lv_obj_calc_dynamic_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_calc_dynamic_height_mpobj, 2, mp_lv_obj_calc_dynamic_width, lv_obj_calc_dynamic_height, 1);
     
 
 /*
@@ -10483,7 +10492,7 @@ static mp_obj_t mp_lv_obj_set_scrollbar_mode(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scrollbar_mode_mpobj, 2, mp_lv_obj_set_scrollbar_mode, lv_obj_set_scrollbar_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scrollbar_mode_mpobj, 2, mp_lv_obj_set_scrollbar_mode, lv_obj_set_scrollbar_mode, 1);
     
 
 /*
@@ -10501,7 +10510,7 @@ static mp_obj_t mp_lv_obj_set_scroll_dir(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_dir_mpobj, 2, mp_lv_obj_set_scroll_dir, lv_obj_set_scroll_dir);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_dir_mpobj, 2, mp_lv_obj_set_scroll_dir, lv_obj_set_scroll_dir, 1);
     
 
 /*
@@ -10519,11 +10528,11 @@ static mp_obj_t mp_lv_obj_set_scroll_snap_x(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_snap_x_mpobj, 2, mp_lv_obj_set_scroll_snap_x, lv_obj_set_scroll_snap_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_snap_x_mpobj, 2, mp_lv_obj_set_scroll_snap_x, lv_obj_set_scroll_snap_x, 1);
     
 /* Reusing lv_obj_set_scroll_snap_x for lv_obj_set_scroll_snap_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_snap_y_mpobj, 2, mp_lv_obj_set_scroll_snap_x, lv_obj_set_scroll_snap_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_snap_y_mpobj, 2, mp_lv_obj_set_scroll_snap_x, lv_obj_set_scroll_snap_y, 1);
     
 
 /*
@@ -10540,7 +10549,7 @@ static mp_obj_t mp_lv_obj_get_scrollbar_mode(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scrollbar_mode_mpobj, 1, mp_lv_obj_get_scrollbar_mode, lv_obj_get_scrollbar_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scrollbar_mode_mpobj, 1, mp_lv_obj_get_scrollbar_mode, lv_obj_get_scrollbar_mode, 1);
     
 
 /*
@@ -10557,7 +10566,7 @@ static mp_obj_t mp_lv_obj_get_scroll_dir(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scroll_dir_mpobj, 1, mp_lv_obj_get_scroll_dir, lv_obj_get_scroll_dir);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scroll_dir_mpobj, 1, mp_lv_obj_get_scroll_dir, lv_obj_get_scroll_dir, 1);
     
 
 /*
@@ -10574,35 +10583,35 @@ static mp_obj_t mp_lv_obj_get_scroll_snap_x(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scroll_snap_x_mpobj, 1, mp_lv_obj_get_scroll_snap_x, lv_obj_get_scroll_snap_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scroll_snap_x_mpobj, 1, mp_lv_obj_get_scroll_snap_x, lv_obj_get_scroll_snap_x, 1);
     
 /* Reusing lv_obj_get_scroll_snap_x for lv_obj_get_scroll_snap_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scroll_snap_y_mpobj, 1, mp_lv_obj_get_scroll_snap_x, lv_obj_get_scroll_snap_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scroll_snap_y_mpobj, 1, mp_lv_obj_get_scroll_snap_x, lv_obj_get_scroll_snap_y, 1);
     
 /* Reusing lv_obj_get_index for lv_obj_get_scroll_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scroll_x_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_scroll_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scroll_x_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_scroll_x, 1);
     
 /* Reusing lv_obj_get_index for lv_obj_get_scroll_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scroll_y_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_scroll_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scroll_y_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_scroll_y, 1);
     
 /* Reusing lv_obj_get_index for lv_obj_get_scroll_top */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scroll_top_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_scroll_top);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scroll_top_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_scroll_top, 1);
     
 /* Reusing lv_obj_get_index for lv_obj_get_scroll_bottom */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scroll_bottom_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_scroll_bottom);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scroll_bottom_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_scroll_bottom, 1);
     
 /* Reusing lv_obj_get_index for lv_obj_get_scroll_left */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scroll_left_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_scroll_left);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scroll_left_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_scroll_left, 1);
     
 /* Reusing lv_obj_get_index for lv_obj_get_scroll_right */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scroll_right_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_scroll_right);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scroll_right_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_scroll_right, 1);
     
 
 /*
@@ -10620,7 +10629,7 @@ static mp_obj_t mp_lv_obj_get_scroll_end(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scroll_end_mpobj, 2, mp_lv_obj_get_scroll_end, lv_obj_get_scroll_end);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scroll_end_mpobj, 2, mp_lv_obj_get_scroll_end, lv_obj_get_scroll_end, 1);
     
 
 /*
@@ -10640,15 +10649,15 @@ static mp_obj_t mp_lv_obj_scroll_by(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_scroll_by_mpobj, 4, mp_lv_obj_scroll_by, lv_obj_scroll_by);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_scroll_by_mpobj, 4, mp_lv_obj_scroll_by, lv_obj_scroll_by, 1);
     
 /* Reusing lv_obj_scroll_by for lv_obj_scroll_by_bounded */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_scroll_by_bounded_mpobj, 4, mp_lv_obj_scroll_by, lv_obj_scroll_by_bounded);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_scroll_by_bounded_mpobj, 4, mp_lv_obj_scroll_by, lv_obj_scroll_by_bounded, 1);
     
 /* Reusing lv_obj_scroll_by for lv_obj_scroll_to */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_scroll_to_mpobj, 4, mp_lv_obj_scroll_by, lv_obj_scroll_to);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_scroll_to_mpobj, 4, mp_lv_obj_scroll_by, lv_obj_scroll_to, 1);
     
 
 /*
@@ -10667,11 +10676,11 @@ static mp_obj_t mp_lv_obj_scroll_to_x(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_scroll_to_x_mpobj, 3, mp_lv_obj_scroll_to_x, lv_obj_scroll_to_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_scroll_to_x_mpobj, 3, mp_lv_obj_scroll_to_x, lv_obj_scroll_to_x, 1);
     
 /* Reusing lv_obj_scroll_to_x for lv_obj_scroll_to_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_scroll_to_y_mpobj, 3, mp_lv_obj_scroll_to_x, lv_obj_scroll_to_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_scroll_to_y_mpobj, 3, mp_lv_obj_scroll_to_x, lv_obj_scroll_to_y, 1);
     
 
 /*
@@ -10689,23 +10698,23 @@ static mp_obj_t mp_lv_obj_scroll_to_view(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_scroll_to_view_mpobj, 2, mp_lv_obj_scroll_to_view, lv_obj_scroll_to_view);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_scroll_to_view_mpobj, 2, mp_lv_obj_scroll_to_view, lv_obj_scroll_to_view, 1);
     
 /* Reusing lv_obj_scroll_to_view for lv_obj_scroll_to_view_recursive */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_scroll_to_view_recursive_mpobj, 2, mp_lv_obj_scroll_to_view, lv_obj_scroll_to_view_recursive);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_scroll_to_view_recursive_mpobj, 2, mp_lv_obj_scroll_to_view, lv_obj_scroll_to_view_recursive, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_scrolling */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_scrolling_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_scrolling);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_scrolling_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_scrolling, 1);
     
 /* Reusing lv_obj_update_layout for lv_obj_stop_scroll_anim */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_stop_scroll_anim_mpobj, 1, mp_lv_obj_update_layout, lv_obj_stop_scroll_anim);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_stop_scroll_anim_mpobj, 1, mp_lv_obj_update_layout, lv_obj_stop_scroll_anim, 1);
     
 /* Reusing lv_obj_scroll_to_view for lv_obj_update_snap */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_update_snap_mpobj, 2, mp_lv_obj_scroll_to_view, lv_obj_update_snap);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_update_snap_mpobj, 2, mp_lv_obj_scroll_to_view, lv_obj_update_snap, 1);
     
 
 /*
@@ -10724,15 +10733,15 @@ static mp_obj_t mp_lv_obj_get_scrollbar_area(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scrollbar_area_mpobj, 3, mp_lv_obj_get_scrollbar_area, lv_obj_get_scrollbar_area);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_scrollbar_area_mpobj, 3, mp_lv_obj_get_scrollbar_area, lv_obj_get_scrollbar_area, 1);
     
 /* Reusing lv_obj_move_foreground for lv_obj_scrollbar_invalidate */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_scrollbar_invalidate_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_scrollbar_invalidate);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_scrollbar_invalidate_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_scrollbar_invalidate, 1);
     
 /* Reusing lv_obj_scroll_to_view for lv_obj_readjust_scroll */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_readjust_scroll_mpobj, 2, mp_lv_obj_scroll_to_view, lv_obj_readjust_scroll);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_readjust_scroll_mpobj, 2, mp_lv_obj_scroll_to_view, lv_obj_readjust_scroll, 1);
     
 
 /*
@@ -10833,7 +10842,7 @@ static mp_obj_t mp_lv_obj_add_style(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_style_mpobj, 3, mp_lv_obj_add_style, lv_obj_add_style);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_style_mpobj, 3, mp_lv_obj_add_style, lv_obj_add_style, 1);
     
 
 /*
@@ -10853,11 +10862,11 @@ static mp_obj_t mp_lv_obj_replace_style(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_replace_style_mpobj, 4, mp_lv_obj_replace_style, lv_obj_replace_style);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_replace_style_mpobj, 4, mp_lv_obj_replace_style, lv_obj_replace_style, 1);
     
 /* Reusing lv_obj_add_style for lv_obj_remove_style */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_style_mpobj, 3, mp_lv_obj_add_style, lv_obj_remove_style);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_style_mpobj, 3, mp_lv_obj_add_style, lv_obj_remove_style, 1);
     
 
 /*
@@ -10875,11 +10884,11 @@ static mp_obj_t mp_lv_obj_remove_theme(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_theme_mpobj, 2, mp_lv_obj_remove_theme, lv_obj_remove_theme);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_theme_mpobj, 2, mp_lv_obj_remove_theme, lv_obj_remove_theme, 1);
     
 /* Reusing lv_obj_move_foreground for lv_obj_remove_style_all */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_style_all_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_remove_style_all);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_style_all_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_remove_style_all, 1);
     
 
 /*
@@ -10896,7 +10905,7 @@ static mp_obj_t mp_lv_obj_report_style_change(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_report_style_change_mpobj, 1, mp_lv_obj_report_style_change, lv_obj_report_style_change);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_report_style_change_mpobj, 1, mp_lv_obj_report_style_change, lv_obj_report_style_change, 1);
     
 
 /*
@@ -10915,7 +10924,7 @@ static mp_obj_t mp_lv_obj_refresh_style(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_refresh_style_mpobj, 3, mp_lv_obj_refresh_style, lv_obj_refresh_style);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_refresh_style_mpobj, 3, mp_lv_obj_refresh_style, lv_obj_refresh_style, 1);
     
 
 /*
@@ -10935,7 +10944,7 @@ static mp_obj_t mp_lv_obj_set_style_enabled(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_enabled_mpobj, 4, mp_lv_obj_set_style_enabled, lv_obj_set_style_enabled);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_enabled_mpobj, 4, mp_lv_obj_set_style_enabled, lv_obj_set_style_enabled, 1);
     
 
 /*
@@ -10954,15 +10963,15 @@ static mp_obj_t mp_lv_obj_get_style_enabled(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_enabled_mpobj, 3, mp_lv_obj_get_style_enabled, lv_obj_get_style_enabled);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_enabled_mpobj, 3, mp_lv_obj_get_style_enabled, lv_obj_get_style_enabled, 1);
     
 /* Reusing lv_obj_set_style_enabled for lv_obj_style_set_disabled */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_style_set_disabled_mpobj, 4, mp_lv_obj_set_style_enabled, lv_obj_style_set_disabled);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_style_set_disabled_mpobj, 4, mp_lv_obj_set_style_enabled, lv_obj_style_set_disabled, 1);
     
 /* Reusing lv_obj_get_style_enabled for lv_obj_style_get_disabled */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_style_get_disabled_mpobj, 3, mp_lv_obj_get_style_enabled, lv_obj_style_get_disabled);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_style_get_disabled_mpobj, 3, mp_lv_obj_get_style_enabled, lv_obj_style_get_disabled, 1);
     
 
 /*
@@ -10979,7 +10988,7 @@ static mp_obj_t mp_lv_obj_enable_style_refresh(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_enable_style_refresh_mpobj, 1, mp_lv_obj_enable_style_refresh, lv_obj_enable_style_refresh);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_enable_style_refresh_mpobj, 1, mp_lv_obj_enable_style_refresh, lv_obj_enable_style_refresh, 1);
     
 
 /*
@@ -11080,7 +11089,7 @@ static mp_obj_t mp_lv_obj_get_style_prop(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_prop_mpobj, 3, mp_lv_obj_get_style_prop, lv_obj_get_style_prop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_prop_mpobj, 3, mp_lv_obj_get_style_prop, lv_obj_get_style_prop, 1);
     
 
 /*
@@ -11099,7 +11108,7 @@ static mp_obj_t mp_lv_obj_has_style_prop(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_has_style_prop_mpobj, 3, mp_lv_obj_has_style_prop, lv_obj_has_style_prop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_has_style_prop_mpobj, 3, mp_lv_obj_has_style_prop, lv_obj_has_style_prop, 1);
     
 
 /*
@@ -11119,7 +11128,7 @@ static mp_obj_t mp_lv_obj_set_local_style_prop(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_local_style_prop_mpobj, 4, mp_lv_obj_set_local_style_prop, lv_obj_set_local_style_prop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_local_style_prop_mpobj, 4, mp_lv_obj_set_local_style_prop, lv_obj_set_local_style_prop, 1);
     
 
 /*
@@ -11139,7 +11148,7 @@ static mp_obj_t mp_lv_obj_get_local_style_prop(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_local_style_prop_mpobj, 4, mp_lv_obj_get_local_style_prop, lv_obj_get_local_style_prop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_local_style_prop_mpobj, 4, mp_lv_obj_get_local_style_prop, lv_obj_get_local_style_prop, 1);
     
 
 /*
@@ -11158,7 +11167,7 @@ static mp_obj_t mp_lv_obj_remove_local_style_prop(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_local_style_prop_mpobj, 3, mp_lv_obj_remove_local_style_prop, lv_obj_remove_local_style_prop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_local_style_prop_mpobj, 3, mp_lv_obj_remove_local_style_prop, lv_obj_remove_local_style_prop, 1);
     
 
 /*
@@ -11177,7 +11186,7 @@ static mp_obj_t mp_lv_obj_style_apply_color_filter(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_style_apply_color_filter_mpobj, 3, mp_lv_obj_style_apply_color_filter, lv_obj_style_apply_color_filter);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_style_apply_color_filter_mpobj, 3, mp_lv_obj_style_apply_color_filter, lv_obj_style_apply_color_filter, 1);
     
 
 /*
@@ -11196,11 +11205,11 @@ static mp_obj_t mp_lv_obj_fade_in(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_fade_in_mpobj, 3, mp_lv_obj_fade_in, lv_obj_fade_in);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_fade_in_mpobj, 3, mp_lv_obj_fade_in, lv_obj_fade_in, 1);
     
 /* Reusing lv_obj_fade_in for lv_obj_fade_out */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_fade_out_mpobj, 3, mp_lv_obj_fade_in, lv_obj_fade_out);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_fade_out_mpobj, 3, mp_lv_obj_fade_in, lv_obj_fade_out, 1);
     
 
 /*
@@ -11218,39 +11227,39 @@ static mp_obj_t mp_lv_obj_get_style_width(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_width, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_min_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_min_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_min_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_min_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_min_width, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_max_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_max_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_max_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_max_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_max_width, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_height_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_height_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_height, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_min_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_min_height_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_min_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_min_height_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_min_height, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_max_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_max_height_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_max_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_max_height_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_max_height, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_length */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_length_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_length);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_length_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_length, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_x_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_x_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_x, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_y_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_y_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_y, 1);
     
 
 /*
@@ -11268,99 +11277,99 @@ static mp_obj_t mp_lv_obj_get_style_align(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_align_mpobj, 2, mp_lv_obj_get_style_align, lv_obj_get_style_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_align_mpobj, 2, mp_lv_obj_get_style_align, lv_obj_get_style_align, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_transform_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_width, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_transform_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_height_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_height_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_height, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_translate_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_translate_x_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_translate_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_translate_x_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_translate_x, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_translate_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_translate_y_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_translate_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_translate_y_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_translate_y, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_translate_radial */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_translate_radial_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_translate_radial);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_translate_radial_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_translate_radial, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_transform_scale_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_scale_x_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_scale_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_scale_x_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_scale_x, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_transform_scale_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_scale_y_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_scale_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_scale_y_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_scale_y, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_transform_rotation */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_rotation_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_rotation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_rotation_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_rotation, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_transform_pivot_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_pivot_x_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_pivot_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_pivot_x_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_pivot_x, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_transform_pivot_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_pivot_y_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_pivot_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_pivot_y_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_pivot_y, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_transform_skew_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_skew_x_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_skew_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_skew_x_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_skew_x, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_transform_skew_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_skew_y_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_skew_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_skew_y_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_skew_y, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_pad_top */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_pad_top_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_pad_top);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_pad_top_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_pad_top, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_pad_bottom */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_pad_bottom_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_pad_bottom);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_pad_bottom_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_pad_bottom, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_pad_left */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_pad_left_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_pad_left);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_pad_left_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_pad_left, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_pad_right */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_pad_right_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_pad_right);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_pad_right_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_pad_right, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_pad_row */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_pad_row_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_pad_row);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_pad_row_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_pad_row, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_pad_column */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_pad_column_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_pad_column);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_pad_column_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_pad_column, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_pad_radial */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_pad_radial_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_pad_radial);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_pad_radial_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_pad_radial, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_margin_top */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_margin_top_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_margin_top);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_margin_top_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_margin_top, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_margin_bottom */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_margin_bottom_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_margin_bottom);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_margin_bottom_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_margin_bottom, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_margin_left */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_margin_left_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_margin_left);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_margin_left_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_margin_left, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_margin_right */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_margin_right_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_margin_right);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_margin_right_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_margin_right, 1);
     
 
 /*
@@ -11378,11 +11387,11 @@ static mp_obj_t mp_lv_obj_get_style_bg_color(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_color_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_bg_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_color_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_bg_color, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_bg_color_filtered */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_color_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_bg_color_filtered);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_color_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_bg_color_filtered, 1);
     
 
 /*
@@ -11400,15 +11409,15 @@ static mp_obj_t mp_lv_obj_get_style_bg_opa(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_bg_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_bg_opa, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_bg_grad_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_grad_color_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_bg_grad_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_grad_color_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_bg_grad_color, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_bg_grad_color_filtered */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_grad_color_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_bg_grad_color_filtered);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_grad_color_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_bg_grad_color_filtered, 1);
     
 
 /*
@@ -11426,23 +11435,23 @@ static mp_obj_t mp_lv_obj_get_style_bg_grad_dir(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_grad_dir_mpobj, 2, mp_lv_obj_get_style_bg_grad_dir, lv_obj_get_style_bg_grad_dir);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_grad_dir_mpobj, 2, mp_lv_obj_get_style_bg_grad_dir, lv_obj_get_style_bg_grad_dir, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_bg_main_stop */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_main_stop_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_bg_main_stop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_main_stop_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_bg_main_stop, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_bg_grad_stop */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_grad_stop_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_bg_grad_stop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_grad_stop_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_bg_grad_stop, 1);
     
 /* Reusing lv_obj_get_style_bg_opa for lv_obj_get_style_bg_main_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_main_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_bg_main_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_main_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_bg_main_opa, 1);
     
 /* Reusing lv_obj_get_style_bg_opa for lv_obj_get_style_bg_grad_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_grad_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_bg_grad_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_grad_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_bg_grad_opa, 1);
     
 
 /*
@@ -11997,7 +12006,7 @@ static mp_obj_t mp_lv_obj_get_style_bg_grad(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_grad_mpobj, 2, mp_lv_obj_get_style_bg_grad, lv_obj_get_style_bg_grad);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_grad_mpobj, 2, mp_lv_obj_get_style_bg_grad, lv_obj_get_style_bg_grad, 1);
     
 
 /*
@@ -12015,23 +12024,23 @@ static mp_obj_t mp_lv_obj_get_style_bg_image_src(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_image_src_mpobj, 2, mp_lv_obj_get_style_bg_image_src, lv_obj_get_style_bg_image_src);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_image_src_mpobj, 2, mp_lv_obj_get_style_bg_image_src, lv_obj_get_style_bg_image_src, 1);
     
 /* Reusing lv_obj_get_style_bg_opa for lv_obj_get_style_bg_image_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_image_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_bg_image_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_image_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_bg_image_opa, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_bg_image_recolor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_image_recolor_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_bg_image_recolor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_image_recolor_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_bg_image_recolor, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_bg_image_recolor_filtered */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_image_recolor_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_bg_image_recolor_filtered);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_image_recolor_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_bg_image_recolor_filtered, 1);
     
 /* Reusing lv_obj_get_style_bg_opa for lv_obj_get_style_bg_image_recolor_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_image_recolor_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_bg_image_recolor_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_image_recolor_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_bg_image_recolor_opa, 1);
     
 
 /*
@@ -12049,23 +12058,23 @@ static mp_obj_t mp_lv_obj_get_style_bg_image_tiled(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_image_tiled_mpobj, 2, mp_lv_obj_get_style_bg_image_tiled, lv_obj_get_style_bg_image_tiled);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bg_image_tiled_mpobj, 2, mp_lv_obj_get_style_bg_image_tiled, lv_obj_get_style_bg_image_tiled, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_border_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_border_color_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_border_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_border_color_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_border_color, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_border_color_filtered */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_border_color_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_border_color_filtered);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_border_color_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_border_color_filtered, 1);
     
 /* Reusing lv_obj_get_style_bg_opa for lv_obj_get_style_border_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_border_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_border_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_border_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_border_opa, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_border_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_border_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_border_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_border_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_border_width, 1);
     
 
 /*
@@ -12083,75 +12092,75 @@ static mp_obj_t mp_lv_obj_get_style_border_side(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_border_side_mpobj, 2, mp_lv_obj_get_style_border_side, lv_obj_get_style_border_side);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_border_side_mpobj, 2, mp_lv_obj_get_style_border_side, lv_obj_get_style_border_side, 1);
     
 /* Reusing lv_obj_get_style_bg_image_tiled for lv_obj_get_style_border_post */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_border_post_mpobj, 2, mp_lv_obj_get_style_bg_image_tiled, lv_obj_get_style_border_post);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_border_post_mpobj, 2, mp_lv_obj_get_style_bg_image_tiled, lv_obj_get_style_border_post, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_outline_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_outline_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_outline_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_outline_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_outline_width, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_outline_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_outline_color_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_outline_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_outline_color_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_outline_color, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_outline_color_filtered */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_outline_color_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_outline_color_filtered);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_outline_color_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_outline_color_filtered, 1);
     
 /* Reusing lv_obj_get_style_bg_opa for lv_obj_get_style_outline_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_outline_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_outline_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_outline_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_outline_opa, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_outline_pad */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_outline_pad_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_outline_pad);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_outline_pad_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_outline_pad, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_shadow_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_shadow_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_shadow_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_shadow_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_shadow_width, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_shadow_offset_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_shadow_offset_x_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_shadow_offset_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_shadow_offset_x_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_shadow_offset_x, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_shadow_offset_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_shadow_offset_y_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_shadow_offset_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_shadow_offset_y_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_shadow_offset_y, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_shadow_spread */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_shadow_spread_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_shadow_spread);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_shadow_spread_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_shadow_spread, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_shadow_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_shadow_color_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_shadow_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_shadow_color_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_shadow_color, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_shadow_color_filtered */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_shadow_color_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_shadow_color_filtered);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_shadow_color_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_shadow_color_filtered, 1);
     
 /* Reusing lv_obj_get_style_bg_opa for lv_obj_get_style_shadow_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_shadow_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_shadow_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_shadow_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_shadow_opa, 1);
     
 /* Reusing lv_obj_get_style_bg_opa for lv_obj_get_style_image_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_image_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_image_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_image_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_image_opa, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_image_recolor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_image_recolor_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_image_recolor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_image_recolor_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_image_recolor, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_image_recolor_filtered */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_image_recolor_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_image_recolor_filtered);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_image_recolor_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_image_recolor_filtered, 1);
     
 /* Reusing lv_obj_get_style_bg_opa for lv_obj_get_style_image_recolor_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_image_recolor_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_image_recolor_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_image_recolor_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_image_recolor_opa, 1);
     
 
 /*
@@ -12249,71 +12258,71 @@ static mp_obj_t mp_lv_obj_get_style_image_colorkey(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_image_colorkey_mpobj, 2, mp_lv_obj_get_style_image_colorkey, lv_obj_get_style_image_colorkey);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_image_colorkey_mpobj, 2, mp_lv_obj_get_style_image_colorkey, lv_obj_get_style_image_colorkey, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_line_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_line_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_line_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_line_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_line_width, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_line_dash_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_line_dash_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_line_dash_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_line_dash_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_line_dash_width, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_line_dash_gap */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_line_dash_gap_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_line_dash_gap);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_line_dash_gap_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_line_dash_gap, 1);
     
 /* Reusing lv_obj_get_style_bg_image_tiled for lv_obj_get_style_line_rounded */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_line_rounded_mpobj, 2, mp_lv_obj_get_style_bg_image_tiled, lv_obj_get_style_line_rounded);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_line_rounded_mpobj, 2, mp_lv_obj_get_style_bg_image_tiled, lv_obj_get_style_line_rounded, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_line_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_line_color_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_line_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_line_color_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_line_color, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_line_color_filtered */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_line_color_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_line_color_filtered);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_line_color_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_line_color_filtered, 1);
     
 /* Reusing lv_obj_get_style_bg_opa for lv_obj_get_style_line_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_line_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_line_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_line_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_line_opa, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_arc_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_arc_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_arc_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_arc_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_arc_width, 1);
     
 /* Reusing lv_obj_get_style_bg_image_tiled for lv_obj_get_style_arc_rounded */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_arc_rounded_mpobj, 2, mp_lv_obj_get_style_bg_image_tiled, lv_obj_get_style_arc_rounded);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_arc_rounded_mpobj, 2, mp_lv_obj_get_style_bg_image_tiled, lv_obj_get_style_arc_rounded, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_arc_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_arc_color_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_arc_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_arc_color_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_arc_color, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_arc_color_filtered */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_arc_color_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_arc_color_filtered);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_arc_color_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_arc_color_filtered, 1);
     
 /* Reusing lv_obj_get_style_bg_opa for lv_obj_get_style_arc_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_arc_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_arc_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_arc_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_arc_opa, 1);
     
 /* Reusing lv_obj_get_style_bg_image_src for lv_obj_get_style_arc_image_src */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_arc_image_src_mpobj, 2, mp_lv_obj_get_style_bg_image_src, lv_obj_get_style_arc_image_src);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_arc_image_src_mpobj, 2, mp_lv_obj_get_style_bg_image_src, lv_obj_get_style_arc_image_src, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_text_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_color_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_text_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_color_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_text_color, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_text_color_filtered */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_color_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_text_color_filtered);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_color_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_text_color_filtered, 1);
     
 /* Reusing lv_obj_get_style_bg_opa for lv_obj_get_style_text_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_text_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_text_opa, 1);
     
 
 /*
@@ -12331,15 +12340,15 @@ static mp_obj_t mp_lv_obj_get_style_text_font(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_font_mpobj, 2, mp_lv_obj_get_style_text_font, lv_obj_get_style_text_font);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_font_mpobj, 2, mp_lv_obj_get_style_text_font, lv_obj_get_style_text_font, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_text_letter_space */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_letter_space_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_text_letter_space);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_letter_space_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_text_letter_space, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_text_line_space */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_line_space_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_text_line_space);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_line_space_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_text_line_space, 1);
     
 
 /*
@@ -12357,7 +12366,7 @@ static mp_obj_t mp_lv_obj_get_style_text_decor(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_decor_mpobj, 2, mp_lv_obj_get_style_text_decor, lv_obj_get_style_text_decor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_decor_mpobj, 2, mp_lv_obj_get_style_text_decor, lv_obj_get_style_text_decor, 1);
     
 
 /*
@@ -12375,23 +12384,23 @@ static mp_obj_t mp_lv_obj_get_style_text_align(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_align_mpobj, 2, mp_lv_obj_get_style_text_align, lv_obj_get_style_text_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_align_mpobj, 2, mp_lv_obj_get_style_text_align, lv_obj_get_style_text_align, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_text_outline_stroke_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_outline_stroke_color_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_text_outline_stroke_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_outline_stroke_color_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_text_outline_stroke_color, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_text_outline_stroke_color_filtered */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_outline_stroke_color_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_text_outline_stroke_color_filtered);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_outline_stroke_color_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_text_outline_stroke_color_filtered, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_text_outline_stroke_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_outline_stroke_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_text_outline_stroke_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_outline_stroke_width_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_text_outline_stroke_width, 1);
     
 /* Reusing lv_obj_get_style_bg_opa for lv_obj_get_style_text_outline_stroke_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_outline_stroke_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_text_outline_stroke_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_outline_stroke_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_text_outline_stroke_opa, 1);
     
 
 /*
@@ -12409,15 +12418,15 @@ static mp_obj_t mp_lv_obj_get_style_text_leading_trim(size_t mp_n_args, const mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_leading_trim_mpobj, 2, mp_lv_obj_get_style_text_leading_trim, lv_obj_get_style_text_leading_trim);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_text_leading_trim_mpobj, 2, mp_lv_obj_get_style_text_leading_trim, lv_obj_get_style_text_leading_trim, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_blur_radius */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_blur_radius_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_blur_radius);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_blur_radius_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_blur_radius, 1);
     
 /* Reusing lv_obj_get_style_bg_image_tiled for lv_obj_get_style_blur_backdrop */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_blur_backdrop_mpobj, 2, mp_lv_obj_get_style_bg_image_tiled, lv_obj_get_style_blur_backdrop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_blur_backdrop_mpobj, 2, mp_lv_obj_get_style_bg_image_tiled, lv_obj_get_style_blur_backdrop, 1);
     
 
 /*
@@ -12435,55 +12444,55 @@ static mp_obj_t mp_lv_obj_get_style_blur_quality(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_blur_quality_mpobj, 2, mp_lv_obj_get_style_blur_quality, lv_obj_get_style_blur_quality);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_blur_quality_mpobj, 2, mp_lv_obj_get_style_blur_quality, lv_obj_get_style_blur_quality, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_drop_shadow_radius */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_drop_shadow_radius_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_drop_shadow_radius);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_drop_shadow_radius_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_drop_shadow_radius, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_drop_shadow_offset_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_drop_shadow_offset_x_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_drop_shadow_offset_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_drop_shadow_offset_x_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_drop_shadow_offset_x, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_drop_shadow_offset_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_drop_shadow_offset_y_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_drop_shadow_offset_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_drop_shadow_offset_y_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_drop_shadow_offset_y, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_drop_shadow_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_drop_shadow_color_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_drop_shadow_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_drop_shadow_color_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_drop_shadow_color, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_drop_shadow_color_filtered */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_drop_shadow_color_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_drop_shadow_color_filtered);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_drop_shadow_color_filtered_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_drop_shadow_color_filtered, 1);
     
 /* Reusing lv_obj_get_style_bg_opa for lv_obj_get_style_drop_shadow_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_drop_shadow_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_drop_shadow_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_drop_shadow_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_drop_shadow_opa, 1);
     
 /* Reusing lv_obj_get_style_blur_quality for lv_obj_get_style_drop_shadow_quality */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_drop_shadow_quality_mpobj, 2, mp_lv_obj_get_style_blur_quality, lv_obj_get_style_drop_shadow_quality);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_drop_shadow_quality_mpobj, 2, mp_lv_obj_get_style_blur_quality, lv_obj_get_style_drop_shadow_quality, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_radius */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_radius_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_radius);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_radius_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_radius, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_radial_offset */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_radial_offset_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_radial_offset);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_radial_offset_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_radial_offset, 1);
     
 /* Reusing lv_obj_get_style_bg_image_tiled for lv_obj_get_style_clip_corner */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_clip_corner_mpobj, 2, mp_lv_obj_get_style_bg_image_tiled, lv_obj_get_style_clip_corner);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_clip_corner_mpobj, 2, mp_lv_obj_get_style_bg_image_tiled, lv_obj_get_style_clip_corner, 1);
     
 /* Reusing lv_obj_get_style_bg_opa for lv_obj_get_style_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_opa, 1);
     
 /* Reusing lv_obj_get_style_bg_opa for lv_obj_get_style_opa_layered */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_opa_layered_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_opa_layered);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_opa_layered_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_opa_layered, 1);
     
 #define funcptr_lv_color_filter_cb_t NULL
 
@@ -12504,7 +12513,7 @@ static mp_obj_t mp_funcptr_lv_color_filter_cb_t(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_color_filter_cb_t_mpobj, 3, mp_funcptr_lv_color_filter_cb_t, funcptr_lv_color_filter_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_color_filter_cb_t_mpobj, 3, mp_funcptr_lv_color_filter_cb_t, funcptr_lv_color_filter_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_color_filter_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_color_filter_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -12605,19 +12614,19 @@ static mp_obj_t mp_lv_obj_get_style_color_filter_dsc(size_t mp_n_args, const mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_color_filter_dsc_mpobj, 2, mp_lv_obj_get_style_color_filter_dsc, lv_obj_get_style_color_filter_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_color_filter_dsc_mpobj, 2, mp_lv_obj_get_style_color_filter_dsc, lv_obj_get_style_color_filter_dsc, 1);
     
 /* Reusing lv_obj_get_style_bg_opa for lv_obj_get_style_color_filter_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_color_filter_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_color_filter_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_color_filter_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_color_filter_opa, 1);
     
 /* Reusing lv_obj_get_style_bg_color for lv_obj_get_style_recolor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_recolor_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_recolor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_recolor_mpobj, 2, mp_lv_obj_get_style_bg_color, lv_obj_get_style_recolor, 1);
     
 /* Reusing lv_obj_get_style_bg_opa for lv_obj_get_style_recolor_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_recolor_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_recolor_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_recolor_opa_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_recolor_opa, 1);
     
 
 /*
@@ -12635,7 +12644,7 @@ static mp_obj_t mp_lv_obj_get_style_anim(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_anim_mpobj, 2, mp_lv_obj_get_style_anim, lv_obj_get_style_anim);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_anim_mpobj, 2, mp_lv_obj_get_style_anim, lv_obj_get_style_anim, 1);
     
 
 /*
@@ -12653,7 +12662,7 @@ static mp_obj_t mp_lv_obj_get_style_anim_duration(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_anim_duration_mpobj, 2, mp_lv_obj_get_style_anim_duration, lv_obj_get_style_anim_duration);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_anim_duration_mpobj, 2, mp_lv_obj_get_style_anim_duration, lv_obj_get_style_anim_duration, 1);
     
 
 /*
@@ -12764,7 +12773,7 @@ static mp_obj_t mp_lv_obj_get_style_transition(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transition_mpobj, 2, mp_lv_obj_get_style_transition, lv_obj_get_style_transition);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transition_mpobj, 2, mp_lv_obj_get_style_transition, lv_obj_get_style_transition, 1);
     
 
 /*
@@ -12782,7 +12791,7 @@ static mp_obj_t mp_lv_obj_get_style_blend_mode(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_blend_mode_mpobj, 2, mp_lv_obj_get_style_blend_mode, lv_obj_get_style_blend_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_blend_mode_mpobj, 2, mp_lv_obj_get_style_blend_mode, lv_obj_get_style_blend_mode, 1);
     
 
 /*
@@ -12800,7 +12809,7 @@ static mp_obj_t mp_lv_obj_get_style_layout(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_layout_mpobj, 2, mp_lv_obj_get_style_layout, lv_obj_get_style_layout);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_layout_mpobj, 2, mp_lv_obj_get_style_layout, lv_obj_get_style_layout, 1);
     
 
 /*
@@ -12818,15 +12827,15 @@ static mp_obj_t mp_lv_obj_get_style_base_dir(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_base_dir_mpobj, 2, mp_lv_obj_get_style_base_dir, lv_obj_get_style_base_dir);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_base_dir_mpobj, 2, mp_lv_obj_get_style_base_dir, lv_obj_get_style_base_dir, 1);
     
 /* Reusing lv_obj_get_style_bg_image_src for lv_obj_get_style_bitmap_mask_src */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bitmap_mask_src_mpobj, 2, mp_lv_obj_get_style_bg_image_src, lv_obj_get_style_bitmap_mask_src);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_bitmap_mask_src_mpobj, 2, mp_lv_obj_get_style_bg_image_src, lv_obj_get_style_bitmap_mask_src, 1);
     
 /* Reusing lv_obj_get_style_anim_duration for lv_obj_get_style_rotary_sensitivity */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_rotary_sensitivity_mpobj, 2, mp_lv_obj_get_style_anim_duration, lv_obj_get_style_rotary_sensitivity);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_rotary_sensitivity_mpobj, 2, mp_lv_obj_get_style_anim_duration, lv_obj_get_style_rotary_sensitivity, 1);
     
 
 /*
@@ -12844,7 +12853,7 @@ static mp_obj_t mp_lv_obj_get_style_flex_flow(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_flex_flow_mpobj, 2, mp_lv_obj_get_style_flex_flow, lv_obj_get_style_flex_flow);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_flex_flow_mpobj, 2, mp_lv_obj_get_style_flex_flow, lv_obj_get_style_flex_flow, 1);
     
 
 /*
@@ -12862,15 +12871,15 @@ static mp_obj_t mp_lv_obj_get_style_flex_main_place(size_t mp_n_args, const mp_o
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_flex_main_place_mpobj, 2, mp_lv_obj_get_style_flex_main_place, lv_obj_get_style_flex_main_place);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_flex_main_place_mpobj, 2, mp_lv_obj_get_style_flex_main_place, lv_obj_get_style_flex_main_place, 1);
     
 /* Reusing lv_obj_get_style_flex_main_place for lv_obj_get_style_flex_cross_place */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_flex_cross_place_mpobj, 2, mp_lv_obj_get_style_flex_main_place, lv_obj_get_style_flex_cross_place);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_flex_cross_place_mpobj, 2, mp_lv_obj_get_style_flex_main_place, lv_obj_get_style_flex_cross_place, 1);
     
 /* Reusing lv_obj_get_style_flex_main_place for lv_obj_get_style_flex_track_place */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_flex_track_place_mpobj, 2, mp_lv_obj_get_style_flex_main_place, lv_obj_get_style_flex_track_place);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_flex_track_place_mpobj, 2, mp_lv_obj_get_style_flex_main_place, lv_obj_get_style_flex_track_place, 1);
     
 
 /*
@@ -12888,7 +12897,7 @@ static mp_obj_t mp_lv_obj_get_style_flex_grow(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_flex_grow_mpobj, 2, mp_lv_obj_get_style_flex_grow, lv_obj_get_style_flex_grow);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_flex_grow_mpobj, 2, mp_lv_obj_get_style_flex_grow, lv_obj_get_style_flex_grow, 1);
     
 
 /*
@@ -12906,7 +12915,7 @@ static mp_obj_t mp_lv_obj_get_style_grid_column_dsc_array(size_t mp_n_args, cons
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_grid_column_dsc_array_mpobj, 2, mp_lv_obj_get_style_grid_column_dsc_array, lv_obj_get_style_grid_column_dsc_array);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_grid_column_dsc_array_mpobj, 2, mp_lv_obj_get_style_grid_column_dsc_array, lv_obj_get_style_grid_column_dsc_array, 1);
     
 
 /*
@@ -12924,39 +12933,39 @@ static mp_obj_t mp_lv_obj_get_style_grid_column_align(size_t mp_n_args, const mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_grid_column_align_mpobj, 2, mp_lv_obj_get_style_grid_column_align, lv_obj_get_style_grid_column_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_grid_column_align_mpobj, 2, mp_lv_obj_get_style_grid_column_align, lv_obj_get_style_grid_column_align, 1);
     
 /* Reusing lv_obj_get_style_grid_column_dsc_array for lv_obj_get_style_grid_row_dsc_array */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_grid_row_dsc_array_mpobj, 2, mp_lv_obj_get_style_grid_column_dsc_array, lv_obj_get_style_grid_row_dsc_array);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_grid_row_dsc_array_mpobj, 2, mp_lv_obj_get_style_grid_column_dsc_array, lv_obj_get_style_grid_row_dsc_array, 1);
     
 /* Reusing lv_obj_get_style_grid_column_align for lv_obj_get_style_grid_row_align */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_grid_row_align_mpobj, 2, mp_lv_obj_get_style_grid_column_align, lv_obj_get_style_grid_row_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_grid_row_align_mpobj, 2, mp_lv_obj_get_style_grid_column_align, lv_obj_get_style_grid_row_align, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_grid_cell_column_pos */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_grid_cell_column_pos_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_grid_cell_column_pos);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_grid_cell_column_pos_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_grid_cell_column_pos, 1);
     
 /* Reusing lv_obj_get_style_grid_column_align for lv_obj_get_style_grid_cell_x_align */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_grid_cell_x_align_mpobj, 2, mp_lv_obj_get_style_grid_column_align, lv_obj_get_style_grid_cell_x_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_grid_cell_x_align_mpobj, 2, mp_lv_obj_get_style_grid_column_align, lv_obj_get_style_grid_cell_x_align, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_grid_cell_column_span */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_grid_cell_column_span_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_grid_cell_column_span);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_grid_cell_column_span_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_grid_cell_column_span, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_grid_cell_row_pos */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_grid_cell_row_pos_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_grid_cell_row_pos);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_grid_cell_row_pos_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_grid_cell_row_pos, 1);
     
 /* Reusing lv_obj_get_style_grid_column_align for lv_obj_get_style_grid_cell_y_align */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_grid_cell_y_align_mpobj, 2, mp_lv_obj_get_style_grid_column_align, lv_obj_get_style_grid_cell_y_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_grid_cell_y_align_mpobj, 2, mp_lv_obj_get_style_grid_column_align, lv_obj_get_style_grid_cell_y_align, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_grid_cell_row_span */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_grid_cell_row_span_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_grid_cell_row_span);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_grid_cell_row_span_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_grid_cell_row_span, 1);
     
 
 /*
@@ -12975,39 +12984,39 @@ static mp_obj_t mp_lv_obj_set_style_width(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_width, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_min_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_min_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_min_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_min_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_min_width, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_max_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_max_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_max_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_max_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_max_width, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_height_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_height_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_height, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_min_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_min_height_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_min_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_min_height_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_min_height, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_max_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_max_height_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_max_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_max_height_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_max_height, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_length */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_length_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_length);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_length_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_length, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_x_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_x_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_x, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_y_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_y_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_y, 1);
     
 
 /*
@@ -13026,99 +13035,99 @@ static mp_obj_t mp_lv_obj_set_style_align(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_align_mpobj, 3, mp_lv_obj_set_style_align, lv_obj_set_style_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_align_mpobj, 3, mp_lv_obj_set_style_align, lv_obj_set_style_align, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_transform_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transform_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_transform_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transform_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_transform_width, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_transform_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transform_height_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_transform_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transform_height_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_transform_height, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_translate_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_translate_x_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_translate_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_translate_x_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_translate_x, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_translate_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_translate_y_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_translate_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_translate_y_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_translate_y, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_translate_radial */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_translate_radial_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_translate_radial);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_translate_radial_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_translate_radial, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_transform_scale_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transform_scale_x_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_transform_scale_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transform_scale_x_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_transform_scale_x, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_transform_scale_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transform_scale_y_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_transform_scale_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transform_scale_y_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_transform_scale_y, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_transform_rotation */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transform_rotation_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_transform_rotation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transform_rotation_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_transform_rotation, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_transform_pivot_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transform_pivot_x_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_transform_pivot_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transform_pivot_x_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_transform_pivot_x, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_transform_pivot_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transform_pivot_y_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_transform_pivot_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transform_pivot_y_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_transform_pivot_y, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_transform_skew_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transform_skew_x_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_transform_skew_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transform_skew_x_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_transform_skew_x, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_transform_skew_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transform_skew_y_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_transform_skew_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transform_skew_y_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_transform_skew_y, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_pad_top */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_top_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_top);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_top_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_top, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_pad_bottom */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_bottom_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_bottom);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_bottom_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_bottom, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_pad_left */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_left_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_left);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_left_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_left, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_pad_right */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_right_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_right);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_right_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_right, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_pad_row */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_row_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_row);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_row_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_row, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_pad_column */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_column_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_column);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_column_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_column, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_pad_radial */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_radial_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_radial);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_radial_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_radial, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_margin_top */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_margin_top_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_margin_top);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_margin_top_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_margin_top, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_margin_bottom */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_margin_bottom_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_margin_bottom);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_margin_bottom_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_margin_bottom, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_margin_left */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_margin_left_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_margin_left);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_margin_left_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_margin_left, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_margin_right */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_margin_right_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_margin_right);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_margin_right_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_margin_right, 1);
     
 
 /*
@@ -13137,7 +13146,7 @@ static mp_obj_t mp_lv_obj_set_style_bg_color(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_color_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_bg_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_color_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_bg_color, 1);
     
 
 /*
@@ -13156,11 +13165,11 @@ static mp_obj_t mp_lv_obj_set_style_bg_opa(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_bg_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_bg_opa, 1);
     
 /* Reusing lv_obj_set_style_bg_color for lv_obj_set_style_bg_grad_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_grad_color_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_bg_grad_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_grad_color_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_bg_grad_color, 1);
     
 
 /*
@@ -13179,23 +13188,23 @@ static mp_obj_t mp_lv_obj_set_style_bg_grad_dir(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_grad_dir_mpobj, 3, mp_lv_obj_set_style_bg_grad_dir, lv_obj_set_style_bg_grad_dir);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_grad_dir_mpobj, 3, mp_lv_obj_set_style_bg_grad_dir, lv_obj_set_style_bg_grad_dir, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_bg_main_stop */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_main_stop_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_bg_main_stop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_main_stop_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_bg_main_stop, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_bg_grad_stop */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_grad_stop_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_bg_grad_stop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_grad_stop_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_bg_grad_stop, 1);
     
 /* Reusing lv_obj_set_style_bg_opa for lv_obj_set_style_bg_main_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_main_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_bg_main_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_main_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_bg_main_opa, 1);
     
 /* Reusing lv_obj_set_style_bg_opa for lv_obj_set_style_bg_grad_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_grad_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_bg_grad_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_grad_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_bg_grad_opa, 1);
     
 
 /*
@@ -13214,7 +13223,7 @@ static mp_obj_t mp_lv_obj_set_style_bg_grad(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_grad_mpobj, 3, mp_lv_obj_set_style_bg_grad, lv_obj_set_style_bg_grad);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_grad_mpobj, 3, mp_lv_obj_set_style_bg_grad, lv_obj_set_style_bg_grad, 1);
     
 
 /*
@@ -13233,19 +13242,19 @@ static mp_obj_t mp_lv_obj_set_style_bg_image_src(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_image_src_mpobj, 3, mp_lv_obj_set_style_bg_image_src, lv_obj_set_style_bg_image_src);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_image_src_mpobj, 3, mp_lv_obj_set_style_bg_image_src, lv_obj_set_style_bg_image_src, 1);
     
 /* Reusing lv_obj_set_style_bg_opa for lv_obj_set_style_bg_image_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_image_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_bg_image_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_image_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_bg_image_opa, 1);
     
 /* Reusing lv_obj_set_style_bg_color for lv_obj_set_style_bg_image_recolor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_image_recolor_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_bg_image_recolor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_image_recolor_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_bg_image_recolor, 1);
     
 /* Reusing lv_obj_set_style_bg_opa for lv_obj_set_style_bg_image_recolor_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_image_recolor_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_bg_image_recolor_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_image_recolor_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_bg_image_recolor_opa, 1);
     
 
 /*
@@ -13264,19 +13273,19 @@ static mp_obj_t mp_lv_obj_set_style_bg_image_tiled(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_image_tiled_mpobj, 3, mp_lv_obj_set_style_bg_image_tiled, lv_obj_set_style_bg_image_tiled);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bg_image_tiled_mpobj, 3, mp_lv_obj_set_style_bg_image_tiled, lv_obj_set_style_bg_image_tiled, 1);
     
 /* Reusing lv_obj_set_style_bg_color for lv_obj_set_style_border_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_border_color_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_border_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_border_color_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_border_color, 1);
     
 /* Reusing lv_obj_set_style_bg_opa for lv_obj_set_style_border_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_border_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_border_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_border_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_border_opa, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_border_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_border_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_border_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_border_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_border_width, 1);
     
 
 /*
@@ -13295,63 +13304,63 @@ static mp_obj_t mp_lv_obj_set_style_border_side(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_border_side_mpobj, 3, mp_lv_obj_set_style_border_side, lv_obj_set_style_border_side);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_border_side_mpobj, 3, mp_lv_obj_set_style_border_side, lv_obj_set_style_border_side, 1);
     
 /* Reusing lv_obj_set_style_bg_image_tiled for lv_obj_set_style_border_post */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_border_post_mpobj, 3, mp_lv_obj_set_style_bg_image_tiled, lv_obj_set_style_border_post);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_border_post_mpobj, 3, mp_lv_obj_set_style_bg_image_tiled, lv_obj_set_style_border_post, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_outline_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_outline_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_outline_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_outline_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_outline_width, 1);
     
 /* Reusing lv_obj_set_style_bg_color for lv_obj_set_style_outline_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_outline_color_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_outline_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_outline_color_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_outline_color, 1);
     
 /* Reusing lv_obj_set_style_bg_opa for lv_obj_set_style_outline_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_outline_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_outline_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_outline_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_outline_opa, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_outline_pad */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_outline_pad_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_outline_pad);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_outline_pad_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_outline_pad, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_shadow_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_shadow_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_shadow_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_shadow_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_shadow_width, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_shadow_offset_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_shadow_offset_x_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_shadow_offset_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_shadow_offset_x_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_shadow_offset_x, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_shadow_offset_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_shadow_offset_y_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_shadow_offset_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_shadow_offset_y_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_shadow_offset_y, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_shadow_spread */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_shadow_spread_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_shadow_spread);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_shadow_spread_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_shadow_spread, 1);
     
 /* Reusing lv_obj_set_style_bg_color for lv_obj_set_style_shadow_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_shadow_color_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_shadow_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_shadow_color_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_shadow_color, 1);
     
 /* Reusing lv_obj_set_style_bg_opa for lv_obj_set_style_shadow_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_shadow_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_shadow_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_shadow_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_shadow_opa, 1);
     
 /* Reusing lv_obj_set_style_bg_opa for lv_obj_set_style_image_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_image_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_image_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_image_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_image_opa, 1);
     
 /* Reusing lv_obj_set_style_bg_color for lv_obj_set_style_image_recolor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_image_recolor_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_image_recolor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_image_recolor_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_image_recolor, 1);
     
 /* Reusing lv_obj_set_style_bg_opa for lv_obj_set_style_image_recolor_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_image_recolor_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_image_recolor_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_image_recolor_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_image_recolor_opa, 1);
     
 
 /*
@@ -13370,59 +13379,59 @@ static mp_obj_t mp_lv_obj_set_style_image_colorkey(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_image_colorkey_mpobj, 3, mp_lv_obj_set_style_image_colorkey, lv_obj_set_style_image_colorkey);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_image_colorkey_mpobj, 3, mp_lv_obj_set_style_image_colorkey, lv_obj_set_style_image_colorkey, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_line_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_line_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_line_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_line_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_line_width, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_line_dash_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_line_dash_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_line_dash_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_line_dash_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_line_dash_width, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_line_dash_gap */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_line_dash_gap_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_line_dash_gap);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_line_dash_gap_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_line_dash_gap, 1);
     
 /* Reusing lv_obj_set_style_bg_image_tiled for lv_obj_set_style_line_rounded */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_line_rounded_mpobj, 3, mp_lv_obj_set_style_bg_image_tiled, lv_obj_set_style_line_rounded);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_line_rounded_mpobj, 3, mp_lv_obj_set_style_bg_image_tiled, lv_obj_set_style_line_rounded, 1);
     
 /* Reusing lv_obj_set_style_bg_color for lv_obj_set_style_line_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_line_color_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_line_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_line_color_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_line_color, 1);
     
 /* Reusing lv_obj_set_style_bg_opa for lv_obj_set_style_line_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_line_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_line_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_line_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_line_opa, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_arc_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_arc_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_arc_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_arc_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_arc_width, 1);
     
 /* Reusing lv_obj_set_style_bg_image_tiled for lv_obj_set_style_arc_rounded */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_arc_rounded_mpobj, 3, mp_lv_obj_set_style_bg_image_tiled, lv_obj_set_style_arc_rounded);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_arc_rounded_mpobj, 3, mp_lv_obj_set_style_bg_image_tiled, lv_obj_set_style_arc_rounded, 1);
     
 /* Reusing lv_obj_set_style_bg_color for lv_obj_set_style_arc_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_arc_color_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_arc_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_arc_color_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_arc_color, 1);
     
 /* Reusing lv_obj_set_style_bg_opa for lv_obj_set_style_arc_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_arc_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_arc_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_arc_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_arc_opa, 1);
     
 /* Reusing lv_obj_set_style_bg_image_src for lv_obj_set_style_arc_image_src */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_arc_image_src_mpobj, 3, mp_lv_obj_set_style_bg_image_src, lv_obj_set_style_arc_image_src);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_arc_image_src_mpobj, 3, mp_lv_obj_set_style_bg_image_src, lv_obj_set_style_arc_image_src, 1);
     
 /* Reusing lv_obj_set_style_bg_color for lv_obj_set_style_text_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_color_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_text_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_color_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_text_color, 1);
     
 /* Reusing lv_obj_set_style_bg_opa for lv_obj_set_style_text_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_text_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_text_opa, 1);
     
 
 /*
@@ -13441,15 +13450,15 @@ static mp_obj_t mp_lv_obj_set_style_text_font(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_font_mpobj, 3, mp_lv_obj_set_style_text_font, lv_obj_set_style_text_font);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_font_mpobj, 3, mp_lv_obj_set_style_text_font, lv_obj_set_style_text_font, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_text_letter_space */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_letter_space_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_text_letter_space);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_letter_space_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_text_letter_space, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_text_line_space */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_line_space_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_text_line_space);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_line_space_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_text_line_space, 1);
     
 
 /*
@@ -13468,7 +13477,7 @@ static mp_obj_t mp_lv_obj_set_style_text_decor(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_decor_mpobj, 3, mp_lv_obj_set_style_text_decor, lv_obj_set_style_text_decor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_decor_mpobj, 3, mp_lv_obj_set_style_text_decor, lv_obj_set_style_text_decor, 1);
     
 
 /*
@@ -13487,19 +13496,19 @@ static mp_obj_t mp_lv_obj_set_style_text_align(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_align_mpobj, 3, mp_lv_obj_set_style_text_align, lv_obj_set_style_text_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_align_mpobj, 3, mp_lv_obj_set_style_text_align, lv_obj_set_style_text_align, 1);
     
 /* Reusing lv_obj_set_style_bg_color for lv_obj_set_style_text_outline_stroke_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_outline_stroke_color_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_text_outline_stroke_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_outline_stroke_color_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_text_outline_stroke_color, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_text_outline_stroke_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_outline_stroke_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_text_outline_stroke_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_outline_stroke_width_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_text_outline_stroke_width, 1);
     
 /* Reusing lv_obj_set_style_bg_opa for lv_obj_set_style_text_outline_stroke_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_outline_stroke_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_text_outline_stroke_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_outline_stroke_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_text_outline_stroke_opa, 1);
     
 
 /*
@@ -13518,15 +13527,15 @@ static mp_obj_t mp_lv_obj_set_style_text_leading_trim(size_t mp_n_args, const mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_leading_trim_mpobj, 3, mp_lv_obj_set_style_text_leading_trim, lv_obj_set_style_text_leading_trim);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_text_leading_trim_mpobj, 3, mp_lv_obj_set_style_text_leading_trim, lv_obj_set_style_text_leading_trim, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_blur_radius */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_blur_radius_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_blur_radius);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_blur_radius_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_blur_radius, 1);
     
 /* Reusing lv_obj_set_style_bg_image_tiled for lv_obj_set_style_blur_backdrop */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_blur_backdrop_mpobj, 3, mp_lv_obj_set_style_bg_image_tiled, lv_obj_set_style_blur_backdrop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_blur_backdrop_mpobj, 3, mp_lv_obj_set_style_bg_image_tiled, lv_obj_set_style_blur_backdrop, 1);
     
 
 /*
@@ -13545,51 +13554,51 @@ static mp_obj_t mp_lv_obj_set_style_blur_quality(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_blur_quality_mpobj, 3, mp_lv_obj_set_style_blur_quality, lv_obj_set_style_blur_quality);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_blur_quality_mpobj, 3, mp_lv_obj_set_style_blur_quality, lv_obj_set_style_blur_quality, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_drop_shadow_radius */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_drop_shadow_radius_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_drop_shadow_radius);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_drop_shadow_radius_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_drop_shadow_radius, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_drop_shadow_offset_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_drop_shadow_offset_x_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_drop_shadow_offset_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_drop_shadow_offset_x_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_drop_shadow_offset_x, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_drop_shadow_offset_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_drop_shadow_offset_y_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_drop_shadow_offset_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_drop_shadow_offset_y_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_drop_shadow_offset_y, 1);
     
 /* Reusing lv_obj_set_style_bg_color for lv_obj_set_style_drop_shadow_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_drop_shadow_color_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_drop_shadow_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_drop_shadow_color_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_drop_shadow_color, 1);
     
 /* Reusing lv_obj_set_style_bg_opa for lv_obj_set_style_drop_shadow_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_drop_shadow_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_drop_shadow_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_drop_shadow_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_drop_shadow_opa, 1);
     
 /* Reusing lv_obj_set_style_blur_quality for lv_obj_set_style_drop_shadow_quality */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_drop_shadow_quality_mpobj, 3, mp_lv_obj_set_style_blur_quality, lv_obj_set_style_drop_shadow_quality);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_drop_shadow_quality_mpobj, 3, mp_lv_obj_set_style_blur_quality, lv_obj_set_style_drop_shadow_quality, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_radius */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_radius_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_radius);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_radius_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_radius, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_radial_offset */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_radial_offset_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_radial_offset);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_radial_offset_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_radial_offset, 1);
     
 /* Reusing lv_obj_set_style_bg_image_tiled for lv_obj_set_style_clip_corner */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_clip_corner_mpobj, 3, mp_lv_obj_set_style_bg_image_tiled, lv_obj_set_style_clip_corner);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_clip_corner_mpobj, 3, mp_lv_obj_set_style_bg_image_tiled, lv_obj_set_style_clip_corner, 1);
     
 /* Reusing lv_obj_set_style_bg_opa for lv_obj_set_style_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_opa, 1);
     
 /* Reusing lv_obj_set_style_bg_opa for lv_obj_set_style_opa_layered */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_opa_layered_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_opa_layered);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_opa_layered_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_opa_layered, 1);
     
 
 /*
@@ -13608,19 +13617,19 @@ static mp_obj_t mp_lv_obj_set_style_color_filter_dsc(size_t mp_n_args, const mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_color_filter_dsc_mpobj, 3, mp_lv_obj_set_style_color_filter_dsc, lv_obj_set_style_color_filter_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_color_filter_dsc_mpobj, 3, mp_lv_obj_set_style_color_filter_dsc, lv_obj_set_style_color_filter_dsc, 1);
     
 /* Reusing lv_obj_set_style_bg_opa for lv_obj_set_style_color_filter_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_color_filter_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_color_filter_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_color_filter_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_color_filter_opa, 1);
     
 /* Reusing lv_obj_set_style_bg_color for lv_obj_set_style_recolor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_recolor_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_recolor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_recolor_mpobj, 3, mp_lv_obj_set_style_bg_color, lv_obj_set_style_recolor, 1);
     
 /* Reusing lv_obj_set_style_bg_opa for lv_obj_set_style_recolor_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_recolor_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_recolor_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_recolor_opa_mpobj, 3, mp_lv_obj_set_style_bg_opa, lv_obj_set_style_recolor_opa, 1);
     
 
 /*
@@ -13639,7 +13648,7 @@ static mp_obj_t mp_lv_obj_set_style_anim(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_anim_mpobj, 3, mp_lv_obj_set_style_anim, lv_obj_set_style_anim);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_anim_mpobj, 3, mp_lv_obj_set_style_anim, lv_obj_set_style_anim, 1);
     
 
 /*
@@ -13658,7 +13667,7 @@ static mp_obj_t mp_lv_obj_set_style_anim_duration(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_anim_duration_mpobj, 3, mp_lv_obj_set_style_anim_duration, lv_obj_set_style_anim_duration);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_anim_duration_mpobj, 3, mp_lv_obj_set_style_anim_duration, lv_obj_set_style_anim_duration, 1);
     
 
 /*
@@ -13677,7 +13686,7 @@ static mp_obj_t mp_lv_obj_set_style_transition(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transition_mpobj, 3, mp_lv_obj_set_style_transition, lv_obj_set_style_transition);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transition_mpobj, 3, mp_lv_obj_set_style_transition, lv_obj_set_style_transition, 1);
     
 
 /*
@@ -13696,7 +13705,7 @@ static mp_obj_t mp_lv_obj_set_style_blend_mode(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_blend_mode_mpobj, 3, mp_lv_obj_set_style_blend_mode, lv_obj_set_style_blend_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_blend_mode_mpobj, 3, mp_lv_obj_set_style_blend_mode, lv_obj_set_style_blend_mode, 1);
     
 
 /*
@@ -13715,7 +13724,7 @@ static mp_obj_t mp_lv_obj_set_style_layout(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_layout_mpobj, 3, mp_lv_obj_set_style_layout, lv_obj_set_style_layout);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_layout_mpobj, 3, mp_lv_obj_set_style_layout, lv_obj_set_style_layout, 1);
     
 
 /*
@@ -13734,15 +13743,15 @@ static mp_obj_t mp_lv_obj_set_style_base_dir(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_base_dir_mpobj, 3, mp_lv_obj_set_style_base_dir, lv_obj_set_style_base_dir);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_base_dir_mpobj, 3, mp_lv_obj_set_style_base_dir, lv_obj_set_style_base_dir, 1);
     
 /* Reusing lv_obj_set_style_bg_image_src for lv_obj_set_style_bitmap_mask_src */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bitmap_mask_src_mpobj, 3, mp_lv_obj_set_style_bg_image_src, lv_obj_set_style_bitmap_mask_src);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_bitmap_mask_src_mpobj, 3, mp_lv_obj_set_style_bg_image_src, lv_obj_set_style_bitmap_mask_src, 1);
     
 /* Reusing lv_obj_set_style_anim_duration for lv_obj_set_style_rotary_sensitivity */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_rotary_sensitivity_mpobj, 3, mp_lv_obj_set_style_anim_duration, lv_obj_set_style_rotary_sensitivity);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_rotary_sensitivity_mpobj, 3, mp_lv_obj_set_style_anim_duration, lv_obj_set_style_rotary_sensitivity, 1);
     
 
 /*
@@ -13761,7 +13770,7 @@ static mp_obj_t mp_lv_obj_set_style_flex_flow(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_flex_flow_mpobj, 3, mp_lv_obj_set_style_flex_flow, lv_obj_set_style_flex_flow);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_flex_flow_mpobj, 3, mp_lv_obj_set_style_flex_flow, lv_obj_set_style_flex_flow, 1);
     
 
 /*
@@ -13780,15 +13789,15 @@ static mp_obj_t mp_lv_obj_set_style_flex_main_place(size_t mp_n_args, const mp_o
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_flex_main_place_mpobj, 3, mp_lv_obj_set_style_flex_main_place, lv_obj_set_style_flex_main_place);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_flex_main_place_mpobj, 3, mp_lv_obj_set_style_flex_main_place, lv_obj_set_style_flex_main_place, 1);
     
 /* Reusing lv_obj_set_style_flex_main_place for lv_obj_set_style_flex_cross_place */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_flex_cross_place_mpobj, 3, mp_lv_obj_set_style_flex_main_place, lv_obj_set_style_flex_cross_place);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_flex_cross_place_mpobj, 3, mp_lv_obj_set_style_flex_main_place, lv_obj_set_style_flex_cross_place, 1);
     
 /* Reusing lv_obj_set_style_flex_main_place for lv_obj_set_style_flex_track_place */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_flex_track_place_mpobj, 3, mp_lv_obj_set_style_flex_main_place, lv_obj_set_style_flex_track_place);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_flex_track_place_mpobj, 3, mp_lv_obj_set_style_flex_main_place, lv_obj_set_style_flex_track_place, 1);
     
 
 /*
@@ -13807,7 +13816,7 @@ static mp_obj_t mp_lv_obj_set_style_flex_grow(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_flex_grow_mpobj, 3, mp_lv_obj_set_style_flex_grow, lv_obj_set_style_flex_grow);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_flex_grow_mpobj, 3, mp_lv_obj_set_style_flex_grow, lv_obj_set_style_flex_grow, 1);
     
 
 /*
@@ -13826,7 +13835,7 @@ static mp_obj_t mp_lv_obj_set_style_grid_column_dsc_array(size_t mp_n_args, cons
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_grid_column_dsc_array_mpobj, 3, mp_lv_obj_set_style_grid_column_dsc_array, lv_obj_set_style_grid_column_dsc_array);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_grid_column_dsc_array_mpobj, 3, mp_lv_obj_set_style_grid_column_dsc_array, lv_obj_set_style_grid_column_dsc_array, 1);
     
 
 /*
@@ -13845,67 +13854,67 @@ static mp_obj_t mp_lv_obj_set_style_grid_column_align(size_t mp_n_args, const mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_grid_column_align_mpobj, 3, mp_lv_obj_set_style_grid_column_align, lv_obj_set_style_grid_column_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_grid_column_align_mpobj, 3, mp_lv_obj_set_style_grid_column_align, lv_obj_set_style_grid_column_align, 1);
     
 /* Reusing lv_obj_set_style_grid_column_dsc_array for lv_obj_set_style_grid_row_dsc_array */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_grid_row_dsc_array_mpobj, 3, mp_lv_obj_set_style_grid_column_dsc_array, lv_obj_set_style_grid_row_dsc_array);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_grid_row_dsc_array_mpobj, 3, mp_lv_obj_set_style_grid_column_dsc_array, lv_obj_set_style_grid_row_dsc_array, 1);
     
 /* Reusing lv_obj_set_style_grid_column_align for lv_obj_set_style_grid_row_align */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_grid_row_align_mpobj, 3, mp_lv_obj_set_style_grid_column_align, lv_obj_set_style_grid_row_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_grid_row_align_mpobj, 3, mp_lv_obj_set_style_grid_column_align, lv_obj_set_style_grid_row_align, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_grid_cell_column_pos */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_grid_cell_column_pos_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_grid_cell_column_pos);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_grid_cell_column_pos_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_grid_cell_column_pos, 1);
     
 /* Reusing lv_obj_set_style_grid_column_align for lv_obj_set_style_grid_cell_x_align */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_grid_cell_x_align_mpobj, 3, mp_lv_obj_set_style_grid_column_align, lv_obj_set_style_grid_cell_x_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_grid_cell_x_align_mpobj, 3, mp_lv_obj_set_style_grid_column_align, lv_obj_set_style_grid_cell_x_align, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_grid_cell_column_span */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_grid_cell_column_span_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_grid_cell_column_span);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_grid_cell_column_span_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_grid_cell_column_span, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_grid_cell_row_pos */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_grid_cell_row_pos_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_grid_cell_row_pos);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_grid_cell_row_pos_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_grid_cell_row_pos, 1);
     
 /* Reusing lv_obj_set_style_grid_column_align for lv_obj_set_style_grid_cell_y_align */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_grid_cell_y_align_mpobj, 3, mp_lv_obj_set_style_grid_column_align, lv_obj_set_style_grid_cell_y_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_grid_cell_y_align_mpobj, 3, mp_lv_obj_set_style_grid_column_align, lv_obj_set_style_grid_cell_y_align, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_grid_cell_row_span */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_grid_cell_row_span_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_grid_cell_row_span);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_grid_cell_row_span_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_grid_cell_row_span, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_pad_all */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_all_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_all);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_all_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_all, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_pad_hor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_hor_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_hor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_hor_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_hor, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_pad_ver */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_ver_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_ver);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_ver_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_ver, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_margin_all */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_margin_all_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_margin_all);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_margin_all_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_margin_all, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_margin_hor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_margin_hor_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_margin_hor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_margin_hor_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_margin_hor, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_margin_ver */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_margin_ver_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_margin_ver);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_margin_ver_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_margin_ver, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_pad_gap */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_gap_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_gap);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_pad_gap_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_pad_gap, 1);
     
 
 /*
@@ -13925,27 +13934,27 @@ static mp_obj_t mp_lv_obj_set_style_size(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_size_mpobj, 4, mp_lv_obj_set_style_size, lv_obj_set_style_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_size_mpobj, 4, mp_lv_obj_set_style_size, lv_obj_set_style_size, 1);
     
 /* Reusing lv_obj_set_style_width for lv_obj_set_style_transform_scale */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transform_scale_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_transform_scale);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_style_transform_scale_mpobj, 3, mp_lv_obj_set_style_width, lv_obj_set_style_transform_scale, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_space_left */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_space_left_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_space_left);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_space_left_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_space_left, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_space_right */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_space_right_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_space_right);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_space_right_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_space_right, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_space_top */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_space_top_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_space_top);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_space_top_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_space_top, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_space_bottom */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_space_bottom_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_space_bottom);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_space_bottom_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_space_bottom, 1);
     
 
 /*
@@ -13964,19 +13973,19 @@ static mp_obj_t mp_lv_obj_calculate_style_text_align(size_t mp_n_args, const mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_calculate_style_text_align_mpobj, 3, mp_lv_obj_calculate_style_text_align, lv_obj_calculate_style_text_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_calculate_style_text_align_mpobj, 3, mp_lv_obj_calculate_style_text_align, lv_obj_calculate_style_text_align, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_transform_scale_x_safe */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_scale_x_safe_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_scale_x_safe);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_scale_x_safe_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_scale_x_safe, 1);
     
 /* Reusing lv_obj_get_style_width for lv_obj_get_style_transform_scale_y_safe */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_scale_y_safe_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_scale_y_safe);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_transform_scale_y_safe_mpobj, 2, mp_lv_obj_get_style_width, lv_obj_get_style_transform_scale_y_safe, 1);
     
 /* Reusing lv_obj_get_style_bg_opa for lv_obj_get_style_opa_recursive */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_opa_recursive_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_opa_recursive);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_opa_recursive_mpobj, 2, mp_lv_obj_get_style_bg_opa, lv_obj_get_style_opa_recursive, 1);
     
 
 /*
@@ -13995,7 +14004,7 @@ static mp_obj_t mp_lv_obj_style_apply_recolor(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_style_apply_recolor_mpobj, 3, mp_lv_obj_style_apply_recolor, lv_obj_style_apply_recolor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_style_apply_recolor_mpobj, 3, mp_lv_obj_style_apply_recolor, lv_obj_style_apply_recolor, 1);
     
 
 /*
@@ -14013,7 +14022,7 @@ static mp_obj_t mp_lv_obj_get_style_recolor_recursive(size_t mp_n_args, const mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_recolor_recursive_mpobj, 2, mp_lv_obj_get_style_recolor_recursive, lv_obj_get_style_recolor_recursive);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_style_recolor_recursive_mpobj, 2, mp_lv_obj_get_style_recolor_recursive, lv_obj_get_style_recolor_recursive, 1);
     
 
 /*
@@ -14211,7 +14220,7 @@ static mp_obj_t mp_funcptr_lv_observer_cb_t(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_observer_cb_t_mpobj, 2, mp_funcptr_lv_observer_cb_t, funcptr_lv_observer_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_observer_cb_t_mpobj, 2, mp_funcptr_lv_observer_cb_t, funcptr_lv_observer_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_observer_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_observer_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -14233,7 +14242,7 @@ static mp_obj_t mp_funcptr_user_cb(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_user_cb_mpobj, 0, mp_funcptr_user_cb, funcptr_user_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_user_cb_mpobj, 0, mp_funcptr_user_cb, funcptr_user_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_user_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_user_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -14355,7 +14364,7 @@ static mp_obj_t mp_lv_obj_bind_style(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_style_mpobj, 5, mp_lv_obj_bind_style, lv_obj_bind_style);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_style_mpobj, 5, mp_lv_obj_bind_style, lv_obj_bind_style, 1);
     
 
 /*
@@ -14375,7 +14384,7 @@ static mp_obj_t mp_lv_obj_bind_style_prop(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_style_prop_mpobj, 4, mp_lv_obj_bind_style_prop, lv_obj_bind_style_prop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_style_prop_mpobj, 4, mp_lv_obj_bind_style_prop, lv_obj_bind_style_prop, 1);
     
 
 /*
@@ -14626,7 +14635,7 @@ static mp_obj_t mp_lv_obj_init_draw_rect_dsc(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_init_draw_rect_dsc_mpobj, 3, mp_lv_obj_init_draw_rect_dsc, lv_obj_init_draw_rect_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_init_draw_rect_dsc_mpobj, 3, mp_lv_obj_init_draw_rect_dsc, lv_obj_init_draw_rect_dsc, 1);
     
 
 /*
@@ -14857,7 +14866,7 @@ static mp_obj_t mp_lv_obj_init_draw_label_dsc(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_init_draw_label_dsc_mpobj, 3, mp_lv_obj_init_draw_label_dsc, lv_obj_init_draw_label_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_init_draw_label_dsc_mpobj, 3, mp_lv_obj_init_draw_label_dsc, lv_obj_init_draw_label_dsc, 1);
     
 
 /*
@@ -15160,7 +15169,7 @@ static mp_obj_t mp_lv_obj_init_draw_image_dsc(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_init_draw_image_dsc_mpobj, 3, mp_lv_obj_init_draw_image_dsc, lv_obj_init_draw_image_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_init_draw_image_dsc_mpobj, 3, mp_lv_obj_init_draw_image_dsc, lv_obj_init_draw_image_dsc, 1);
     
 
 /*
@@ -15361,7 +15370,7 @@ static mp_obj_t mp_lv_obj_init_draw_line_dsc(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_init_draw_line_dsc_mpobj, 3, mp_lv_obj_init_draw_line_dsc, lv_obj_init_draw_line_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_init_draw_line_dsc_mpobj, 3, mp_lv_obj_init_draw_line_dsc, lv_obj_init_draw_line_dsc, 1);
     
 
 /*
@@ -15476,7 +15485,7 @@ static mp_obj_t mp_lv_obj_init_draw_arc_dsc(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_init_draw_arc_dsc_mpobj, 3, mp_lv_obj_init_draw_arc_dsc, lv_obj_init_draw_arc_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_init_draw_arc_dsc_mpobj, 3, mp_lv_obj_init_draw_arc_dsc, lv_obj_init_draw_arc_dsc, 1);
     
 
 /*
@@ -15579,11 +15588,11 @@ static mp_obj_t mp_lv_obj_init_draw_blur_dsc(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_init_draw_blur_dsc_mpobj, 3, mp_lv_obj_init_draw_blur_dsc, lv_obj_init_draw_blur_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_init_draw_blur_dsc_mpobj, 3, mp_lv_obj_init_draw_blur_dsc, lv_obj_init_draw_blur_dsc, 1);
     
 /* Reusing lv_obj_move_to_index for lv_obj_set_ext_draw_size */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_ext_draw_size_mpobj, 2, mp_lv_obj_move_to_index, lv_obj_set_ext_draw_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_ext_draw_size_mpobj, 2, mp_lv_obj_move_to_index, lv_obj_set_ext_draw_size, 1);
     
 
 /*
@@ -15601,11 +15610,11 @@ static mp_obj_t mp_lv_obj_calculate_ext_draw_size(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_calculate_ext_draw_size_mpobj, 2, mp_lv_obj_calculate_ext_draw_size, lv_obj_calculate_ext_draw_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_calculate_ext_draw_size_mpobj, 2, mp_lv_obj_calculate_ext_draw_size, lv_obj_calculate_ext_draw_size, 1);
     
 /* Reusing lv_obj_move_foreground for lv_obj_refresh_ext_draw_size */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_refresh_ext_draw_size_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_refresh_ext_draw_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_refresh_ext_draw_size_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_refresh_ext_draw_size, 1);
     
 
 /*
@@ -15623,19 +15632,19 @@ static mp_obj_t mp_lv_obj_class_create_obj(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_class_create_obj_mpobj, 2, mp_lv_obj_class_create_obj, lv_obj_class_create_obj);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_class_create_obj_mpobj, 2, mp_lv_obj_class_create_obj, lv_obj_class_create_obj, 1);
     
 /* Reusing lv_obj_move_foreground for lv_obj_class_init_obj */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_class_init_obj_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_class_init_obj);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_class_init_obj_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_class_init_obj, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_editable */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_editable_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_editable);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_editable_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_editable, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_group_def */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_group_def_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_group_def);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_group_def_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_group_def, 1);
     
 
 /*
@@ -15654,7 +15663,7 @@ static mp_obj_t mp_lv_obj_send_event(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_send_event_mpobj, 3, mp_lv_obj_send_event, lv_obj_send_event);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_send_event_mpobj, 3, mp_lv_obj_send_event, lv_obj_send_event, 1);
     
 
 /*
@@ -15672,13 +15681,13 @@ static mp_obj_t mp_lv_obj_event_base(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_event_base_mpobj, 2, mp_lv_obj_event_base, lv_obj_event_base);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_event_base_mpobj, 2, mp_lv_obj_event_base, lv_obj_event_base, 1);
     
 #define funcptr_lv_event_cb_t NULL
 
 /* Reusing funcptr_event_cb for funcptr_lv_event_cb_t */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_event_cb_t_mpobj, 1, mp_funcptr_event_cb, funcptr_lv_event_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_event_cb_t_mpobj, 1, mp_funcptr_event_cb, funcptr_lv_event_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_event_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_event_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -15804,7 +15813,7 @@ static mp_obj_t mp_lv_obj_add_event_cb(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_event_cb_mpobj, 4, mp_lv_obj_add_event_cb, lv_obj_add_event_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_event_cb_mpobj, 4, mp_lv_obj_add_event_cb, lv_obj_add_event_cb, 1);
     
 
 /*
@@ -15821,7 +15830,7 @@ static mp_obj_t mp_lv_obj_get_event_count(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_event_count_mpobj, 1, mp_lv_obj_get_event_count, lv_obj_get_event_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_event_count_mpobj, 1, mp_lv_obj_get_event_count, lv_obj_get_event_count, 1);
     
 
 /*
@@ -15839,7 +15848,7 @@ static mp_obj_t mp_lv_obj_get_event_dsc(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_event_dsc_mpobj, 2, mp_lv_obj_get_event_dsc, lv_obj_get_event_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_event_dsc_mpobj, 2, mp_lv_obj_get_event_dsc, lv_obj_get_event_dsc, 1);
     
 
 /*
@@ -15857,7 +15866,7 @@ static mp_obj_t mp_lv_obj_remove_event(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_event_mpobj, 2, mp_lv_obj_remove_event, lv_obj_remove_event);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_event_mpobj, 2, mp_lv_obj_remove_event, lv_obj_remove_event, 1);
     
 
 /*
@@ -15875,7 +15884,7 @@ static mp_obj_t mp_lv_obj_remove_event_dsc(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_event_dsc_mpobj, 2, mp_lv_obj_remove_event_dsc, lv_obj_remove_event_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_event_dsc_mpobj, 2, mp_lv_obj_remove_event_dsc, lv_obj_remove_event_dsc, 1);
     
 
 /*
@@ -15908,7 +15917,7 @@ static mp_obj_t mp_lv_obj_remove_event_cb(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_event_cb_mpobj, 2, mp_lv_obj_remove_event_cb, lv_obj_remove_event_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_event_cb_mpobj, 2, mp_lv_obj_remove_event_cb, lv_obj_remove_event_cb, 1);
     
 
 /*
@@ -15942,7 +15951,7 @@ static mp_obj_t mp_lv_obj_remove_event_cb_with_user_data(size_t mp_n_args, const
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_event_cb_with_user_data_mpobj, 3, mp_lv_obj_remove_event_cb_with_user_data, lv_obj_remove_event_cb_with_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_event_cb_with_user_data_mpobj, 3, mp_lv_obj_remove_event_cb_with_user_data, lv_obj_remove_event_cb_with_user_data, 1);
     
 
 /*
@@ -15960,11 +15969,11 @@ static mp_obj_t mp_lv_obj_add_flag(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_flag_mpobj, 2, mp_lv_obj_add_flag, lv_obj_add_flag);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_flag_mpobj, 2, mp_lv_obj_add_flag, lv_obj_add_flag, 1);
     
 /* Reusing lv_obj_add_flag for lv_obj_remove_flag */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_flag_mpobj, 2, mp_lv_obj_add_flag, lv_obj_remove_flag);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_flag_mpobj, 2, mp_lv_obj_add_flag, lv_obj_remove_flag, 1);
     
 
 /*
@@ -15983,7 +15992,7 @@ static mp_obj_t mp_lv_obj_set_flag(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_flag_mpobj, 3, mp_lv_obj_set_flag, lv_obj_set_flag);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_flag_mpobj, 3, mp_lv_obj_set_flag, lv_obj_set_flag, 1);
     
 
 /*
@@ -16001,107 +16010,107 @@ static mp_obj_t mp_lv_obj_set_hidden(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_hidden_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_hidden);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_hidden_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_hidden, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_clickable */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_clickable_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_clickable);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_clickable_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_clickable, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_click_focusable */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_click_focusable_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_click_focusable);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_click_focusable_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_click_focusable, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_checkable */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_checkable_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_checkable);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_checkable_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_checkable, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_scrollable */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scrollable_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_scrollable);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scrollable_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_scrollable, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_scroll_elastic */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_elastic_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_scroll_elastic);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_elastic_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_scroll_elastic, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_scroll_momentum */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_momentum_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_scroll_momentum);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_momentum_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_scroll_momentum, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_scroll_one */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_one_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_scroll_one);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_one_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_scroll_one, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_scroll_chain */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_chain_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_scroll_chain);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_chain_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_scroll_chain, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_scroll_chain_hor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_chain_hor_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_scroll_chain_hor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_chain_hor_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_scroll_chain_hor, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_scroll_chain_ver */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_chain_ver_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_scroll_chain_ver);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_chain_ver_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_scroll_chain_ver, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_scroll_on_focus */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_on_focus_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_scroll_on_focus);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_on_focus_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_scroll_on_focus, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_scroll_with_arrow */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_with_arrow_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_scroll_with_arrow);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scroll_with_arrow_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_scroll_with_arrow, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_snappable */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_snappable_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_snappable);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_snappable_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_snappable, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_press_lock */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_press_lock_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_press_lock);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_press_lock_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_press_lock, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_event_bubble */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_event_bubble_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_event_bubble);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_event_bubble_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_event_bubble, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_gesture_bubble */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_gesture_bubble_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_gesture_bubble);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_gesture_bubble_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_gesture_bubble, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_adv_hittest */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_adv_hittest_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_adv_hittest);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_adv_hittest_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_adv_hittest, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_ignore_layout */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_ignore_layout_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_ignore_layout);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_ignore_layout_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_ignore_layout, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_floating */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_floating_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_floating);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_floating_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_floating, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_send_draw_task_events */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_send_draw_task_events_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_send_draw_task_events);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_send_draw_task_events_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_send_draw_task_events, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_overflow_visible */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_overflow_visible_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_overflow_visible);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_overflow_visible_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_overflow_visible, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_event_trickle */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_event_trickle_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_event_trickle);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_event_trickle_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_event_trickle, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_state_trickle */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_state_trickle_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_state_trickle);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_state_trickle_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_state_trickle, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_radio_button */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_radio_button_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_radio_button);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_radio_button_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_radio_button, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_flex_in_new_track */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_flex_in_new_track_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_flex_in_new_track);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_flex_in_new_track_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_flex_in_new_track, 1);
     
 
 /*
@@ -16119,11 +16128,11 @@ static mp_obj_t mp_lv_obj_add_state(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_state_mpobj, 2, mp_lv_obj_add_state, lv_obj_add_state);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_state_mpobj, 2, mp_lv_obj_add_state, lv_obj_add_state, 1);
     
 /* Reusing lv_obj_add_state for lv_obj_remove_state */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_state_mpobj, 2, mp_lv_obj_add_state, lv_obj_remove_state);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_state_mpobj, 2, mp_lv_obj_add_state, lv_obj_remove_state, 1);
     
 
 /*
@@ -16142,59 +16151,59 @@ static mp_obj_t mp_lv_obj_set_state(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_state_mpobj, 3, mp_lv_obj_set_state, lv_obj_set_state);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_state_mpobj, 3, mp_lv_obj_set_state, lv_obj_set_state, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_alt */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_alt_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_alt);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_alt_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_alt, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_checked */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_checked_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_checked);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_checked_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_checked, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_focused */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_focused_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_focused);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_focused_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_focused, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_focus_key */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_focus_key_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_focus_key);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_focus_key_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_focus_key, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_edited */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_edited_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_edited);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_edited_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_edited, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_hovered */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_hovered_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_hovered);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_hovered_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_hovered, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_pressed */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_pressed_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_pressed);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_pressed_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_pressed, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_scrolled */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scrolled_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_scrolled);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_scrolled_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_scrolled, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_disabled */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_disabled_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_disabled);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_disabled_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_disabled, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_state_user_1 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_state_user_1_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_state_user_1);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_state_user_1_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_state_user_1, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_state_user_2 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_state_user_2_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_state_user_2);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_state_user_2_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_state_user_2, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_state_user_3 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_state_user_3_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_state_user_3);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_state_user_3_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_state_user_3, 1);
     
 /* Reusing lv_obj_set_hidden for lv_obj_set_state_user_4 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_state_user_4_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_state_user_4);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_state_user_4_mpobj, 2, mp_lv_obj_set_hidden, lv_obj_set_state_user_4, 1);
     
 
 /*
@@ -16212,7 +16221,7 @@ static mp_obj_t mp_lv_obj_set_user_data(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_user_data_mpobj, 2, mp_lv_obj_set_user_data, lv_obj_set_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_user_data_mpobj, 2, mp_lv_obj_set_user_data, lv_obj_set_user_data, 1);
     
 
 /*
@@ -16231,7 +16240,7 @@ static mp_obj_t mp_lv_obj_set_user_flag(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_user_flag_mpobj, 3, mp_lv_obj_set_user_flag, lv_obj_set_user_flag);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_user_flag_mpobj, 3, mp_lv_obj_set_user_flag, lv_obj_set_user_flag, 1);
     
 
 /*
@@ -16249,111 +16258,111 @@ static mp_obj_t mp_lv_obj_has_flag(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_has_flag_mpobj, 2, mp_lv_obj_has_flag, lv_obj_has_flag);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_has_flag_mpobj, 2, mp_lv_obj_has_flag, lv_obj_has_flag, 1);
     
 /* Reusing lv_obj_has_flag for lv_obj_has_flag_any */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_has_flag_any_mpobj, 2, mp_lv_obj_has_flag, lv_obj_has_flag_any);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_has_flag_any_mpobj, 2, mp_lv_obj_has_flag, lv_obj_has_flag_any, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_hidden */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_hidden_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_hidden);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_hidden_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_hidden, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_clickable */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_clickable_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_clickable);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_clickable_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_clickable, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_click_focusable */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_click_focusable_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_click_focusable);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_click_focusable_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_click_focusable, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_checkable */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_checkable_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_checkable);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_checkable_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_checkable, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_scrollable */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_scrollable_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_scrollable);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_scrollable_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_scrollable, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_scroll_elastic */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_scroll_elastic_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_scroll_elastic);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_scroll_elastic_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_scroll_elastic, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_scroll_momentum */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_scroll_momentum_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_scroll_momentum);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_scroll_momentum_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_scroll_momentum, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_scroll_one */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_scroll_one_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_scroll_one);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_scroll_one_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_scroll_one, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_scroll_chain_hor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_scroll_chain_hor_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_scroll_chain_hor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_scroll_chain_hor_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_scroll_chain_hor, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_scroll_chain_ver */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_scroll_chain_ver_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_scroll_chain_ver);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_scroll_chain_ver_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_scroll_chain_ver, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_scroll_on_focus */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_scroll_on_focus_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_scroll_on_focus);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_scroll_on_focus_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_scroll_on_focus, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_scroll_with_arrow */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_scroll_with_arrow_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_scroll_with_arrow);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_scroll_with_arrow_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_scroll_with_arrow, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_snappable */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_snappable_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_snappable);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_snappable_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_snappable, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_press_lock */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_press_lock_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_press_lock);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_press_lock_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_press_lock, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_event_bubble */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_event_bubble_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_event_bubble);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_event_bubble_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_event_bubble, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_gesture_bubble */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_gesture_bubble_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_gesture_bubble);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_gesture_bubble_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_gesture_bubble, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_adv_hittest */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_adv_hittest_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_adv_hittest);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_adv_hittest_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_adv_hittest, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_ignore_layout */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_ignore_layout_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_ignore_layout);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_ignore_layout_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_ignore_layout, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_floating */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_floating_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_floating);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_floating_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_floating, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_send_draw_task_events */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_send_draw_task_events_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_send_draw_task_events);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_send_draw_task_events_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_send_draw_task_events, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_overflow_visible */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_overflow_visible_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_overflow_visible);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_overflow_visible_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_overflow_visible, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_event_trickle */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_event_trickle_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_event_trickle);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_event_trickle_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_event_trickle, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_state_trickle */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_state_trickle_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_state_trickle);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_state_trickle_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_state_trickle, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_radio_button */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_radio_button_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_radio_button);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_radio_button_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_radio_button, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_flex_in_new_track */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_flex_in_new_track_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_flex_in_new_track);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_flex_in_new_track_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_flex_in_new_track, 1);
     
 
 /*
@@ -16370,7 +16379,7 @@ static mp_obj_t mp_lv_obj_get_state(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_state_mpobj, 1, mp_lv_obj_get_state, lv_obj_get_state);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_state_mpobj, 1, mp_lv_obj_get_state, lv_obj_get_state, 1);
     
 
 /*
@@ -16388,59 +16397,59 @@ static mp_obj_t mp_lv_obj_has_state(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_has_state_mpobj, 2, mp_lv_obj_has_state, lv_obj_has_state);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_has_state_mpobj, 2, mp_lv_obj_has_state, lv_obj_has_state, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_alt */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_alt_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_alt);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_alt_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_alt, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_checked */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_checked_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_checked);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_checked_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_checked, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_focused */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_focused_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_focused);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_focused_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_focused, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_focus_key */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_focus_key_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_focus_key);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_focus_key_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_focus_key, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_edited */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_edited_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_edited);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_edited_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_edited, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_hovered */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_hovered_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_hovered);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_hovered_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_hovered, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_pressed */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_pressed_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_pressed);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_pressed_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_pressed, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_scrolled */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_scrolled_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_scrolled);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_scrolled_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_scrolled, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_disabled */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_disabled_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_disabled);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_disabled_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_disabled, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_state_user_1 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_state_user_1_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_state_user_1);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_state_user_1_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_state_user_1, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_state_user_2 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_state_user_2_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_state_user_2);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_state_user_2_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_state_user_2, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_state_user_3 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_state_user_3_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_state_user_3);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_state_user_3_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_state_user_3, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_state_user_4 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_state_user_4_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_state_user_4);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_state_user_4_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_state_user_4, 1);
     
 #define funcptr_lv_group_focus_cb_t NULL
 
@@ -16459,7 +16468,7 @@ static mp_obj_t mp_funcptr_lv_group_focus_cb_t(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_group_focus_cb_t_mpobj, 1, mp_funcptr_lv_group_focus_cb_t, funcptr_lv_group_focus_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_group_focus_cb_t_mpobj, 1, mp_funcptr_lv_group_focus_cb_t, funcptr_lv_group_focus_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_group_focus_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_group_focus_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -16482,7 +16491,7 @@ static mp_obj_t mp_funcptr_lv_group_edge_cb_t(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_group_edge_cb_t_mpobj, 2, mp_funcptr_lv_group_edge_cb_t, funcptr_lv_group_edge_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_group_edge_cb_t_mpobj, 2, mp_funcptr_lv_group_edge_cb_t, funcptr_lv_group_edge_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_group_edge_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_group_edge_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -16596,7 +16605,7 @@ static mp_obj_t mp_lv_obj_get_group(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_group_mpobj, 1, mp_lv_obj_get_group, lv_obj_get_group);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_group_mpobj, 1, mp_lv_obj_get_group, lv_obj_get_group, 1);
     
 
 /*
@@ -16613,11 +16622,11 @@ static mp_obj_t mp_lv_obj_get_user_data(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_user_data_mpobj, 1, mp_lv_obj_get_user_data, lv_obj_get_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_user_data_mpobj, 1, mp_lv_obj_get_user_data, lv_obj_get_user_data, 1);
     
 /* Reusing lv_obj_remove_event for lv_obj_get_user_flag */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_user_flag_mpobj, 2, mp_lv_obj_remove_event, lv_obj_get_user_flag);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_user_flag_mpobj, 2, mp_lv_obj_remove_event, lv_obj_get_user_flag, 1);
     
 
 /*
@@ -16635,11 +16644,11 @@ static mp_obj_t mp_lv_obj_check_type(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_check_type_mpobj, 2, mp_lv_obj_check_type, lv_obj_check_type);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_check_type_mpobj, 2, mp_lv_obj_check_type, lv_obj_check_type, 1);
     
 /* Reusing lv_obj_check_type for lv_obj_has_class */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_has_class_mpobj, 2, mp_lv_obj_check_type, lv_obj_has_class);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_has_class_mpobj, 2, mp_lv_obj_check_type, lv_obj_has_class, 1);
     
 
 /*
@@ -16656,11 +16665,11 @@ static mp_obj_t mp_lv_obj_get_class(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_class_mpobj, 1, mp_lv_obj_get_class, lv_obj_get_class);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_class_mpobj, 1, mp_lv_obj_get_class, lv_obj_get_class, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_obj_is_in_widget_tree */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_in_widget_tree_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_in_widget_tree);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_is_in_widget_tree_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_obj_is_in_widget_tree, 1);
     
 
 /*
@@ -16677,7 +16686,7 @@ static mp_obj_t mp_lv_obj_null_on_delete(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_null_on_delete_mpobj, 1, mp_lv_obj_null_on_delete, lv_obj_null_on_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_null_on_delete_mpobj, 1, mp_lv_obj_null_on_delete, lv_obj_null_on_delete, 1);
     
 
 /*
@@ -16789,7 +16798,7 @@ static mp_obj_t mp_lv_obj_add_delete_cb(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_delete_cb_mpobj, 3, mp_lv_obj_add_delete_cb, lv_obj_add_delete_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_delete_cb_mpobj, 3, mp_lv_obj_add_delete_cb, lv_obj_add_delete_cb, 1);
     
 
 /*
@@ -16806,7 +16815,7 @@ static mp_obj_t mp_lv_obj_remove_delete_cb(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_remove_delete_cb_mpobj, 1, mp_lv_obj_remove_delete_cb, lv_obj_remove_delete_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_remove_delete_cb_mpobj, 1, mp_lv_obj_remove_delete_cb, lv_obj_remove_delete_cb, 1);
     
 
 /*
@@ -16828,7 +16837,7 @@ static mp_obj_t mp_lv_obj_add_screen_load_event(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_screen_load_event_mpobj, 6, mp_lv_obj_add_screen_load_event, lv_obj_add_screen_load_event);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_screen_load_event_mpobj, 6, mp_lv_obj_add_screen_load_event, lv_obj_add_screen_load_event, 1);
     
 
 /*
@@ -16854,7 +16863,7 @@ static mp_obj_t mp_funcptr_lv_screen_create_cb_t(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_screen_create_cb_t_mpobj, 0, mp_funcptr_lv_screen_create_cb_t, funcptr_lv_screen_create_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_screen_create_cb_t_mpobj, 0, mp_funcptr_lv_screen_create_cb_t, funcptr_lv_screen_create_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_screen_create_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_screen_create_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -16878,7 +16887,7 @@ static mp_obj_t mp_lv_obj_add_screen_create_event(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_screen_create_event_mpobj, 6, mp_lv_obj_add_screen_create_event, lv_obj_add_screen_create_event);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_screen_create_event_mpobj, 6, mp_lv_obj_add_screen_create_event, lv_obj_add_screen_create_event, 1);
     
 
 /*
@@ -17075,7 +17084,7 @@ static mp_obj_t mp_lv_obj_add_play_timeline_event(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_play_timeline_event_mpobj, 5, mp_lv_obj_add_play_timeline_event, lv_obj_add_play_timeline_event);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_play_timeline_event_mpobj, 5, mp_lv_obj_add_play_timeline_event, lv_obj_add_play_timeline_event, 1);
     
 
 /*
@@ -17093,7 +17102,7 @@ static mp_obj_t mp_lv_obj_remove_from_subject(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_from_subject_mpobj, 2, mp_lv_obj_remove_from_subject, lv_obj_remove_from_subject);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_from_subject_mpobj, 2, mp_lv_obj_remove_from_subject, lv_obj_remove_from_subject, 1);
     
 
 /*
@@ -17199,7 +17208,7 @@ static mp_obj_t mp_lv_obj_add_subject_increment_event(size_t mp_n_args, const mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_subject_increment_event_mpobj, 4, mp_lv_obj_add_subject_increment_event, lv_obj_add_subject_increment_event);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_subject_increment_event_mpobj, 4, mp_lv_obj_add_subject_increment_event, lv_obj_add_subject_increment_event, 1);
     
 
 /*
@@ -17218,11 +17227,11 @@ static mp_obj_t mp_lv_obj_set_subject_increment_event_min_value(size_t mp_n_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_subject_increment_event_min_value_mpobj, 3, mp_lv_obj_set_subject_increment_event_min_value, lv_obj_set_subject_increment_event_min_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_subject_increment_event_min_value_mpobj, 3, mp_lv_obj_set_subject_increment_event_min_value, lv_obj_set_subject_increment_event_min_value, 1);
     
 /* Reusing lv_obj_set_subject_increment_event_min_value for lv_obj_set_subject_increment_event_max_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_subject_increment_event_max_value_mpobj, 3, mp_lv_obj_set_subject_increment_event_min_value, lv_obj_set_subject_increment_event_max_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_subject_increment_event_max_value_mpobj, 3, mp_lv_obj_set_subject_increment_event_min_value, lv_obj_set_subject_increment_event_max_value, 1);
     
 
 /*
@@ -17241,7 +17250,7 @@ static mp_obj_t mp_lv_obj_set_subject_increment_event_rollover(size_t mp_n_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_subject_increment_event_rollover_mpobj, 3, mp_lv_obj_set_subject_increment_event_rollover, lv_obj_set_subject_increment_event_rollover);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_set_subject_increment_event_rollover_mpobj, 3, mp_lv_obj_set_subject_increment_event_rollover, lv_obj_set_subject_increment_event_rollover, 1);
     
 
 /*
@@ -17260,7 +17269,7 @@ static mp_obj_t mp_lv_obj_add_subject_toggle_event(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_subject_toggle_event_mpobj, 3, mp_lv_obj_add_subject_toggle_event, lv_obj_add_subject_toggle_event);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_subject_toggle_event_mpobj, 3, mp_lv_obj_add_subject_toggle_event, lv_obj_add_subject_toggle_event, 1);
     
 
 /*
@@ -17280,7 +17289,7 @@ static mp_obj_t mp_lv_obj_add_subject_set_int_event(size_t mp_n_args, const mp_o
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_subject_set_int_event_mpobj, 4, mp_lv_obj_add_subject_set_int_event, lv_obj_add_subject_set_int_event);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_subject_set_int_event_mpobj, 4, mp_lv_obj_add_subject_set_int_event, lv_obj_add_subject_set_int_event, 1);
     
 
 /*
@@ -17300,7 +17309,7 @@ static mp_obj_t mp_lv_obj_add_subject_set_float_event(size_t mp_n_args, const mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_subject_set_float_event_mpobj, 4, mp_lv_obj_add_subject_set_float_event, lv_obj_add_subject_set_float_event);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_subject_set_float_event_mpobj, 4, mp_lv_obj_add_subject_set_float_event, lv_obj_add_subject_set_float_event, 1);
     
 
 /*
@@ -17320,7 +17329,7 @@ static mp_obj_t mp_lv_obj_add_subject_set_string_event(size_t mp_n_args, const m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_subject_set_string_event_mpobj, 4, mp_lv_obj_add_subject_set_string_event, lv_obj_add_subject_set_string_event);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_subject_set_string_event_mpobj, 4, mp_lv_obj_add_subject_set_string_event, lv_obj_add_subject_set_string_event, 1);
     
 
 /*
@@ -17355,7 +17364,7 @@ static mp_obj_t mp_lv_obj_bind_bool(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_bool_mpobj, 3, mp_lv_obj_bind_bool, lv_obj_bind_bool);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_bool_mpobj, 3, mp_lv_obj_bind_bool, lv_obj_bind_bool, 1);
     
 
 /*
@@ -17390,7 +17399,7 @@ static mp_obj_t mp_lv_obj_bind_int(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_int_mpobj, 3, mp_lv_obj_bind_int, lv_obj_bind_int);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_int_mpobj, 3, mp_lv_obj_bind_int, lv_obj_bind_int, 1);
     
 
 /*
@@ -17425,7 +17434,7 @@ static mp_obj_t mp_lv_obj_bind_float(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_float_mpobj, 3, mp_lv_obj_bind_float, lv_obj_bind_float);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_float_mpobj, 3, mp_lv_obj_bind_float, lv_obj_bind_float, 1);
     
 
 /*
@@ -17460,7 +17469,7 @@ static mp_obj_t mp_lv_obj_bind_string(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_string_mpobj, 3, mp_lv_obj_bind_string, lv_obj_bind_string);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_string_mpobj, 3, mp_lv_obj_bind_string, lv_obj_bind_string, 1);
     
 
 /*
@@ -17495,7 +17504,7 @@ static mp_obj_t mp_lv_obj_bind_color(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_color_mpobj, 3, mp_lv_obj_bind_color, lv_obj_bind_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_color_mpobj, 3, mp_lv_obj_bind_color, lv_obj_bind_color, 1);
     
 
 /*
@@ -17530,7 +17539,7 @@ static mp_obj_t mp_lv_obj_bind_pointer(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_pointer_mpobj, 3, mp_lv_obj_bind_pointer, lv_obj_bind_pointer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_pointer_mpobj, 3, mp_lv_obj_bind_pointer, lv_obj_bind_pointer, 1);
     
 
 /*
@@ -17550,27 +17559,27 @@ static mp_obj_t mp_lv_obj_bind_flag_if_eq(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_flag_if_eq_mpobj, 4, mp_lv_obj_bind_flag_if_eq, lv_obj_bind_flag_if_eq);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_flag_if_eq_mpobj, 4, mp_lv_obj_bind_flag_if_eq, lv_obj_bind_flag_if_eq, 1);
     
 /* Reusing lv_obj_bind_flag_if_eq for lv_obj_bind_flag_if_not_eq */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_flag_if_not_eq_mpobj, 4, mp_lv_obj_bind_flag_if_eq, lv_obj_bind_flag_if_not_eq);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_flag_if_not_eq_mpobj, 4, mp_lv_obj_bind_flag_if_eq, lv_obj_bind_flag_if_not_eq, 1);
     
 /* Reusing lv_obj_bind_flag_if_eq for lv_obj_bind_flag_if_gt */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_flag_if_gt_mpobj, 4, mp_lv_obj_bind_flag_if_eq, lv_obj_bind_flag_if_gt);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_flag_if_gt_mpobj, 4, mp_lv_obj_bind_flag_if_eq, lv_obj_bind_flag_if_gt, 1);
     
 /* Reusing lv_obj_bind_flag_if_eq for lv_obj_bind_flag_if_ge */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_flag_if_ge_mpobj, 4, mp_lv_obj_bind_flag_if_eq, lv_obj_bind_flag_if_ge);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_flag_if_ge_mpobj, 4, mp_lv_obj_bind_flag_if_eq, lv_obj_bind_flag_if_ge, 1);
     
 /* Reusing lv_obj_bind_flag_if_eq for lv_obj_bind_flag_if_lt */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_flag_if_lt_mpobj, 4, mp_lv_obj_bind_flag_if_eq, lv_obj_bind_flag_if_lt);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_flag_if_lt_mpobj, 4, mp_lv_obj_bind_flag_if_eq, lv_obj_bind_flag_if_lt, 1);
     
 /* Reusing lv_obj_bind_flag_if_eq for lv_obj_bind_flag_if_le */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_flag_if_le_mpobj, 4, mp_lv_obj_bind_flag_if_eq, lv_obj_bind_flag_if_le);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_flag_if_le_mpobj, 4, mp_lv_obj_bind_flag_if_eq, lv_obj_bind_flag_if_le, 1);
     
 
 /*
@@ -17590,27 +17599,27 @@ static mp_obj_t mp_lv_obj_bind_state_if_eq(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_state_if_eq_mpobj, 4, mp_lv_obj_bind_state_if_eq, lv_obj_bind_state_if_eq);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_state_if_eq_mpobj, 4, mp_lv_obj_bind_state_if_eq, lv_obj_bind_state_if_eq, 1);
     
 /* Reusing lv_obj_bind_state_if_eq for lv_obj_bind_state_if_not_eq */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_state_if_not_eq_mpobj, 4, mp_lv_obj_bind_state_if_eq, lv_obj_bind_state_if_not_eq);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_state_if_not_eq_mpobj, 4, mp_lv_obj_bind_state_if_eq, lv_obj_bind_state_if_not_eq, 1);
     
 /* Reusing lv_obj_bind_state_if_eq for lv_obj_bind_state_if_gt */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_state_if_gt_mpobj, 4, mp_lv_obj_bind_state_if_eq, lv_obj_bind_state_if_gt);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_state_if_gt_mpobj, 4, mp_lv_obj_bind_state_if_eq, lv_obj_bind_state_if_gt, 1);
     
 /* Reusing lv_obj_bind_state_if_eq for lv_obj_bind_state_if_ge */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_state_if_ge_mpobj, 4, mp_lv_obj_bind_state_if_eq, lv_obj_bind_state_if_ge);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_state_if_ge_mpobj, 4, mp_lv_obj_bind_state_if_eq, lv_obj_bind_state_if_ge, 1);
     
 /* Reusing lv_obj_bind_state_if_eq for lv_obj_bind_state_if_lt */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_state_if_lt_mpobj, 4, mp_lv_obj_bind_state_if_eq, lv_obj_bind_state_if_lt);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_state_if_lt_mpobj, 4, mp_lv_obj_bind_state_if_eq, lv_obj_bind_state_if_lt, 1);
     
 /* Reusing lv_obj_bind_state_if_eq for lv_obj_bind_state_if_le */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_state_if_le_mpobj, 4, mp_lv_obj_bind_state_if_eq, lv_obj_bind_state_if_le);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_state_if_le_mpobj, 4, mp_lv_obj_bind_state_if_eq, lv_obj_bind_state_if_le, 1);
     
 
 /*
@@ -17628,7 +17637,7 @@ static mp_obj_t mp_lv_obj_bind_checked(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_checked_mpobj, 2, mp_lv_obj_bind_checked, lv_obj_bind_checked);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_bind_checked_mpobj, 2, mp_lv_obj_bind_checked, lv_obj_bind_checked, 1);
     
 
 /*
@@ -17646,15 +17655,15 @@ static mp_obj_t mp_lv_obj_redraw(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_redraw_mpobj, 2, mp_lv_obj_redraw, lv_obj_redraw);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_redraw_mpobj, 2, mp_lv_obj_redraw, lv_obj_redraw, 1);
     
 /* Reusing lv_obj_move_foreground for lv_obj_destruct */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_destruct_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_destruct);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_destruct_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_destruct, 1);
     
 /* Reusing lv_obj_get_index for lv_obj_get_ext_draw_size */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_ext_draw_size_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_ext_draw_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_ext_draw_size_mpobj, 1, mp_lv_obj_get_index, lv_obj_get_ext_draw_size, 1);
     
 
 /*
@@ -17671,7 +17680,7 @@ static mp_obj_t mp_lv_obj_get_layer_type(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_layer_type_mpobj, 1, mp_lv_obj_get_layer_type, lv_obj_get_layer_type);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_get_layer_type_mpobj, 1, mp_lv_obj_get_layer_type, lv_obj_get_layer_type, 1);
     
 
 /*
@@ -17792,7 +17801,7 @@ static mp_obj_t mp_lv_obj_allocate_spec_attr(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_allocate_spec_attr_mpobj, 1, mp_lv_obj_allocate_spec_attr, lv_obj_allocate_spec_attr);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_allocate_spec_attr_mpobj, 1, mp_lv_obj_allocate_spec_attr, lv_obj_allocate_spec_attr, 1);
     
 
 /*
@@ -17810,15 +17819,15 @@ static mp_obj_t mp_lv_obj_add_child(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_child_mpobj, 2, mp_lv_obj_add_child, lv_obj_add_child);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_add_child_mpobj, 2, mp_lv_obj_add_child, lv_obj_add_child, 1);
     
 /* Reusing lv_obj_set_parent for lv_obj_remove_child */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_child_mpobj, 2, mp_lv_obj_set_parent, lv_obj_remove_child);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_remove_child_mpobj, 2, mp_lv_obj_set_parent, lv_obj_remove_child, 1);
     
 /* Reusing funcptr_lv_display_flush_wait_cb_t for lv_obj_invalidate_expand_blur */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_invalidate_expand_blur_mpobj, 1, mp_funcptr_lv_display_flush_wait_cb_t, lv_obj_invalidate_expand_blur);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_invalidate_expand_blur_mpobj, 1, mp_funcptr_lv_display_flush_wait_cb_t, lv_obj_invalidate_expand_blur, 1);
     
 
 /*
@@ -17837,15 +17846,15 @@ static mp_obj_t mp_lv_obj_scroll_by_raw(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_scroll_by_raw_mpobj, 3, mp_lv_obj_scroll_by_raw, lv_obj_scroll_by_raw);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_scroll_by_raw_mpobj, 3, mp_lv_obj_scroll_by_raw, lv_obj_scroll_by_raw, 1);
     
 /* Reusing funcptr_user_cb for lv_obj_style_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_style_init_mpobj, 0, mp_funcptr_user_cb, lv_obj_style_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_style_init_mpobj, 0, mp_funcptr_user_cb, lv_obj_style_init, 1);
     
 /* Reusing funcptr_user_cb for lv_obj_style_deinit */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_style_deinit_mpobj, 0, mp_funcptr_user_cb, lv_obj_style_deinit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_style_deinit_mpobj, 0, mp_funcptr_user_cb, lv_obj_style_deinit, 1);
     
 
 /*
@@ -17961,7 +17970,7 @@ static mp_obj_t mp_lv_obj_style_create_transition(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_style_create_transition_mpobj, 5, mp_lv_obj_style_create_transition, lv_obj_style_create_transition);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_style_create_transition_mpobj, 5, mp_lv_obj_style_create_transition, lv_obj_style_create_transition, 1);
     
 
 /*
@@ -17981,19 +17990,19 @@ static mp_obj_t mp_lv_obj_style_state_compare(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_style_state_compare_mpobj, 4, mp_lv_obj_style_state_compare, lv_obj_style_state_compare);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_style_state_compare_mpobj, 4, mp_lv_obj_style_state_compare, lv_obj_style_state_compare, 1);
     
 /* Reusing lv_obj_move_foreground for lv_obj_update_layer_type */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_update_layer_type_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_update_layer_type);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_update_layer_type_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_update_layer_type, 1);
     
 /* Reusing lv_obj_move_foreground for lv_obj_update_blur_status */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_update_blur_status_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_update_blur_status);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_update_blur_status_mpobj, 1, mp_lv_obj_move_foreground, lv_obj_update_blur_status, 1);
     
 /* Reusing lv_obj_redraw for lv_obj_refr */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_refr_mpobj, 2, mp_lv_obj_redraw, lv_obj_refr);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_obj_refr_mpobj, 2, mp_lv_obj_redraw, lv_obj_refr, 1);
     
 
 /*
@@ -18010,7 +18019,7 @@ static mp_obj_t mp_lv_obj_create(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_create_mpobj, 1, mp_lv_obj_create, lv_obj_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_obj_create_mpobj, 1, mp_lv_obj_create, lv_obj_create, 1);
     
 
 /*
@@ -18681,7 +18690,7 @@ static mp_obj_t mp_lv_image_buf_set_palette(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_buf_set_palette_mpobj, 3, mp_lv_image_buf_set_palette, lv_image_buf_set_palette);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_buf_set_palette_mpobj, 3, mp_lv_image_buf_set_palette, lv_image_buf_set_palette, 1);
     
 
 /*
@@ -18698,7 +18707,7 @@ static mp_obj_t mp_lv_image_buf_free(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_buf_free_mpobj, 1, mp_lv_image_buf_free, lv_image_buf_free);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_buf_free_mpobj, 1, mp_lv_image_buf_free, lv_image_buf_free, 1);
     
 
 /*
@@ -18716,7 +18725,7 @@ static mp_obj_t mp_lv_image_decoder_get_info(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_decoder_get_info_mpobj, 2, mp_lv_image_decoder_get_info, lv_image_decoder_get_info);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_decoder_get_info_mpobj, 2, mp_lv_image_decoder_get_info, lv_image_decoder_get_info, 1);
     
 #define funcptr_lv_image_decoder_info_f_t NULL
 
@@ -18737,7 +18746,7 @@ static mp_obj_t mp_funcptr_lv_image_decoder_info_f_t(size_t mp_n_args, const mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_image_decoder_info_f_t_mpobj, 3, mp_funcptr_lv_image_decoder_info_f_t, funcptr_lv_image_decoder_info_f_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_image_decoder_info_f_t_mpobj, 3, mp_funcptr_lv_image_decoder_info_f_t, funcptr_lv_image_decoder_info_f_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_image_decoder_info_f_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_image_decoder_info_f_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -18760,7 +18769,7 @@ static mp_obj_t mp_funcptr_lv_image_decoder_open_f_t(size_t mp_n_args, const mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_image_decoder_open_f_t_mpobj, 2, mp_funcptr_lv_image_decoder_open_f_t, funcptr_lv_image_decoder_open_f_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_image_decoder_open_f_t_mpobj, 2, mp_funcptr_lv_image_decoder_open_f_t, funcptr_lv_image_decoder_open_f_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_image_decoder_open_f_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_image_decoder_open_f_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -18785,7 +18794,7 @@ static mp_obj_t mp_funcptr_lv_image_decoder_get_area_cb_t(size_t mp_n_args, cons
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_image_decoder_get_area_cb_t_mpobj, 4, mp_funcptr_lv_image_decoder_get_area_cb_t, funcptr_lv_image_decoder_get_area_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_image_decoder_get_area_cb_t_mpobj, 4, mp_funcptr_lv_image_decoder_get_area_cb_t, funcptr_lv_image_decoder_get_area_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_image_decoder_get_area_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_image_decoder_get_area_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -18808,7 +18817,7 @@ static mp_obj_t mp_funcptr_lv_image_decoder_close_f_t(size_t mp_n_args, const mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_image_decoder_close_f_t_mpobj, 2, mp_funcptr_lv_image_decoder_close_f_t, funcptr_lv_image_decoder_close_f_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_image_decoder_close_f_t_mpobj, 2, mp_funcptr_lv_image_decoder_close_f_t, funcptr_lv_image_decoder_close_f_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_image_decoder_close_f_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_image_decoder_close_f_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -18834,7 +18843,7 @@ static mp_obj_t mp_funcptr_lv_image_decoder_custom_draw_t(size_t mp_n_args, cons
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_image_decoder_custom_draw_t_mpobj, 5, mp_funcptr_lv_image_decoder_custom_draw_t, funcptr_lv_image_decoder_custom_draw_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_image_decoder_custom_draw_t_mpobj, 5, mp_funcptr_lv_image_decoder_custom_draw_t, funcptr_lv_image_decoder_custom_draw_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_image_decoder_custom_draw_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_image_decoder_custom_draw_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -19038,7 +19047,7 @@ static mp_obj_t mp_funcptr_ready_cb(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_ready_cb_mpobj, 1, mp_funcptr_ready_cb, funcptr_ready_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_ready_cb_mpobj, 1, mp_funcptr_ready_cb, funcptr_ready_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_ready_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_ready_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -19060,7 +19069,7 @@ static mp_obj_t mp_funcptr_remove_cb(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_remove_cb_mpobj, 1, mp_funcptr_remove_cb, funcptr_remove_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_remove_cb_mpobj, 1, mp_funcptr_remove_cb, funcptr_remove_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_remove_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_remove_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -19084,7 +19093,7 @@ static mp_obj_t mp_funcptr_open_cb(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_open_cb_mpobj, 3, mp_funcptr_open_cb, funcptr_open_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_open_cb_mpobj, 3, mp_funcptr_open_cb, funcptr_open_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_open_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_open_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -19107,7 +19116,7 @@ static mp_obj_t mp_funcptr_close_cb(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_close_cb_mpobj, 2, mp_funcptr_close_cb, funcptr_close_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_close_cb_mpobj, 2, mp_funcptr_close_cb, funcptr_close_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_close_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_close_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -19133,7 +19142,7 @@ static mp_obj_t mp_funcptr_read_cb(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_read_cb_mpobj, 5, mp_funcptr_read_cb, funcptr_read_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_read_cb_mpobj, 5, mp_funcptr_read_cb, funcptr_read_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_read_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_read_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -19159,7 +19168,7 @@ static mp_obj_t mp_funcptr_write_cb(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_write_cb_mpobj, 5, mp_funcptr_write_cb, funcptr_write_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_write_cb_mpobj, 5, mp_funcptr_write_cb, funcptr_write_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_write_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_write_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -19184,7 +19193,7 @@ static mp_obj_t mp_funcptr_seek_cb(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_seek_cb_mpobj, 4, mp_funcptr_seek_cb, funcptr_seek_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_seek_cb_mpobj, 4, mp_funcptr_seek_cb, funcptr_seek_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_seek_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_seek_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -19208,7 +19217,7 @@ static mp_obj_t mp_funcptr_tell_cb(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_tell_cb_mpobj, 3, mp_funcptr_tell_cb, funcptr_tell_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_tell_cb_mpobj, 3, mp_funcptr_tell_cb, funcptr_tell_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_tell_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_tell_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -19231,7 +19240,7 @@ static mp_obj_t mp_funcptr_dir_open_cb(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_dir_open_cb_mpobj, 2, mp_funcptr_dir_open_cb, funcptr_dir_open_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_dir_open_cb_mpobj, 2, mp_funcptr_dir_open_cb, funcptr_dir_open_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_dir_open_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_dir_open_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -19256,7 +19265,7 @@ static mp_obj_t mp_funcptr_dir_read_cb(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_dir_read_cb_mpobj, 4, mp_funcptr_dir_read_cb, funcptr_dir_read_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_dir_read_cb_mpobj, 4, mp_funcptr_dir_read_cb, funcptr_dir_read_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_dir_read_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_dir_read_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -19265,7 +19274,7 @@ static lv_fs_res_t lv_fs_drv_t_dir_read_cb_callback(lv_fs_drv_t *drv, void *rddi
 
 /* Reusing funcptr_close_cb for funcptr_dir_close_cb */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_dir_close_cb_mpobj, 2, mp_funcptr_close_cb, funcptr_dir_close_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_dir_close_cb_mpobj, 2, mp_funcptr_close_cb, funcptr_dir_close_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_dir_close_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_dir_close_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -19557,7 +19566,7 @@ static mp_obj_t mp_funcptr_lv_cache_alloc_cb_t(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_alloc_cb_t_mpobj, 0, mp_funcptr_lv_cache_alloc_cb_t, funcptr_lv_cache_alloc_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_alloc_cb_t_mpobj, 0, mp_funcptr_lv_cache_alloc_cb_t, funcptr_lv_cache_alloc_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_cache_alloc_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_cache_alloc_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -19585,7 +19594,7 @@ static mp_obj_t mp_funcptr_lv_cache_init_cb_t(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_init_cb_t_mpobj, 1, mp_funcptr_lv_cache_init_cb_t, funcptr_lv_cache_init_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_init_cb_t_mpobj, 1, mp_funcptr_lv_cache_init_cb_t, funcptr_lv_cache_init_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_cache_init_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_cache_init_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -19614,7 +19623,7 @@ static mp_obj_t mp_funcptr_lv_cache_destroy_cb_t(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_destroy_cb_t_mpobj, 2, mp_funcptr_lv_cache_destroy_cb_t, funcptr_lv_cache_destroy_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_destroy_cb_t_mpobj, 2, mp_funcptr_lv_cache_destroy_cb_t, funcptr_lv_cache_destroy_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_cache_destroy_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_cache_destroy_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -19728,7 +19737,7 @@ static mp_obj_t mp_funcptr_lv_cache_get_cb_t(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_get_cb_t_mpobj, 3, mp_funcptr_lv_cache_get_cb_t, funcptr_lv_cache_get_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_get_cb_t_mpobj, 3, mp_funcptr_lv_cache_get_cb_t, funcptr_lv_cache_get_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_cache_get_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_cache_get_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -19765,7 +19774,7 @@ static mp_obj_t mp_funcptr_lv_cache_remove_cb_t(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_remove_cb_t_mpobj, 3, mp_funcptr_lv_cache_remove_cb_t, funcptr_lv_cache_remove_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_remove_cb_t_mpobj, 3, mp_funcptr_lv_cache_remove_cb_t, funcptr_lv_cache_remove_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_cache_remove_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_cache_remove_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -19795,7 +19804,7 @@ static mp_obj_t mp_funcptr_lv_cache_drop_cb_t(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_drop_cb_t_mpobj, 3, mp_funcptr_lv_cache_drop_cb_t, funcptr_lv_cache_drop_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_drop_cb_t_mpobj, 3, mp_funcptr_lv_cache_drop_cb_t, funcptr_lv_cache_drop_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_cache_drop_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_cache_drop_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -19831,7 +19840,7 @@ static mp_obj_t mp_funcptr_lv_cache_get_victim_cb(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_get_victim_cb_mpobj, 2, mp_funcptr_lv_cache_get_victim_cb, funcptr_lv_cache_get_victim_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_get_victim_cb_mpobj, 2, mp_funcptr_lv_cache_get_victim_cb, funcptr_lv_cache_get_victim_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_cache_get_victim_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_cache_get_victim_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -19862,7 +19871,7 @@ static mp_obj_t mp_funcptr_lv_cache_reserve_cond_cb(size_t mp_n_args, const mp_o
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_reserve_cond_cb_mpobj, 4, mp_funcptr_lv_cache_reserve_cond_cb, funcptr_lv_cache_reserve_cond_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_reserve_cond_cb_mpobj, 4, mp_funcptr_lv_cache_reserve_cond_cb, funcptr_lv_cache_reserve_cond_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_cache_reserve_cond_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_cache_reserve_cond_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -19968,7 +19977,7 @@ static mp_obj_t mp_funcptr_lv_cache_iter_create_cb(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_iter_create_cb_mpobj, 1, mp_funcptr_lv_cache_iter_create_cb, funcptr_lv_cache_iter_create_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_iter_create_cb_mpobj, 1, mp_funcptr_lv_cache_iter_create_cb, funcptr_lv_cache_iter_create_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_cache_iter_create_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_cache_iter_create_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -20095,7 +20104,7 @@ static mp_obj_t mp_funcptr_lv_cache_compare_cb_t(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_compare_cb_t_mpobj, 2, mp_funcptr_lv_cache_compare_cb_t, funcptr_lv_cache_compare_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_compare_cb_t_mpobj, 2, mp_funcptr_lv_cache_compare_cb_t, funcptr_lv_cache_compare_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_cache_compare_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_cache_compare_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -20124,7 +20133,7 @@ static mp_obj_t mp_funcptr_lv_cache_create_cb_t(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_create_cb_t_mpobj, 2, mp_funcptr_lv_cache_create_cb_t, funcptr_lv_cache_create_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_create_cb_t_mpobj, 2, mp_funcptr_lv_cache_create_cb_t, funcptr_lv_cache_create_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_cache_create_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_cache_create_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -20153,7 +20162,7 @@ static mp_obj_t mp_funcptr_lv_cache_free_cb_t(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_free_cb_t_mpobj, 2, mp_funcptr_lv_cache_free_cb_t, funcptr_lv_cache_free_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_cache_free_cb_t_mpobj, 2, mp_funcptr_lv_cache_free_cb_t, funcptr_lv_cache_free_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_cache_free_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_cache_free_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -20457,7 +20466,7 @@ static mp_obj_t mp_lv_image_decoder_open(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_open_mpobj, 3, mp_lv_image_decoder_open, lv_image_decoder_open);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_open_mpobj, 3, mp_lv_image_decoder_open, lv_image_decoder_open, 1);
     
 
 /*
@@ -20476,7 +20485,7 @@ static mp_obj_t mp_lv_image_decoder_get_area(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_get_area_mpobj, 3, mp_lv_image_decoder_get_area, lv_image_decoder_get_area);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_get_area_mpobj, 3, mp_lv_image_decoder_get_area, lv_image_decoder_get_area, 1);
     
 
 /*
@@ -20493,7 +20502,7 @@ static mp_obj_t mp_lv_image_decoder_close(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_close_mpobj, 1, mp_lv_image_decoder_close, lv_image_decoder_close);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_close_mpobj, 1, mp_lv_image_decoder_close, lv_image_decoder_close, 1);
     
 
 /*
@@ -20510,7 +20519,7 @@ static mp_obj_t mp_lv_image_decoder_create(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_decoder_create_mpobj, 0, mp_lv_image_decoder_create, lv_image_decoder_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_decoder_create_mpobj, 0, mp_lv_image_decoder_create, lv_image_decoder_create, 1);
     
 
 /*
@@ -20527,7 +20536,7 @@ static mp_obj_t mp_lv_image_decoder_delete(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_delete_mpobj, 1, mp_lv_image_decoder_delete, lv_image_decoder_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_delete_mpobj, 1, mp_lv_image_decoder_delete, lv_image_decoder_delete, 1);
     
 
 /*
@@ -20544,7 +20553,7 @@ static mp_obj_t mp_lv_image_decoder_get_next(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_get_next_mpobj, 1, mp_lv_image_decoder_get_next, lv_image_decoder_get_next);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_get_next_mpobj, 1, mp_lv_image_decoder_get_next, lv_image_decoder_get_next, 1);
     
 
 /*
@@ -20579,7 +20588,7 @@ static mp_obj_t mp_lv_image_decoder_set_info_cb(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_set_info_cb_mpobj, 2, mp_lv_image_decoder_set_info_cb, lv_image_decoder_set_info_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_set_info_cb_mpobj, 2, mp_lv_image_decoder_set_info_cb, lv_image_decoder_set_info_cb, 1);
     
 
 /*
@@ -20613,7 +20622,7 @@ static mp_obj_t mp_lv_image_decoder_set_open_cb(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_set_open_cb_mpobj, 2, mp_lv_image_decoder_set_open_cb, lv_image_decoder_set_open_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_set_open_cb_mpobj, 2, mp_lv_image_decoder_set_open_cb, lv_image_decoder_set_open_cb, 1);
     
 
 /*
@@ -20649,7 +20658,7 @@ static mp_obj_t mp_lv_image_decoder_set_get_area_cb(size_t mp_n_args, const mp_o
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_set_get_area_cb_mpobj, 2, mp_lv_image_decoder_set_get_area_cb, lv_image_decoder_set_get_area_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_set_get_area_cb_mpobj, 2, mp_lv_image_decoder_set_get_area_cb, lv_image_decoder_set_get_area_cb, 1);
     
 
 /*
@@ -20683,7 +20692,7 @@ static mp_obj_t mp_lv_image_decoder_set_close_cb(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_set_close_cb_mpobj, 2, mp_lv_image_decoder_set_close_cb, lv_image_decoder_set_close_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_set_close_cb_mpobj, 2, mp_lv_image_decoder_set_close_cb, lv_image_decoder_set_close_cb, 1);
     
 
 /*
@@ -20701,7 +20710,7 @@ static mp_obj_t mp_lv_image_decoder_post_process(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_post_process_mpobj, 2, mp_lv_image_decoder_post_process, lv_image_decoder_post_process);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_post_process_mpobj, 2, mp_lv_image_decoder_post_process, lv_image_decoder_post_process, 1);
     
 
 /*
@@ -20718,7 +20727,7 @@ static mp_obj_t mp_lv_image_cache_drop(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_cache_drop_mpobj, 1, mp_lv_image_cache_drop, lv_image_cache_drop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_cache_drop_mpobj, 1, mp_lv_image_cache_drop, lv_image_cache_drop, 1);
     
 
 /*
@@ -20735,7 +20744,7 @@ static mp_obj_t mp_lv_image_src_get_type(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_src_get_type_mpobj, 1, mp_lv_image_src_get_type, lv_image_src_get_type);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_src_get_type_mpobj, 1, mp_lv_image_src_get_type, lv_image_src_get_type, 1);
     
 
 /*
@@ -20753,43 +20762,43 @@ static mp_obj_t mp_lv_image_set_src(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_src_mpobj, 2, mp_lv_image_set_src, lv_image_set_src);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_src_mpobj, 2, mp_lv_image_set_src, lv_image_set_src, 1);
     
 /* Reusing lv_obj_move_to_index for lv_image_set_offset_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_offset_x_mpobj, 2, mp_lv_obj_move_to_index, lv_image_set_offset_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_offset_x_mpobj, 2, mp_lv_obj_move_to_index, lv_image_set_offset_x, 1);
     
 /* Reusing lv_obj_move_to_index for lv_image_set_offset_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_offset_y_mpobj, 2, mp_lv_obj_move_to_index, lv_image_set_offset_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_offset_y_mpobj, 2, mp_lv_obj_move_to_index, lv_image_set_offset_y, 1);
     
 /* Reusing lv_obj_move_to_index for lv_image_set_rotation */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_rotation_mpobj, 2, mp_lv_obj_move_to_index, lv_image_set_rotation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_rotation_mpobj, 2, mp_lv_obj_move_to_index, lv_image_set_rotation, 1);
     
 /* Reusing lv_obj_set_pos for lv_image_set_pivot */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_pivot_mpobj, 3, mp_lv_obj_set_pos, lv_image_set_pivot);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_pivot_mpobj, 3, mp_lv_obj_set_pos, lv_image_set_pivot, 1);
     
 /* Reusing lv_obj_move_to_index for lv_image_set_pivot_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_pivot_x_mpobj, 2, mp_lv_obj_move_to_index, lv_image_set_pivot_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_pivot_x_mpobj, 2, mp_lv_obj_move_to_index, lv_image_set_pivot_x, 1);
     
 /* Reusing lv_obj_move_to_index for lv_image_set_pivot_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_pivot_y_mpobj, 2, mp_lv_obj_move_to_index, lv_image_set_pivot_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_pivot_y_mpobj, 2, mp_lv_obj_move_to_index, lv_image_set_pivot_y, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_image_set_scale */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_scale_mpobj, 2, mp_lv_obj_delete_delayed, lv_image_set_scale);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_scale_mpobj, 2, mp_lv_obj_delete_delayed, lv_image_set_scale, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_image_set_scale_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_scale_x_mpobj, 2, mp_lv_obj_delete_delayed, lv_image_set_scale_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_scale_x_mpobj, 2, mp_lv_obj_delete_delayed, lv_image_set_scale_x, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_image_set_scale_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_scale_y_mpobj, 2, mp_lv_obj_delete_delayed, lv_image_set_scale_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_scale_y_mpobj, 2, mp_lv_obj_delete_delayed, lv_image_set_scale_y, 1);
     
 
 /*
@@ -20807,11 +20816,11 @@ static mp_obj_t mp_lv_image_set_blend_mode(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_blend_mode_mpobj, 2, mp_lv_image_set_blend_mode, lv_image_set_blend_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_blend_mode_mpobj, 2, mp_lv_image_set_blend_mode, lv_image_set_blend_mode, 1);
     
 /* Reusing lv_obj_set_hidden for lv_image_set_antialias */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_antialias_mpobj, 2, mp_lv_obj_set_hidden, lv_image_set_antialias);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_antialias_mpobj, 2, mp_lv_obj_set_hidden, lv_image_set_antialias, 1);
     
 
 /*
@@ -20829,7 +20838,7 @@ static mp_obj_t mp_lv_image_set_inner_align(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_inner_align_mpobj, 2, mp_lv_image_set_inner_align, lv_image_set_inner_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_inner_align_mpobj, 2, mp_lv_image_set_inner_align, lv_image_set_inner_align, 1);
     
 
 /*
@@ -20847,7 +20856,7 @@ static mp_obj_t mp_lv_image_set_bitmap_map_src(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_bitmap_map_src_mpobj, 2, mp_lv_image_set_bitmap_map_src, lv_image_set_bitmap_map_src);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_set_bitmap_map_src_mpobj, 2, mp_lv_image_set_bitmap_map_src, lv_image_set_bitmap_map_src, 1);
     
 
 /*
@@ -20864,51 +20873,51 @@ static mp_obj_t mp_lv_image_get_src(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_src_mpobj, 1, mp_lv_image_get_src, lv_image_get_src);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_src_mpobj, 1, mp_lv_image_get_src, lv_image_get_src, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_image_get_offset_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_offset_x_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_image_get_offset_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_offset_x_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_image_get_offset_x, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_image_get_offset_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_offset_y_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_image_get_offset_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_offset_y_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_image_get_offset_y, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_image_get_rotation */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_rotation_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_image_get_rotation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_rotation_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_image_get_rotation, 1);
     
 /* Reusing lv_obj_get_scroll_end for lv_image_get_pivot */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_pivot_mpobj, 2, mp_lv_obj_get_scroll_end, lv_image_get_pivot);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_pivot_mpobj, 2, mp_lv_obj_get_scroll_end, lv_image_get_pivot, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_image_get_scale */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_scale_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_image_get_scale);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_scale_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_image_get_scale, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_image_get_scale_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_scale_x_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_image_get_scale_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_scale_x_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_image_get_scale_x, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_image_get_scale_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_scale_y_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_image_get_scale_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_scale_y_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_image_get_scale_y, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_image_get_src_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_src_width_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_image_get_src_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_src_width_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_image_get_src_width, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_image_get_src_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_src_height_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_image_get_src_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_src_height_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_image_get_src_height, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_image_get_transformed_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_transformed_width_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_image_get_transformed_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_transformed_width_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_image_get_transformed_width, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_image_get_transformed_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_transformed_height_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_image_get_transformed_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_transformed_height_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_image_get_transformed_height, 1);
     
 
 /*
@@ -20925,11 +20934,11 @@ static mp_obj_t mp_lv_image_get_blend_mode(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_blend_mode_mpobj, 1, mp_lv_image_get_blend_mode, lv_image_get_blend_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_blend_mode_mpobj, 1, mp_lv_image_get_blend_mode, lv_image_get_blend_mode, 1);
     
 /* Reusing lv_obj_refr_size for lv_image_get_antialias */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_antialias_mpobj, 1, mp_lv_obj_refr_size, lv_image_get_antialias);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_antialias_mpobj, 1, mp_lv_obj_refr_size, lv_image_get_antialias, 1);
     
 
 /*
@@ -20946,7 +20955,7 @@ static mp_obj_t mp_lv_image_get_inner_align(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_inner_align_mpobj, 1, mp_lv_image_get_inner_align, lv_image_get_inner_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_inner_align_mpobj, 1, mp_lv_image_get_inner_align, lv_image_get_inner_align, 1);
     
 
 /*
@@ -20963,11 +20972,11 @@ static mp_obj_t mp_lv_image_get_bitmap_map_src(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_bitmap_map_src_mpobj, 1, mp_lv_image_get_bitmap_map_src, lv_image_get_bitmap_map_src);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_get_bitmap_map_src_mpobj, 1, mp_lv_image_get_bitmap_map_src, lv_image_get_bitmap_map_src, 1);
     
 /* Reusing lv_obj_bind_checked for lv_image_bind_src */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_bind_src_mpobj, 2, mp_lv_obj_bind_checked, lv_image_bind_src);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_bind_src_mpobj, 2, mp_lv_obj_bind_checked, lv_image_bind_src, 1);
     
 
 /*
@@ -20984,7 +20993,7 @@ static mp_obj_t mp_lv_image_cache_init(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_cache_init_mpobj, 1, mp_lv_image_cache_init, lv_image_cache_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_cache_init_mpobj, 1, mp_lv_image_cache_init, lv_image_cache_init, 1);
     
 
 /*
@@ -21002,7 +21011,7 @@ static mp_obj_t mp_lv_image_cache_resize(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_cache_resize_mpobj, 2, mp_lv_image_cache_resize, lv_image_cache_resize);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_cache_resize_mpobj, 2, mp_lv_image_cache_resize, lv_image_cache_resize, 1);
     
 
 /*
@@ -21019,7 +21028,7 @@ static mp_obj_t mp_lv_image_cache_is_enabled(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_cache_is_enabled_mpobj, 0, mp_lv_image_cache_is_enabled, lv_image_cache_is_enabled);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_cache_is_enabled_mpobj, 0, mp_lv_image_cache_is_enabled, lv_image_cache_is_enabled, 1);
     
 
 /*
@@ -21036,11 +21045,11 @@ static mp_obj_t mp_lv_image_cache_iter_create(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_cache_iter_create_mpobj, 0, mp_lv_image_cache_iter_create, lv_image_cache_iter_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_cache_iter_create_mpobj, 0, mp_lv_image_cache_iter_create, lv_image_cache_iter_create, 1);
     
 /* Reusing funcptr_user_cb for lv_image_cache_dump */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_cache_dump_mpobj, 0, mp_funcptr_user_cb, lv_image_cache_dump);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_cache_dump_mpobj, 0, mp_funcptr_user_cb, lv_image_cache_dump, 1);
     
 
 /*
@@ -21063,7 +21072,7 @@ static mp_obj_t mp_lv_image_buf_get_transformed_area(size_t mp_n_args, const mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_buf_get_transformed_area_mpobj, 7, mp_lv_image_buf_get_transformed_area, lv_image_buf_get_transformed_area);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_buf_get_transformed_area_mpobj, 7, mp_lv_image_buf_get_transformed_area, lv_image_buf_get_transformed_area, 1);
     
 
 /*
@@ -21081,11 +21090,11 @@ static mp_obj_t mp_lv_image_decoder_init(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_decoder_init_mpobj, 2, mp_lv_image_decoder_init, lv_image_decoder_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_decoder_init_mpobj, 2, mp_lv_image_decoder_init, lv_image_decoder_init, 1);
     
 /* Reusing funcptr_user_cb for lv_image_decoder_deinit */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_decoder_deinit_mpobj, 0, mp_funcptr_user_cb, lv_image_decoder_deinit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_decoder_deinit_mpobj, 0, mp_funcptr_user_cb, lv_image_decoder_deinit, 1);
     
 
 /*
@@ -21271,35 +21280,35 @@ static mp_obj_t mp_lv_image_decoder_add_to_cache(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_add_to_cache_mpobj, 4, mp_lv_image_decoder_add_to_cache, lv_image_decoder_add_to_cache);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_decoder_add_to_cache_mpobj, 4, mp_lv_image_decoder_add_to_cache, lv_image_decoder_add_to_cache, 1);
     
 /* Reusing lv_image_cache_init for lv_image_header_cache_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_header_cache_init_mpobj, 1, mp_lv_image_cache_init, lv_image_header_cache_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_header_cache_init_mpobj, 1, mp_lv_image_cache_init, lv_image_header_cache_init, 1);
     
 /* Reusing lv_image_cache_resize for lv_image_header_cache_resize */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_header_cache_resize_mpobj, 2, mp_lv_image_cache_resize, lv_image_header_cache_resize);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_header_cache_resize_mpobj, 2, mp_lv_image_cache_resize, lv_image_header_cache_resize, 1);
     
 /* Reusing lv_image_cache_drop for lv_image_header_cache_drop */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_header_cache_drop_mpobj, 1, mp_lv_image_cache_drop, lv_image_header_cache_drop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_header_cache_drop_mpobj, 1, mp_lv_image_cache_drop, lv_image_header_cache_drop, 1);
     
 /* Reusing lv_image_cache_is_enabled for lv_image_header_cache_is_enabled */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_header_cache_is_enabled_mpobj, 0, mp_lv_image_cache_is_enabled, lv_image_header_cache_is_enabled);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_header_cache_is_enabled_mpobj, 0, mp_lv_image_cache_is_enabled, lv_image_header_cache_is_enabled, 1);
     
 /* Reusing lv_image_cache_iter_create for lv_image_header_cache_iter_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_header_cache_iter_create_mpobj, 0, mp_lv_image_cache_iter_create, lv_image_header_cache_iter_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_header_cache_iter_create_mpobj, 0, mp_lv_image_cache_iter_create, lv_image_header_cache_iter_create, 1);
     
 /* Reusing funcptr_user_cb for lv_image_header_cache_dump */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_header_cache_dump_mpobj, 0, mp_funcptr_user_cb, lv_image_header_cache_dump);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_image_header_cache_dump_mpobj, 0, mp_funcptr_user_cb, lv_image_header_cache_dump, 1);
     
 /* Reusing lv_obj_create for lv_image_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_create_mpobj, 1, mp_lv_obj_create, lv_image_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_image_create_mpobj, 1, mp_lv_obj_create, lv_image_create, 1);
     
 
 /*
@@ -21464,35 +21473,35 @@ static mp_obj_t mp_lv_animimg_set_src(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_set_src_mpobj, 3, mp_lv_animimg_set_src, lv_animimg_set_src);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_set_src_mpobj, 3, mp_lv_animimg_set_src, lv_animimg_set_src, 1);
     
 /* Reusing lv_animimg_set_src for lv_animimg_set_src_reverse */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_set_src_reverse_mpobj, 3, mp_lv_animimg_set_src, lv_animimg_set_src_reverse);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_set_src_reverse_mpobj, 3, mp_lv_animimg_set_src, lv_animimg_set_src_reverse, 1);
     
 /* Reusing lv_obj_move_foreground for lv_animimg_start */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_start_mpobj, 1, mp_lv_obj_move_foreground, lv_animimg_start);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_start_mpobj, 1, mp_lv_obj_move_foreground, lv_animimg_start, 1);
     
 /* Reusing lv_obj_refr_size for lv_animimg_delete */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_delete_mpobj, 1, mp_lv_obj_refr_size, lv_animimg_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_delete_mpobj, 1, mp_lv_obj_refr_size, lv_animimg_delete, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_animimg_set_duration */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_set_duration_mpobj, 2, mp_lv_obj_delete_delayed, lv_animimg_set_duration);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_set_duration_mpobj, 2, mp_lv_obj_delete_delayed, lv_animimg_set_duration, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_animimg_set_repeat_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_set_repeat_count_mpobj, 2, mp_lv_obj_delete_delayed, lv_animimg_set_repeat_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_set_repeat_count_mpobj, 2, mp_lv_obj_delete_delayed, lv_animimg_set_repeat_count, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_animimg_set_reverse_duration */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_set_reverse_duration_mpobj, 2, mp_lv_obj_delete_delayed, lv_animimg_set_reverse_duration);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_set_reverse_duration_mpobj, 2, mp_lv_obj_delete_delayed, lv_animimg_set_reverse_duration, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_animimg_set_reverse_delay */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_set_reverse_delay_mpobj, 2, mp_lv_obj_delete_delayed, lv_animimg_set_reverse_delay);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_set_reverse_delay_mpobj, 2, mp_lv_obj_delete_delayed, lv_animimg_set_reverse_delay, 1);
     
 
 /*
@@ -21525,7 +21534,7 @@ static mp_obj_t mp_lv_animimg_set_start_cb(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_set_start_cb_mpobj, 2, mp_lv_animimg_set_start_cb, lv_animimg_set_start_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_set_start_cb_mpobj, 2, mp_lv_animimg_set_start_cb, lv_animimg_set_start_cb, 1);
     
 
 /*
@@ -21558,7 +21567,7 @@ static mp_obj_t mp_lv_animimg_set_completed_cb(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_set_completed_cb_mpobj, 2, mp_lv_animimg_set_completed_cb, lv_animimg_set_completed_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_set_completed_cb_mpobj, 2, mp_lv_animimg_set_completed_cb, lv_animimg_set_completed_cb, 1);
     
 
 /*
@@ -21575,15 +21584,15 @@ static mp_obj_t mp_lv_animimg_get_src_count(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_get_src_count_mpobj, 1, mp_lv_animimg_get_src_count, lv_animimg_get_src_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_get_src_count_mpobj, 1, mp_lv_animimg_get_src_count, lv_animimg_get_src_count, 1);
     
 /* Reusing lv_obj_get_event_count for lv_animimg_get_duration */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_get_duration_mpobj, 1, mp_lv_obj_get_event_count, lv_animimg_get_duration);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_get_duration_mpobj, 1, mp_lv_obj_get_event_count, lv_animimg_get_duration, 1);
     
 /* Reusing lv_obj_get_event_count for lv_animimg_get_repeat_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_get_repeat_count_mpobj, 1, mp_lv_obj_get_event_count, lv_animimg_get_repeat_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_get_repeat_count_mpobj, 1, mp_lv_obj_get_event_count, lv_animimg_get_repeat_count, 1);
     
 
 /*
@@ -21600,11 +21609,11 @@ static mp_obj_t mp_lv_animimg_get_anim(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_get_anim_mpobj, 1, mp_lv_animimg_get_anim, lv_animimg_get_anim);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_get_anim_mpobj, 1, mp_lv_animimg_get_anim, lv_animimg_get_anim, 1);
     
 /* Reusing lv_obj_create for lv_animimg_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_create_mpobj, 1, mp_lv_obj_create, lv_animimg_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_animimg_create_mpobj, 1, mp_lv_obj_create, lv_animimg_create, 1);
     
 
 /*
@@ -21685,11 +21694,11 @@ static mp_obj_t mp_lv_arc_set_start_angle(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_start_angle_mpobj, 2, mp_lv_arc_set_start_angle, lv_arc_set_start_angle);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_start_angle_mpobj, 2, mp_lv_arc_set_start_angle, lv_arc_set_start_angle, 1);
     
 /* Reusing lv_arc_set_start_angle for lv_arc_set_end_angle */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_end_angle_mpobj, 2, mp_lv_arc_set_start_angle, lv_arc_set_end_angle);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_end_angle_mpobj, 2, mp_lv_arc_set_start_angle, lv_arc_set_end_angle, 1);
     
 
 /*
@@ -21708,23 +21717,23 @@ static mp_obj_t mp_lv_arc_set_angles(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_angles_mpobj, 3, mp_lv_arc_set_angles, lv_arc_set_angles);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_angles_mpobj, 3, mp_lv_arc_set_angles, lv_arc_set_angles, 1);
     
 /* Reusing lv_arc_set_start_angle for lv_arc_set_bg_start_angle */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_bg_start_angle_mpobj, 2, mp_lv_arc_set_start_angle, lv_arc_set_bg_start_angle);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_bg_start_angle_mpobj, 2, mp_lv_arc_set_start_angle, lv_arc_set_bg_start_angle, 1);
     
 /* Reusing lv_arc_set_start_angle for lv_arc_set_bg_end_angle */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_bg_end_angle_mpobj, 2, mp_lv_arc_set_start_angle, lv_arc_set_bg_end_angle);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_bg_end_angle_mpobj, 2, mp_lv_arc_set_start_angle, lv_arc_set_bg_end_angle, 1);
     
 /* Reusing lv_arc_set_angles for lv_arc_set_bg_angles */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_bg_angles_mpobj, 3, mp_lv_arc_set_angles, lv_arc_set_bg_angles);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_bg_angles_mpobj, 3, mp_lv_arc_set_angles, lv_arc_set_bg_angles, 1);
     
 /* Reusing lv_obj_move_to_index for lv_arc_set_rotation */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_rotation_mpobj, 2, mp_lv_obj_move_to_index, lv_arc_set_rotation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_rotation_mpobj, 2, mp_lv_obj_move_to_index, lv_arc_set_rotation, 1);
     
 
 /*
@@ -21742,31 +21751,31 @@ static mp_obj_t mp_lv_arc_set_mode(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_mode_mpobj, 2, mp_lv_arc_set_mode, lv_arc_set_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_mode_mpobj, 2, mp_lv_arc_set_mode, lv_arc_set_mode, 1);
     
 /* Reusing lv_obj_move_to_index for lv_arc_set_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_value_mpobj, 2, mp_lv_obj_move_to_index, lv_arc_set_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_value_mpobj, 2, mp_lv_obj_move_to_index, lv_arc_set_value, 1);
     
 /* Reusing lv_obj_set_pos for lv_arc_set_range */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_range_mpobj, 3, mp_lv_obj_set_pos, lv_arc_set_range);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_range_mpobj, 3, mp_lv_obj_set_pos, lv_arc_set_range, 1);
     
 /* Reusing lv_obj_move_to_index for lv_arc_set_min_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_min_value_mpobj, 2, mp_lv_obj_move_to_index, lv_arc_set_min_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_min_value_mpobj, 2, mp_lv_obj_move_to_index, lv_arc_set_min_value, 1);
     
 /* Reusing lv_obj_move_to_index for lv_arc_set_max_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_max_value_mpobj, 2, mp_lv_obj_move_to_index, lv_arc_set_max_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_max_value_mpobj, 2, mp_lv_obj_move_to_index, lv_arc_set_max_value, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_arc_set_change_rate */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_change_rate_mpobj, 2, mp_lv_obj_delete_delayed, lv_arc_set_change_rate);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_change_rate_mpobj, 2, mp_lv_obj_delete_delayed, lv_arc_set_change_rate, 1);
     
 /* Reusing lv_obj_move_to_index for lv_arc_set_knob_offset */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_knob_offset_mpobj, 2, mp_lv_obj_move_to_index, lv_arc_set_knob_offset);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_set_knob_offset_mpobj, 2, mp_lv_obj_move_to_index, lv_arc_set_knob_offset, 1);
     
 
 /*
@@ -21783,31 +21792,31 @@ static mp_obj_t mp_lv_arc_get_angle_start(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_angle_start_mpobj, 1, mp_lv_arc_get_angle_start, lv_arc_get_angle_start);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_angle_start_mpobj, 1, mp_lv_arc_get_angle_start, lv_arc_get_angle_start, 1);
     
 /* Reusing lv_arc_get_angle_start for lv_arc_get_angle_end */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_angle_end_mpobj, 1, mp_lv_arc_get_angle_start, lv_arc_get_angle_end);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_angle_end_mpobj, 1, mp_lv_arc_get_angle_start, lv_arc_get_angle_end, 1);
     
 /* Reusing lv_arc_get_angle_start for lv_arc_get_bg_angle_start */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_bg_angle_start_mpobj, 1, mp_lv_arc_get_angle_start, lv_arc_get_bg_angle_start);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_bg_angle_start_mpobj, 1, mp_lv_arc_get_angle_start, lv_arc_get_bg_angle_start, 1);
     
 /* Reusing lv_arc_get_angle_start for lv_arc_get_bg_angle_end */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_bg_angle_end_mpobj, 1, mp_lv_arc_get_angle_start, lv_arc_get_bg_angle_end);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_bg_angle_end_mpobj, 1, mp_lv_arc_get_angle_start, lv_arc_get_bg_angle_end, 1);
     
 /* Reusing lv_obj_get_index for lv_arc_get_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_value_mpobj, 1, mp_lv_obj_get_index, lv_arc_get_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_value_mpobj, 1, mp_lv_obj_get_index, lv_arc_get_value, 1);
     
 /* Reusing lv_obj_get_index for lv_arc_get_min_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_min_value_mpobj, 1, mp_lv_obj_get_index, lv_arc_get_min_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_min_value_mpobj, 1, mp_lv_obj_get_index, lv_arc_get_min_value, 1);
     
 /* Reusing lv_obj_get_index for lv_arc_get_max_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_max_value_mpobj, 1, mp_lv_obj_get_index, lv_arc_get_max_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_max_value_mpobj, 1, mp_lv_obj_get_index, lv_arc_get_max_value, 1);
     
 
 /*
@@ -21824,23 +21833,23 @@ static mp_obj_t mp_lv_arc_get_mode(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_mode_mpobj, 1, mp_lv_arc_get_mode, lv_arc_get_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_mode_mpobj, 1, mp_lv_arc_get_mode, lv_arc_get_mode, 1);
     
 /* Reusing lv_obj_get_index for lv_arc_get_rotation */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_rotation_mpobj, 1, mp_lv_obj_get_index, lv_arc_get_rotation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_rotation_mpobj, 1, mp_lv_obj_get_index, lv_arc_get_rotation, 1);
     
 /* Reusing lv_obj_get_index for lv_arc_get_knob_offset */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_knob_offset_mpobj, 1, mp_lv_obj_get_index, lv_arc_get_knob_offset);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_knob_offset_mpobj, 1, mp_lv_obj_get_index, lv_arc_get_knob_offset, 1);
     
 /* Reusing lv_obj_get_event_count for lv_arc_get_change_rate */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_change_rate_mpobj, 1, mp_lv_obj_get_event_count, lv_arc_get_change_rate);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_get_change_rate_mpobj, 1, mp_lv_obj_get_event_count, lv_arc_get_change_rate, 1);
     
 /* Reusing lv_obj_bind_checked for lv_arc_bind_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_bind_value_mpobj, 2, mp_lv_obj_bind_checked, lv_arc_bind_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_bind_value_mpobj, 2, mp_lv_obj_bind_checked, lv_arc_bind_value, 1);
     
 
 /*
@@ -21859,15 +21868,15 @@ static mp_obj_t mp_lv_arc_align_obj_to_angle(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_align_obj_to_angle_mpobj, 3, mp_lv_arc_align_obj_to_angle, lv_arc_align_obj_to_angle);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_align_obj_to_angle_mpobj, 3, mp_lv_arc_align_obj_to_angle, lv_arc_align_obj_to_angle, 1);
     
 /* Reusing lv_arc_align_obj_to_angle for lv_arc_rotate_obj_to_angle */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_rotate_obj_to_angle_mpobj, 3, mp_lv_arc_align_obj_to_angle, lv_arc_rotate_obj_to_angle);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_rotate_obj_to_angle_mpobj, 3, mp_lv_arc_align_obj_to_angle, lv_arc_rotate_obj_to_angle, 1);
     
 /* Reusing lv_obj_create for lv_arc_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_create_mpobj, 1, mp_lv_obj_create, lv_arc_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arc_create_mpobj, 1, mp_lv_obj_create, lv_arc_create, 1);
     
 
 /*
@@ -21963,23 +21972,23 @@ static mp_obj_t mp_lv_arclabel_set_text(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_text_mpobj, 2, mp_lv_arclabel_set_text, lv_arclabel_set_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_text_mpobj, 2, mp_lv_arclabel_set_text, lv_arclabel_set_text, 1);
     
 /* Reusing lv_arclabel_set_text for lv_arclabel_set_text_static */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_text_static_mpobj, 2, mp_lv_arclabel_set_text, lv_arclabel_set_text_static);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_text_static_mpobj, 2, mp_lv_arclabel_set_text, lv_arclabel_set_text_static, 1);
     
 /* Reusing lv_arc_set_start_angle for lv_arclabel_set_angle_start */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_angle_start_mpobj, 2, mp_lv_arc_set_start_angle, lv_arclabel_set_angle_start);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_angle_start_mpobj, 2, mp_lv_arc_set_start_angle, lv_arclabel_set_angle_start, 1);
     
 /* Reusing lv_arc_set_start_angle for lv_arclabel_set_angle_size */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_angle_size_mpobj, 2, mp_lv_arc_set_start_angle, lv_arclabel_set_angle_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_angle_size_mpobj, 2, mp_lv_arc_set_start_angle, lv_arclabel_set_angle_size, 1);
     
 /* Reusing lv_obj_move_to_index for lv_arclabel_set_offset */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_offset_mpobj, 2, mp_lv_obj_move_to_index, lv_arclabel_set_offset);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_offset_mpobj, 2, mp_lv_obj_move_to_index, lv_arclabel_set_offset, 1);
     
 
 /*
@@ -21997,23 +22006,23 @@ static mp_obj_t mp_lv_arclabel_set_dir(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_dir_mpobj, 2, mp_lv_arclabel_set_dir, lv_arclabel_set_dir);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_dir_mpobj, 2, mp_lv_arclabel_set_dir, lv_arclabel_set_dir, 1);
     
 /* Reusing lv_obj_set_hidden for lv_arclabel_set_recolor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_recolor_mpobj, 2, mp_lv_obj_set_hidden, lv_arclabel_set_recolor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_recolor_mpobj, 2, mp_lv_obj_set_hidden, lv_arclabel_set_recolor, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_arclabel_set_radius */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_radius_mpobj, 2, mp_lv_obj_delete_delayed, lv_arclabel_set_radius);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_radius_mpobj, 2, mp_lv_obj_delete_delayed, lv_arclabel_set_radius, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_arclabel_set_center_offset_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_center_offset_x_mpobj, 2, mp_lv_obj_delete_delayed, lv_arclabel_set_center_offset_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_center_offset_x_mpobj, 2, mp_lv_obj_delete_delayed, lv_arclabel_set_center_offset_x, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_arclabel_set_center_offset_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_center_offset_y_mpobj, 2, mp_lv_obj_delete_delayed, lv_arclabel_set_center_offset_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_center_offset_y_mpobj, 2, mp_lv_obj_delete_delayed, lv_arclabel_set_center_offset_y, 1);
     
 
 /*
@@ -22031,11 +22040,11 @@ static mp_obj_t mp_lv_arclabel_set_text_vertical_align(size_t mp_n_args, const m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_text_vertical_align_mpobj, 2, mp_lv_arclabel_set_text_vertical_align, lv_arclabel_set_text_vertical_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_text_vertical_align_mpobj, 2, mp_lv_arclabel_set_text_vertical_align, lv_arclabel_set_text_vertical_align, 1);
     
 /* Reusing lv_arclabel_set_text_vertical_align for lv_arclabel_set_text_horizontal_align */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_text_horizontal_align_mpobj, 2, mp_lv_arclabel_set_text_vertical_align, lv_arclabel_set_text_horizontal_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_text_horizontal_align_mpobj, 2, mp_lv_arclabel_set_text_vertical_align, lv_arclabel_set_text_horizontal_align, 1);
     
 
 /*
@@ -22053,19 +22062,19 @@ static mp_obj_t mp_lv_arclabel_set_overflow(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_overflow_mpobj, 2, mp_lv_arclabel_set_overflow, lv_arclabel_set_overflow);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_overflow_mpobj, 2, mp_lv_arclabel_set_overflow, lv_arclabel_set_overflow, 1);
     
 /* Reusing lv_obj_set_hidden for lv_arclabel_set_end_overlap */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_end_overlap_mpobj, 2, mp_lv_obj_set_hidden, lv_arclabel_set_end_overlap);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_set_end_overlap_mpobj, 2, mp_lv_obj_set_hidden, lv_arclabel_set_end_overlap, 1);
     
 /* Reusing lv_arc_get_angle_start for lv_arclabel_get_angle_start */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_angle_start_mpobj, 1, mp_lv_arc_get_angle_start, lv_arclabel_get_angle_start);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_angle_start_mpobj, 1, mp_lv_arc_get_angle_start, lv_arclabel_get_angle_start, 1);
     
 /* Reusing lv_arc_get_angle_start for lv_arclabel_get_angle_size */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_angle_size_mpobj, 1, mp_lv_arc_get_angle_start, lv_arclabel_get_angle_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_angle_size_mpobj, 1, mp_lv_arc_get_angle_start, lv_arclabel_get_angle_size, 1);
     
 
 /*
@@ -22082,23 +22091,23 @@ static mp_obj_t mp_lv_arclabel_get_dir(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_dir_mpobj, 1, mp_lv_arclabel_get_dir, lv_arclabel_get_dir);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_dir_mpobj, 1, mp_lv_arclabel_get_dir, lv_arclabel_get_dir, 1);
     
 /* Reusing lv_obj_refr_size for lv_arclabel_get_recolor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_recolor_mpobj, 1, mp_lv_obj_refr_size, lv_arclabel_get_recolor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_recolor_mpobj, 1, mp_lv_obj_refr_size, lv_arclabel_get_recolor, 1);
     
 /* Reusing lv_obj_get_event_count for lv_arclabel_get_radius */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_radius_mpobj, 1, mp_lv_obj_get_event_count, lv_arclabel_get_radius);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_radius_mpobj, 1, mp_lv_obj_get_event_count, lv_arclabel_get_radius, 1);
     
 /* Reusing lv_obj_get_event_count for lv_arclabel_get_center_offset_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_center_offset_x_mpobj, 1, mp_lv_obj_get_event_count, lv_arclabel_get_center_offset_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_center_offset_x_mpobj, 1, mp_lv_obj_get_event_count, lv_arclabel_get_center_offset_x, 1);
     
 /* Reusing lv_obj_get_event_count for lv_arclabel_get_center_offset_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_center_offset_y_mpobj, 1, mp_lv_obj_get_event_count, lv_arclabel_get_center_offset_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_center_offset_y_mpobj, 1, mp_lv_obj_get_event_count, lv_arclabel_get_center_offset_y, 1);
     
 
 /*
@@ -22115,11 +22124,11 @@ static mp_obj_t mp_lv_arclabel_get_text_vertical_align(size_t mp_n_args, const m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_text_vertical_align_mpobj, 1, mp_lv_arclabel_get_text_vertical_align, lv_arclabel_get_text_vertical_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_text_vertical_align_mpobj, 1, mp_lv_arclabel_get_text_vertical_align, lv_arclabel_get_text_vertical_align, 1);
     
 /* Reusing lv_arclabel_get_text_vertical_align for lv_arclabel_get_text_horizontal_align */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_text_horizontal_align_mpobj, 1, mp_lv_arclabel_get_text_vertical_align, lv_arclabel_get_text_horizontal_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_text_horizontal_align_mpobj, 1, mp_lv_arclabel_get_text_vertical_align, lv_arclabel_get_text_horizontal_align, 1);
     
 
 /*
@@ -22136,19 +22145,19 @@ static mp_obj_t mp_lv_arclabel_get_overflow(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_overflow_mpobj, 1, mp_lv_arclabel_get_overflow, lv_arclabel_get_overflow);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_overflow_mpobj, 1, mp_lv_arclabel_get_overflow, lv_arclabel_get_overflow, 1);
     
 /* Reusing lv_obj_refr_size for lv_arclabel_get_end_overlap */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_end_overlap_mpobj, 1, mp_lv_obj_refr_size, lv_arclabel_get_end_overlap);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_end_overlap_mpobj, 1, mp_lv_obj_refr_size, lv_arclabel_get_end_overlap, 1);
     
 /* Reusing lv_arc_get_angle_start for lv_arclabel_get_text_angle */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_text_angle_mpobj, 1, mp_lv_arc_get_angle_start, lv_arclabel_get_text_angle);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_get_text_angle_mpobj, 1, mp_lv_arc_get_angle_start, lv_arclabel_get_text_angle, 1);
     
 /* Reusing lv_obj_create for lv_arclabel_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_create_mpobj, 1, mp_lv_obj_create, lv_arclabel_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_arclabel_create_mpobj, 1, mp_lv_obj_create, lv_arclabel_create, 1);
     
 
 /*
@@ -22230,11 +22239,11 @@ GENMPY_UNUSED static const mp_lv_obj_type_t mp_lv_arclabel_type = {
     
 /* Reusing lv_arclabel_set_text for lv_label_set_text */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_set_text_mpobj, 2, mp_lv_arclabel_set_text, lv_label_set_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_set_text_mpobj, 2, mp_lv_arclabel_set_text, lv_label_set_text, 1);
     
 /* Reusing lv_arclabel_set_text for lv_label_set_text_static */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_set_text_static_mpobj, 2, mp_lv_arclabel_set_text, lv_label_set_text_static);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_set_text_static_mpobj, 2, mp_lv_arclabel_set_text, lv_label_set_text_static, 1);
     
 
 /*
@@ -22252,23 +22261,23 @@ static mp_obj_t mp_lv_label_set_long_mode(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_set_long_mode_mpobj, 2, mp_lv_label_set_long_mode, lv_label_set_long_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_set_long_mode_mpobj, 2, mp_lv_label_set_long_mode, lv_label_set_long_mode, 1);
     
 /* Reusing lv_obj_move_to_index for lv_label_set_max_lines */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_set_max_lines_mpobj, 2, mp_lv_obj_move_to_index, lv_label_set_max_lines);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_set_max_lines_mpobj, 2, mp_lv_obj_move_to_index, lv_label_set_max_lines, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_label_set_text_selection_start */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_set_text_selection_start_mpobj, 2, mp_lv_obj_delete_delayed, lv_label_set_text_selection_start);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_set_text_selection_start_mpobj, 2, mp_lv_obj_delete_delayed, lv_label_set_text_selection_start, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_label_set_text_selection_end */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_set_text_selection_end_mpobj, 2, mp_lv_obj_delete_delayed, lv_label_set_text_selection_end);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_set_text_selection_end_mpobj, 2, mp_lv_obj_delete_delayed, lv_label_set_text_selection_end, 1);
     
 /* Reusing lv_obj_set_hidden for lv_label_set_recolor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_set_recolor_mpobj, 2, mp_lv_obj_set_hidden, lv_label_set_recolor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_set_recolor_mpobj, 2, mp_lv_obj_set_hidden, lv_label_set_recolor, 1);
     
 
 /*
@@ -22285,7 +22294,7 @@ static mp_obj_t mp_lv_label_get_text(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_get_text_mpobj, 1, mp_lv_label_get_text, lv_label_get_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_get_text_mpobj, 1, mp_lv_label_get_text, lv_label_get_text, 1);
     
 
 /*
@@ -22302,11 +22311,11 @@ static mp_obj_t mp_lv_label_get_long_mode(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_get_long_mode_mpobj, 1, mp_lv_label_get_long_mode, lv_label_get_long_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_get_long_mode_mpobj, 1, mp_lv_label_get_long_mode, lv_label_get_long_mode, 1);
     
 /* Reusing lv_obj_get_index for lv_label_get_max_lines */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_get_max_lines_mpobj, 1, mp_lv_obj_get_index, lv_label_get_max_lines);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_get_max_lines_mpobj, 1, mp_lv_obj_get_index, lv_label_get_max_lines, 1);
     
 
 /*
@@ -22325,7 +22334,7 @@ static mp_obj_t mp_lv_label_get_letter_pos(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_get_letter_pos_mpobj, 3, mp_lv_label_get_letter_pos, lv_label_get_letter_pos);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_get_letter_pos_mpobj, 3, mp_lv_label_get_letter_pos, lv_label_get_letter_pos, 1);
     
 
 /*
@@ -22344,7 +22353,7 @@ static mp_obj_t mp_lv_label_get_letter_on(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_get_letter_on_mpobj, 3, mp_lv_label_get_letter_on, lv_label_get_letter_on);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_get_letter_on_mpobj, 3, mp_lv_label_get_letter_on, lv_label_get_letter_on, 1);
     
 
 /*
@@ -22362,19 +22371,19 @@ static mp_obj_t mp_lv_label_is_char_under_pos(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_is_char_under_pos_mpobj, 2, mp_lv_label_is_char_under_pos, lv_label_is_char_under_pos);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_is_char_under_pos_mpobj, 2, mp_lv_label_is_char_under_pos, lv_label_is_char_under_pos, 1);
     
 /* Reusing lv_obj_get_child_count for lv_label_get_text_selection_start */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_get_text_selection_start_mpobj, 1, mp_lv_obj_get_child_count, lv_label_get_text_selection_start);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_get_text_selection_start_mpobj, 1, mp_lv_obj_get_child_count, lv_label_get_text_selection_start, 1);
     
 /* Reusing lv_obj_get_child_count for lv_label_get_text_selection_end */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_get_text_selection_end_mpobj, 1, mp_lv_obj_get_child_count, lv_label_get_text_selection_end);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_get_text_selection_end_mpobj, 1, mp_lv_obj_get_child_count, lv_label_get_text_selection_end, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_label_get_recolor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_get_recolor_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_label_get_recolor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_get_recolor_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_label_get_recolor, 1);
     
 
 /*
@@ -22393,7 +22402,7 @@ static mp_obj_t mp_lv_label_bind_text(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_bind_text_mpobj, 3, mp_lv_label_bind_text, lv_label_bind_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_bind_text_mpobj, 3, mp_lv_label_bind_text, lv_label_bind_text, 1);
     
 
 /*
@@ -22412,15 +22421,15 @@ static mp_obj_t mp_lv_label_ins_text(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_ins_text_mpobj, 3, mp_lv_label_ins_text, lv_label_ins_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_ins_text_mpobj, 3, mp_lv_label_ins_text, lv_label_ins_text, 1);
     
 /* Reusing lv_obj_fade_in for lv_label_cut_text */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_cut_text_mpobj, 3, mp_lv_obj_fade_in, lv_label_cut_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_cut_text_mpobj, 3, mp_lv_obj_fade_in, lv_label_cut_text, 1);
     
 /* Reusing lv_obj_create for lv_label_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_create_mpobj, 1, mp_lv_obj_create, lv_label_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_label_create_mpobj, 1, mp_lv_obj_create, lv_label_create, 1);
     
 
 /*
@@ -22493,23 +22502,23 @@ GENMPY_UNUSED static const mp_lv_obj_type_t mp_lv_label_type = {
     
 /* Reusing lv_obj_scroll_to_x for lv_bar_set_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_set_value_mpobj, 3, mp_lv_obj_scroll_to_x, lv_bar_set_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_set_value_mpobj, 3, mp_lv_obj_scroll_to_x, lv_bar_set_value, 1);
     
 /* Reusing lv_obj_scroll_to_x for lv_bar_set_start_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_set_start_value_mpobj, 3, mp_lv_obj_scroll_to_x, lv_bar_set_start_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_set_start_value_mpobj, 3, mp_lv_obj_scroll_to_x, lv_bar_set_start_value, 1);
     
 /* Reusing lv_obj_set_pos for lv_bar_set_range */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_set_range_mpobj, 3, mp_lv_obj_set_pos, lv_bar_set_range);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_set_range_mpobj, 3, mp_lv_obj_set_pos, lv_bar_set_range, 1);
     
 /* Reusing lv_obj_move_to_index for lv_bar_set_min_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_set_min_value_mpobj, 2, mp_lv_obj_move_to_index, lv_bar_set_min_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_set_min_value_mpobj, 2, mp_lv_obj_move_to_index, lv_bar_set_min_value, 1);
     
 /* Reusing lv_obj_move_to_index for lv_bar_set_max_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_set_max_value_mpobj, 2, mp_lv_obj_move_to_index, lv_bar_set_max_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_set_max_value_mpobj, 2, mp_lv_obj_move_to_index, lv_bar_set_max_value, 1);
     
 
 /*
@@ -22527,7 +22536,7 @@ static mp_obj_t mp_lv_bar_set_mode(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_set_mode_mpobj, 2, mp_lv_bar_set_mode, lv_bar_set_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_set_mode_mpobj, 2, mp_lv_bar_set_mode, lv_bar_set_mode, 1);
     
 
 /*
@@ -22545,23 +22554,23 @@ static mp_obj_t mp_lv_bar_set_orientation(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_set_orientation_mpobj, 2, mp_lv_bar_set_orientation, lv_bar_set_orientation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_set_orientation_mpobj, 2, mp_lv_bar_set_orientation, lv_bar_set_orientation, 1);
     
 /* Reusing lv_obj_get_index for lv_bar_get_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_get_value_mpobj, 1, mp_lv_obj_get_index, lv_bar_get_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_get_value_mpobj, 1, mp_lv_obj_get_index, lv_bar_get_value, 1);
     
 /* Reusing lv_obj_get_index for lv_bar_get_start_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_get_start_value_mpobj, 1, mp_lv_obj_get_index, lv_bar_get_start_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_get_start_value_mpobj, 1, mp_lv_obj_get_index, lv_bar_get_start_value, 1);
     
 /* Reusing lv_obj_get_index for lv_bar_get_min_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_get_min_value_mpobj, 1, mp_lv_obj_get_index, lv_bar_get_min_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_get_min_value_mpobj, 1, mp_lv_obj_get_index, lv_bar_get_min_value, 1);
     
 /* Reusing lv_obj_get_index for lv_bar_get_max_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_get_max_value_mpobj, 1, mp_lv_obj_get_index, lv_bar_get_max_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_get_max_value_mpobj, 1, mp_lv_obj_get_index, lv_bar_get_max_value, 1);
     
 
 /*
@@ -22578,7 +22587,7 @@ static mp_obj_t mp_lv_bar_get_mode(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_get_mode_mpobj, 1, mp_lv_bar_get_mode, lv_bar_get_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_get_mode_mpobj, 1, mp_lv_bar_get_mode, lv_bar_get_mode, 1);
     
 
 /*
@@ -22595,19 +22604,19 @@ static mp_obj_t mp_lv_bar_get_orientation(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_get_orientation_mpobj, 1, mp_lv_bar_get_orientation, lv_bar_get_orientation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_get_orientation_mpobj, 1, mp_lv_bar_get_orientation, lv_bar_get_orientation, 1);
     
 /* Reusing lv_obj_refr_size for lv_bar_is_symmetrical */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_is_symmetrical_mpobj, 1, mp_lv_obj_refr_size, lv_bar_is_symmetrical);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_is_symmetrical_mpobj, 1, mp_lv_obj_refr_size, lv_bar_is_symmetrical, 1);
     
 /* Reusing lv_obj_bind_checked for lv_bar_bind_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_bind_value_mpobj, 2, mp_lv_obj_bind_checked, lv_bar_bind_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_bind_value_mpobj, 2, mp_lv_obj_bind_checked, lv_bar_bind_value, 1);
     
 /* Reusing lv_obj_create for lv_bar_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_create_mpobj, 1, mp_lv_obj_create, lv_bar_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_bar_create_mpobj, 1, mp_lv_obj_create, lv_bar_create, 1);
     
 
 /*
@@ -22694,7 +22703,7 @@ static mp_obj_t mp_lv_canvas_set_buffer(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_set_buffer_mpobj, 5, mp_lv_canvas_set_buffer, lv_canvas_set_buffer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_set_buffer_mpobj, 5, mp_lv_canvas_set_buffer, lv_canvas_set_buffer, 1);
     
 
 /*
@@ -22712,7 +22721,7 @@ static mp_obj_t mp_lv_canvas_set_draw_buf(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_set_draw_buf_mpobj, 2, mp_lv_canvas_set_draw_buf, lv_canvas_set_draw_buf);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_set_draw_buf_mpobj, 2, mp_lv_canvas_set_draw_buf, lv_canvas_set_draw_buf, 1);
     
 
 /*
@@ -22733,7 +22742,7 @@ static mp_obj_t mp_lv_canvas_set_px(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_set_px_mpobj, 5, mp_lv_canvas_set_px, lv_canvas_set_px);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_set_px_mpobj, 5, mp_lv_canvas_set_px, lv_canvas_set_px, 1);
     
 
 /*
@@ -22752,7 +22761,7 @@ static mp_obj_t mp_lv_canvas_set_palette(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_set_palette_mpobj, 3, mp_lv_canvas_set_palette, lv_canvas_set_palette);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_set_palette_mpobj, 3, mp_lv_canvas_set_palette, lv_canvas_set_palette, 1);
     
 
 /*
@@ -22769,7 +22778,7 @@ static mp_obj_t mp_lv_canvas_get_draw_buf(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_get_draw_buf_mpobj, 1, mp_lv_canvas_get_draw_buf, lv_canvas_get_draw_buf);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_get_draw_buf_mpobj, 1, mp_lv_canvas_get_draw_buf, lv_canvas_get_draw_buf, 1);
     
 
 /*
@@ -22788,7 +22797,7 @@ static mp_obj_t mp_lv_canvas_get_px(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_get_px_mpobj, 3, mp_lv_canvas_get_px, lv_canvas_get_px);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_get_px_mpobj, 3, mp_lv_canvas_get_px, lv_canvas_get_px, 1);
     
 
 /*
@@ -22805,11 +22814,11 @@ static mp_obj_t mp_lv_canvas_get_image(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_get_image_mpobj, 1, mp_lv_canvas_get_image, lv_canvas_get_image);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_get_image_mpobj, 1, mp_lv_canvas_get_image, lv_canvas_get_image, 1);
     
 /* Reusing lv_image_get_src for lv_canvas_get_buf */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_get_buf_mpobj, 1, mp_lv_image_get_src, lv_canvas_get_buf);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_get_buf_mpobj, 1, mp_lv_image_get_src, lv_canvas_get_buf, 1);
     
 
 /*
@@ -22829,7 +22838,7 @@ static mp_obj_t mp_lv_canvas_copy_buf(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_copy_buf_mpobj, 4, mp_lv_canvas_copy_buf, lv_canvas_copy_buf);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_copy_buf_mpobj, 4, mp_lv_canvas_copy_buf, lv_canvas_copy_buf, 1);
     
 
 /*
@@ -22848,7 +22857,7 @@ static mp_obj_t mp_lv_canvas_fill_bg(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_fill_bg_mpobj, 3, mp_lv_canvas_fill_bg, lv_canvas_fill_bg);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_fill_bg_mpobj, 3, mp_lv_canvas_fill_bg, lv_canvas_fill_bg, 1);
     
 
 /*
@@ -22866,11 +22875,11 @@ static mp_obj_t mp_lv_canvas_init_layer(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_init_layer_mpobj, 2, mp_lv_canvas_init_layer, lv_canvas_init_layer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_init_layer_mpobj, 2, mp_lv_canvas_init_layer, lv_canvas_init_layer, 1);
     
 /* Reusing lv_canvas_init_layer for lv_canvas_finish_layer */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_finish_layer_mpobj, 2, mp_lv_canvas_init_layer, lv_canvas_finish_layer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_finish_layer_mpobj, 2, mp_lv_canvas_init_layer, lv_canvas_finish_layer, 1);
     
 
 /*
@@ -22890,11 +22899,11 @@ static mp_obj_t mp_lv_canvas_buf_size(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_canvas_buf_size_mpobj, 4, mp_lv_canvas_buf_size, lv_canvas_buf_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_canvas_buf_size_mpobj, 4, mp_lv_canvas_buf_size, lv_canvas_buf_size, 1);
     
 /* Reusing lv_obj_create for lv_canvas_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_create_mpobj, 1, mp_lv_obj_create, lv_canvas_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_canvas_create_mpobj, 1, mp_lv_obj_create, lv_canvas_create, 1);
     
 
 /*
@@ -22974,11 +22983,11 @@ static mp_obj_t mp_lv_barcode_set_dark_color(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_set_dark_color_mpobj, 2, mp_lv_barcode_set_dark_color, lv_barcode_set_dark_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_set_dark_color_mpobj, 2, mp_lv_barcode_set_dark_color, lv_barcode_set_dark_color, 1);
     
 /* Reusing lv_barcode_set_dark_color for lv_barcode_set_light_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_set_light_color_mpobj, 2, mp_lv_barcode_set_dark_color, lv_barcode_set_light_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_set_light_color_mpobj, 2, mp_lv_barcode_set_dark_color, lv_barcode_set_light_color, 1);
     
 
 /*
@@ -22996,15 +23005,15 @@ static mp_obj_t mp_lv_barcode_set_scale(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_set_scale_mpobj, 2, mp_lv_barcode_set_scale, lv_barcode_set_scale);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_set_scale_mpobj, 2, mp_lv_barcode_set_scale, lv_barcode_set_scale, 1);
     
 /* Reusing lv_obj_set_scroll_dir for lv_barcode_set_direction */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_set_direction_mpobj, 2, mp_lv_obj_set_scroll_dir, lv_barcode_set_direction);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_set_direction_mpobj, 2, mp_lv_obj_set_scroll_dir, lv_barcode_set_direction, 1);
     
 /* Reusing lv_obj_set_hidden for lv_barcode_set_tiled */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_set_tiled_mpobj, 2, mp_lv_obj_set_hidden, lv_barcode_set_tiled);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_set_tiled_mpobj, 2, mp_lv_obj_set_hidden, lv_barcode_set_tiled, 1);
     
 
 /*
@@ -23022,7 +23031,7 @@ static mp_obj_t mp_lv_barcode_set_encoding(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_set_encoding_mpobj, 2, mp_lv_barcode_set_encoding, lv_barcode_set_encoding);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_set_encoding_mpobj, 2, mp_lv_barcode_set_encoding, lv_barcode_set_encoding, 1);
     
 
 /*
@@ -23040,7 +23049,7 @@ static mp_obj_t mp_lv_barcode_update(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_update_mpobj, 2, mp_lv_barcode_update, lv_barcode_update);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_update_mpobj, 2, mp_lv_barcode_update, lv_barcode_update, 1);
     
 
 /*
@@ -23057,7 +23066,7 @@ static mp_obj_t mp_lv_barcode_render(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_render_mpobj, 1, mp_lv_barcode_render, lv_barcode_render);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_render_mpobj, 1, mp_lv_barcode_render, lv_barcode_render, 1);
     
 
 /*
@@ -23075,7 +23084,7 @@ static mp_obj_t mp_lv_barcode_set_update_mode(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_set_update_mode_mpobj, 2, mp_lv_barcode_set_update_mode, lv_barcode_set_update_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_set_update_mode_mpobj, 2, mp_lv_barcode_set_update_mode, lv_barcode_set_update_mode, 1);
     
 
 /*
@@ -23092,11 +23101,11 @@ static mp_obj_t mp_lv_barcode_get_update_mode(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_get_update_mode_mpobj, 1, mp_lv_barcode_get_update_mode, lv_barcode_get_update_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_get_update_mode_mpobj, 1, mp_lv_barcode_get_update_mode, lv_barcode_get_update_mode, 1);
     
 /* Reusing lv_obj_refr_size for lv_barcode_is_render_valid */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_is_render_valid_mpobj, 1, mp_lv_obj_refr_size, lv_barcode_is_render_valid);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_is_render_valid_mpobj, 1, mp_lv_obj_refr_size, lv_barcode_is_render_valid, 1);
     
 
 /*
@@ -23113,11 +23122,11 @@ static mp_obj_t mp_lv_barcode_get_dark_color(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_get_dark_color_mpobj, 1, mp_lv_barcode_get_dark_color, lv_barcode_get_dark_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_get_dark_color_mpobj, 1, mp_lv_barcode_get_dark_color, lv_barcode_get_dark_color, 1);
     
 /* Reusing lv_barcode_get_dark_color for lv_barcode_get_light_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_get_light_color_mpobj, 1, mp_lv_barcode_get_dark_color, lv_barcode_get_light_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_get_light_color_mpobj, 1, mp_lv_barcode_get_dark_color, lv_barcode_get_light_color, 1);
     
 
 /*
@@ -23134,7 +23143,7 @@ static mp_obj_t mp_lv_barcode_get_scale(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_get_scale_mpobj, 1, mp_lv_barcode_get_scale, lv_barcode_get_scale);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_get_scale_mpobj, 1, mp_lv_barcode_get_scale, lv_barcode_get_scale, 1);
     
 
 /*
@@ -23151,11 +23160,11 @@ static mp_obj_t mp_lv_barcode_get_encoding(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_get_encoding_mpobj, 1, mp_lv_barcode_get_encoding, lv_barcode_get_encoding);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_get_encoding_mpobj, 1, mp_lv_barcode_get_encoding, lv_barcode_get_encoding, 1);
     
 /* Reusing lv_obj_create for lv_barcode_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_create_mpobj, 1, mp_lv_obj_create, lv_barcode_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_barcode_create_mpobj, 1, mp_lv_obj_create, lv_barcode_create, 1);
     
 
 /*
@@ -23225,7 +23234,7 @@ GENMPY_UNUSED static const mp_lv_obj_type_t mp_lv_barcode_type = {
     
 /* Reusing lv_obj_create for lv_button_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_button_create_mpobj, 1, mp_lv_obj_create, lv_button_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_button_create_mpobj, 1, mp_lv_obj_create, lv_button_create, 1);
     
 
 /*
@@ -23324,7 +23333,7 @@ static mp_obj_t mp_lv_buttonmatrix_set_map(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_set_map_mpobj, 2, mp_lv_buttonmatrix_set_map, lv_buttonmatrix_set_map);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_set_map_mpobj, 2, mp_lv_buttonmatrix_set_map, lv_buttonmatrix_set_map, 1);
     
 
 /*
@@ -23373,11 +23382,11 @@ static mp_obj_t mp_lv_buttonmatrix_set_ctrl_map(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_set_ctrl_map_mpobj, 2, mp_lv_buttonmatrix_set_ctrl_map, lv_buttonmatrix_set_ctrl_map);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_set_ctrl_map_mpobj, 2, mp_lv_buttonmatrix_set_ctrl_map, lv_buttonmatrix_set_ctrl_map, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_buttonmatrix_set_selected_button */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_set_selected_button_mpobj, 2, mp_lv_obj_delete_delayed, lv_buttonmatrix_set_selected_button);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_set_selected_button_mpobj, 2, mp_lv_obj_delete_delayed, lv_buttonmatrix_set_selected_button, 1);
     
 
 /*
@@ -23396,11 +23405,11 @@ static mp_obj_t mp_lv_buttonmatrix_set_button_ctrl(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_set_button_ctrl_mpobj, 3, mp_lv_buttonmatrix_set_button_ctrl, lv_buttonmatrix_set_button_ctrl);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_set_button_ctrl_mpobj, 3, mp_lv_buttonmatrix_set_button_ctrl, lv_buttonmatrix_set_button_ctrl, 1);
     
 /* Reusing lv_buttonmatrix_set_button_ctrl for lv_buttonmatrix_clear_button_ctrl */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_clear_button_ctrl_mpobj, 3, mp_lv_buttonmatrix_set_button_ctrl, lv_buttonmatrix_clear_button_ctrl);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_clear_button_ctrl_mpobj, 3, mp_lv_buttonmatrix_set_button_ctrl, lv_buttonmatrix_clear_button_ctrl, 1);
     
 
 /*
@@ -23418,23 +23427,23 @@ static mp_obj_t mp_lv_buttonmatrix_set_button_ctrl_all(size_t mp_n_args, const m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_set_button_ctrl_all_mpobj, 2, mp_lv_buttonmatrix_set_button_ctrl_all, lv_buttonmatrix_set_button_ctrl_all);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_set_button_ctrl_all_mpobj, 2, mp_lv_buttonmatrix_set_button_ctrl_all, lv_buttonmatrix_set_button_ctrl_all, 1);
     
 /* Reusing lv_buttonmatrix_set_button_ctrl_all for lv_buttonmatrix_clear_button_ctrl_all */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_clear_button_ctrl_all_mpobj, 2, mp_lv_buttonmatrix_set_button_ctrl_all, lv_buttonmatrix_clear_button_ctrl_all);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_clear_button_ctrl_all_mpobj, 2, mp_lv_buttonmatrix_set_button_ctrl_all, lv_buttonmatrix_clear_button_ctrl_all, 1);
     
 /* Reusing lv_obj_fade_in for lv_buttonmatrix_set_button_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_set_button_width_mpobj, 3, mp_lv_obj_fade_in, lv_buttonmatrix_set_button_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_set_button_width_mpobj, 3, mp_lv_obj_fade_in, lv_buttonmatrix_set_button_width, 1);
     
 /* Reusing lv_obj_set_hidden for lv_buttonmatrix_set_one_checked */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_set_one_checked_mpobj, 2, mp_lv_obj_set_hidden, lv_buttonmatrix_set_one_checked);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_set_one_checked_mpobj, 2, mp_lv_obj_set_hidden, lv_buttonmatrix_set_one_checked, 1);
     
 /* Reusing lv_obj_get_child_count for lv_buttonmatrix_get_selected_button */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_get_selected_button_mpobj, 1, mp_lv_obj_get_child_count, lv_buttonmatrix_get_selected_button);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_get_selected_button_mpobj, 1, mp_lv_obj_get_child_count, lv_buttonmatrix_get_selected_button, 1);
     
 
 /*
@@ -23452,7 +23461,7 @@ static mp_obj_t mp_lv_buttonmatrix_get_button_text(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_get_button_text_mpobj, 2, mp_lv_buttonmatrix_get_button_text, lv_buttonmatrix_get_button_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_get_button_text_mpobj, 2, mp_lv_buttonmatrix_get_button_text, lv_buttonmatrix_get_button_text, 1);
     
 
 /*
@@ -23471,15 +23480,15 @@ static mp_obj_t mp_lv_buttonmatrix_has_button_ctrl(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_has_button_ctrl_mpobj, 3, mp_lv_buttonmatrix_has_button_ctrl, lv_buttonmatrix_has_button_ctrl);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_has_button_ctrl_mpobj, 3, mp_lv_buttonmatrix_has_button_ctrl, lv_buttonmatrix_has_button_ctrl, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_buttonmatrix_get_one_checked */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_get_one_checked_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_buttonmatrix_get_one_checked);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_get_one_checked_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_buttonmatrix_get_one_checked, 1);
     
 /* Reusing lv_obj_create for lv_buttonmatrix_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_create_mpobj, 1, mp_lv_obj_create, lv_buttonmatrix_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_buttonmatrix_create_mpobj, 1, mp_lv_obj_create, lv_buttonmatrix_create, 1);
     
 
 /*
@@ -23562,31 +23571,31 @@ static mp_obj_t mp_lv_calendar_set_today_date(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_set_today_date_mpobj, 4, mp_lv_calendar_set_today_date, lv_calendar_set_today_date);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_set_today_date_mpobj, 4, mp_lv_calendar_set_today_date, lv_calendar_set_today_date, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_calendar_set_today_year */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_set_today_year_mpobj, 2, mp_lv_obj_delete_delayed, lv_calendar_set_today_year);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_set_today_year_mpobj, 2, mp_lv_obj_delete_delayed, lv_calendar_set_today_year, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_calendar_set_today_month */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_set_today_month_mpobj, 2, mp_lv_obj_delete_delayed, lv_calendar_set_today_month);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_set_today_month_mpobj, 2, mp_lv_obj_delete_delayed, lv_calendar_set_today_month, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_calendar_set_today_day */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_set_today_day_mpobj, 2, mp_lv_obj_delete_delayed, lv_calendar_set_today_day);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_set_today_day_mpobj, 2, mp_lv_obj_delete_delayed, lv_calendar_set_today_day, 1);
     
 /* Reusing lv_obj_fade_in for lv_calendar_set_month_shown */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_set_month_shown_mpobj, 3, mp_lv_obj_fade_in, lv_calendar_set_month_shown);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_set_month_shown_mpobj, 3, mp_lv_obj_fade_in, lv_calendar_set_month_shown, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_calendar_set_shown_year */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_set_shown_year_mpobj, 2, mp_lv_obj_delete_delayed, lv_calendar_set_shown_year);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_set_shown_year_mpobj, 2, mp_lv_obj_delete_delayed, lv_calendar_set_shown_year, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_calendar_set_shown_month */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_set_shown_month_mpobj, 2, mp_lv_obj_delete_delayed, lv_calendar_set_shown_month);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_set_shown_month_mpobj, 2, mp_lv_obj_delete_delayed, lv_calendar_set_shown_month, 1);
     
 
 /*
@@ -23718,7 +23727,7 @@ static mp_obj_t mp_lv_calendar_set_highlighted_dates(size_t mp_n_args, const mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_set_highlighted_dates_mpobj, 3, mp_lv_calendar_set_highlighted_dates, lv_calendar_set_highlighted_dates);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_set_highlighted_dates_mpobj, 3, mp_lv_calendar_set_highlighted_dates, lv_calendar_set_highlighted_dates, 1);
     
 
 /*
@@ -23736,11 +23745,11 @@ static mp_obj_t mp_lv_calendar_set_day_names(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_set_day_names_mpobj, 2, mp_lv_calendar_set_day_names, lv_calendar_set_day_names);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_set_day_names_mpobj, 2, mp_lv_calendar_set_day_names, lv_calendar_set_day_names, 1);
     
 /* Reusing lv_obj_get_screen for lv_calendar_get_btnmatrix */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_get_btnmatrix_mpobj, 1, mp_lv_obj_get_screen, lv_calendar_get_btnmatrix);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_get_btnmatrix_mpobj, 1, mp_lv_obj_get_screen, lv_calendar_get_btnmatrix, 1);
     
 
 /*
@@ -23757,11 +23766,11 @@ static mp_obj_t mp_lv_calendar_get_today_date(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_get_today_date_mpobj, 1, mp_lv_calendar_get_today_date, lv_calendar_get_today_date);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_get_today_date_mpobj, 1, mp_lv_calendar_get_today_date, lv_calendar_get_today_date, 1);
     
 /* Reusing lv_calendar_get_today_date for lv_calendar_get_showed_date */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_get_showed_date_mpobj, 1, mp_lv_calendar_get_today_date, lv_calendar_get_showed_date);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_get_showed_date_mpobj, 1, mp_lv_calendar_get_today_date, lv_calendar_get_showed_date, 1);
     
 
 /*
@@ -23778,7 +23787,7 @@ static mp_obj_t mp_lv_calendar_get_highlighted_dates(size_t mp_n_args, const mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_get_highlighted_dates_mpobj, 1, mp_lv_calendar_get_highlighted_dates, lv_calendar_get_highlighted_dates);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_get_highlighted_dates_mpobj, 1, mp_lv_calendar_get_highlighted_dates, lv_calendar_get_highlighted_dates, 1);
     
 
 /*
@@ -23795,7 +23804,7 @@ static mp_obj_t mp_lv_calendar_get_highlighted_dates_num(size_t mp_n_args, const
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_get_highlighted_dates_num_mpobj, 1, mp_lv_calendar_get_highlighted_dates_num, lv_calendar_get_highlighted_dates_num);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_get_highlighted_dates_num_mpobj, 1, mp_lv_calendar_get_highlighted_dates_num, lv_calendar_get_highlighted_dates_num, 1);
     
 
 /*
@@ -23813,23 +23822,23 @@ static mp_obj_t mp_lv_calendar_get_pressed_date(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_get_pressed_date_mpobj, 2, mp_lv_calendar_get_pressed_date, lv_calendar_get_pressed_date);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_get_pressed_date_mpobj, 2, mp_lv_calendar_get_pressed_date, lv_calendar_get_pressed_date, 1);
     
 /* Reusing lv_obj_create for lv_calendar_add_header_arrow */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_add_header_arrow_mpobj, 1, mp_lv_obj_create, lv_calendar_add_header_arrow);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_add_header_arrow_mpobj, 1, mp_lv_obj_create, lv_calendar_add_header_arrow, 1);
     
 /* Reusing lv_obj_create for lv_calendar_add_header_dropdown */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_add_header_dropdown_mpobj, 1, mp_lv_obj_create, lv_calendar_add_header_dropdown);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_add_header_dropdown_mpobj, 1, mp_lv_obj_create, lv_calendar_add_header_dropdown, 1);
     
 /* Reusing lv_arclabel_set_text for lv_calendar_header_dropdown_set_year_list */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_header_dropdown_set_year_list_mpobj, 2, mp_lv_arclabel_set_text, lv_calendar_header_dropdown_set_year_list);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_header_dropdown_set_year_list_mpobj, 2, mp_lv_arclabel_set_text, lv_calendar_header_dropdown_set_year_list, 1);
     
 /* Reusing lv_obj_create for lv_calendar_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_create_mpobj, 1, mp_lv_obj_create, lv_calendar_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_calendar_create_mpobj, 1, mp_lv_obj_create, lv_calendar_create, 1);
     
 
 /*
@@ -23914,11 +23923,11 @@ static mp_obj_t mp_lv_chart_set_type(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_type_mpobj, 2, mp_lv_chart_set_type, lv_chart_set_type);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_type_mpobj, 2, mp_lv_chart_set_type, lv_chart_set_type, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_chart_set_point_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_point_count_mpobj, 2, mp_lv_obj_delete_delayed, lv_chart_set_point_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_point_count_mpobj, 2, mp_lv_obj_delete_delayed, lv_chart_set_point_count, 1);
     
 
 /*
@@ -23938,7 +23947,7 @@ static mp_obj_t mp_lv_chart_set_axis_range(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_axis_range_mpobj, 4, mp_lv_chart_set_axis_range, lv_chart_set_axis_range);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_axis_range_mpobj, 4, mp_lv_chart_set_axis_range, lv_chart_set_axis_range, 1);
     
 
 /*
@@ -23957,11 +23966,11 @@ static mp_obj_t mp_lv_chart_set_axis_min_value(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_axis_min_value_mpobj, 3, mp_lv_chart_set_axis_min_value, lv_chart_set_axis_min_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_axis_min_value_mpobj, 3, mp_lv_chart_set_axis_min_value, lv_chart_set_axis_min_value, 1);
     
 /* Reusing lv_chart_set_axis_min_value for lv_chart_set_axis_max_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_axis_max_value_mpobj, 3, mp_lv_chart_set_axis_min_value, lv_chart_set_axis_max_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_axis_max_value_mpobj, 3, mp_lv_chart_set_axis_min_value, lv_chart_set_axis_max_value, 1);
     
 
 /*
@@ -23979,19 +23988,19 @@ static mp_obj_t mp_lv_chart_set_update_mode(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_update_mode_mpobj, 2, mp_lv_chart_set_update_mode, lv_chart_set_update_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_update_mode_mpobj, 2, mp_lv_chart_set_update_mode, lv_chart_set_update_mode, 1);
     
 /* Reusing lv_obj_fade_in for lv_chart_set_div_line_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_div_line_count_mpobj, 3, mp_lv_obj_fade_in, lv_chart_set_div_line_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_div_line_count_mpobj, 3, mp_lv_obj_fade_in, lv_chart_set_div_line_count, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_chart_set_hor_div_line_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_hor_div_line_count_mpobj, 2, mp_lv_obj_delete_delayed, lv_chart_set_hor_div_line_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_hor_div_line_count_mpobj, 2, mp_lv_obj_delete_delayed, lv_chart_set_hor_div_line_count, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_chart_set_ver_div_line_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_ver_div_line_count_mpobj, 2, mp_lv_obj_delete_delayed, lv_chart_set_ver_div_line_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_ver_div_line_count_mpobj, 2, mp_lv_obj_delete_delayed, lv_chart_set_ver_div_line_count, 1);
     
 
 /*
@@ -24008,11 +24017,11 @@ static mp_obj_t mp_lv_chart_get_type(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_type_mpobj, 1, mp_lv_chart_get_type, lv_chart_get_type);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_type_mpobj, 1, mp_lv_chart_get_type, lv_chart_get_type, 1);
     
 /* Reusing lv_obj_get_child_count for lv_chart_get_point_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_point_count_mpobj, 1, mp_lv_obj_get_child_count, lv_chart_get_point_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_point_count_mpobj, 1, mp_lv_obj_get_child_count, lv_chart_get_point_count, 1);
     
 
 /*
@@ -24029,15 +24038,15 @@ static mp_obj_t mp_lv_chart_get_update_mode(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_update_mode_mpobj, 1, mp_lv_chart_get_update_mode, lv_chart_get_update_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_update_mode_mpobj, 1, mp_lv_chart_get_update_mode, lv_chart_get_update_mode, 1);
     
 /* Reusing lv_obj_get_child_count for lv_chart_get_hor_div_line_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_hor_div_line_count_mpobj, 1, mp_lv_obj_get_child_count, lv_chart_get_hor_div_line_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_hor_div_line_count_mpobj, 1, mp_lv_obj_get_child_count, lv_chart_get_hor_div_line_count, 1);
     
 /* Reusing lv_obj_get_child_count for lv_chart_get_ver_div_line_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_ver_div_line_count_mpobj, 1, mp_lv_obj_get_child_count, lv_chart_get_ver_div_line_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_ver_div_line_count_mpobj, 1, mp_lv_obj_get_child_count, lv_chart_get_ver_div_line_count, 1);
     
 
 /*
@@ -24149,7 +24158,7 @@ static mp_obj_t mp_lv_chart_get_x_start_point(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_x_start_point_mpobj, 2, mp_lv_chart_get_x_start_point, lv_chart_get_x_start_point);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_x_start_point_mpobj, 2, mp_lv_chart_get_x_start_point, lv_chart_get_x_start_point, 1);
     
 
 /*
@@ -24169,11 +24178,11 @@ static mp_obj_t mp_lv_chart_get_point_pos_by_id(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_point_pos_by_id_mpobj, 4, mp_lv_chart_get_point_pos_by_id, lv_chart_get_point_pos_by_id);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_point_pos_by_id_mpobj, 4, mp_lv_chart_get_point_pos_by_id, lv_chart_get_point_pos_by_id, 1);
     
 /* Reusing lv_obj_move_foreground for lv_chart_refresh */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_refresh_mpobj, 1, mp_lv_obj_move_foreground, lv_chart_refresh);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_refresh_mpobj, 1, mp_lv_obj_move_foreground, lv_chart_refresh, 1);
     
 
 /*
@@ -24192,7 +24201,7 @@ static mp_obj_t mp_lv_chart_add_series(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_add_series_mpobj, 3, mp_lv_chart_add_series, lv_chart_add_series);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_add_series_mpobj, 3, mp_lv_chart_add_series, lv_chart_add_series, 1);
     
 
 /*
@@ -24210,7 +24219,7 @@ static mp_obj_t mp_lv_chart_remove_series(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_remove_series_mpobj, 2, mp_lv_chart_remove_series, lv_chart_remove_series);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_remove_series_mpobj, 2, mp_lv_chart_remove_series, lv_chart_remove_series, 1);
     
 
 /*
@@ -24229,7 +24238,7 @@ static mp_obj_t mp_lv_chart_hide_series(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_hide_series_mpobj, 3, mp_lv_chart_hide_series, lv_chart_hide_series);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_hide_series_mpobj, 3, mp_lv_chart_hide_series, lv_chart_hide_series, 1);
     
 
 /*
@@ -24248,7 +24257,7 @@ static mp_obj_t mp_lv_chart_set_series_color(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_series_color_mpobj, 3, mp_lv_chart_set_series_color, lv_chart_set_series_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_series_color_mpobj, 3, mp_lv_chart_set_series_color, lv_chart_set_series_color, 1);
     
 
 /*
@@ -24266,7 +24275,7 @@ static mp_obj_t mp_lv_chart_get_series_color(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_series_color_mpobj, 2, mp_lv_chart_get_series_color, lv_chart_get_series_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_series_color_mpobj, 2, mp_lv_chart_get_series_color, lv_chart_get_series_color, 1);
     
 
 /*
@@ -24285,7 +24294,7 @@ static mp_obj_t mp_lv_chart_set_x_start_point(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_x_start_point_mpobj, 3, mp_lv_chart_set_x_start_point, lv_chart_set_x_start_point);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_x_start_point_mpobj, 3, mp_lv_chart_set_x_start_point, lv_chart_set_x_start_point, 1);
     
 
 /*
@@ -24303,7 +24312,7 @@ static mp_obj_t mp_lv_chart_get_series_next(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_series_next_mpobj, 2, mp_lv_chart_get_series_next, lv_chart_get_series_next);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_series_next_mpobj, 2, mp_lv_chart_get_series_next, lv_chart_get_series_next, 1);
     
 
 /*
@@ -24410,7 +24419,7 @@ static mp_obj_t mp_lv_chart_add_cursor(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_add_cursor_mpobj, 3, mp_lv_chart_add_cursor, lv_chart_add_cursor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_add_cursor_mpobj, 3, mp_lv_chart_add_cursor, lv_chart_add_cursor, 1);
     
 
 /*
@@ -24428,7 +24437,7 @@ static mp_obj_t mp_lv_chart_remove_cursor(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_remove_cursor_mpobj, 2, mp_lv_chart_remove_cursor, lv_chart_remove_cursor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_remove_cursor_mpobj, 2, mp_lv_chart_remove_cursor, lv_chart_remove_cursor, 1);
     
 
 /*
@@ -24447,7 +24456,7 @@ static mp_obj_t mp_lv_chart_set_cursor_pos(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_cursor_pos_mpobj, 3, mp_lv_chart_set_cursor_pos, lv_chart_set_cursor_pos);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_cursor_pos_mpobj, 3, mp_lv_chart_set_cursor_pos, lv_chart_set_cursor_pos, 1);
     
 
 /*
@@ -24466,11 +24475,11 @@ static mp_obj_t mp_lv_chart_set_cursor_pos_x(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_cursor_pos_x_mpobj, 3, mp_lv_chart_set_cursor_pos_x, lv_chart_set_cursor_pos_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_cursor_pos_x_mpobj, 3, mp_lv_chart_set_cursor_pos_x, lv_chart_set_cursor_pos_x, 1);
     
 /* Reusing lv_chart_set_cursor_pos_x for lv_chart_set_cursor_pos_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_cursor_pos_y_mpobj, 3, mp_lv_chart_set_cursor_pos_x, lv_chart_set_cursor_pos_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_cursor_pos_y_mpobj, 3, mp_lv_chart_set_cursor_pos_x, lv_chart_set_cursor_pos_y, 1);
     
 
 /*
@@ -24490,7 +24499,7 @@ static mp_obj_t mp_lv_chart_set_cursor_point(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_cursor_point_mpobj, 4, mp_lv_chart_set_cursor_point, lv_chart_set_cursor_point);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_cursor_point_mpobj, 4, mp_lv_chart_set_cursor_point, lv_chart_set_cursor_point, 1);
     
 
 /*
@@ -24508,7 +24517,7 @@ static mp_obj_t mp_lv_chart_get_cursor_point(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_cursor_point_mpobj, 2, mp_lv_chart_get_cursor_point, lv_chart_get_cursor_point);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_cursor_point_mpobj, 2, mp_lv_chart_get_cursor_point, lv_chart_get_cursor_point, 1);
     
 
 /*
@@ -24527,11 +24536,11 @@ static mp_obj_t mp_lv_chart_set_all_values(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_all_values_mpobj, 3, mp_lv_chart_set_all_values, lv_chart_set_all_values);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_all_values_mpobj, 3, mp_lv_chart_set_all_values, lv_chart_set_all_values, 1);
     
 /* Reusing lv_chart_set_all_values for lv_chart_set_next_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_next_value_mpobj, 3, mp_lv_chart_set_all_values, lv_chart_set_next_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_next_value_mpobj, 3, mp_lv_chart_set_all_values, lv_chart_set_next_value, 1);
     
 
 /*
@@ -24551,7 +24560,7 @@ static mp_obj_t mp_lv_chart_set_next_value2(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_next_value2_mpobj, 4, mp_lv_chart_set_next_value2, lv_chart_set_next_value2);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_next_value2_mpobj, 4, mp_lv_chart_set_next_value2, lv_chart_set_next_value2, 1);
     
 
 /*
@@ -24571,7 +24580,7 @@ static mp_obj_t mp_lv_chart_set_series_values(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_series_values_mpobj, 4, mp_lv_chart_set_series_values, lv_chart_set_series_values);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_series_values_mpobj, 4, mp_lv_chart_set_series_values, lv_chart_set_series_values, 1);
     
 
 /*
@@ -24592,7 +24601,7 @@ static mp_obj_t mp_lv_chart_set_series_values2(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_series_values2_mpobj, 5, mp_lv_chart_set_series_values2, lv_chart_set_series_values2);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_series_values2_mpobj, 5, mp_lv_chart_set_series_values2, lv_chart_set_series_values2, 1);
     
 
 /*
@@ -24612,7 +24621,7 @@ static mp_obj_t mp_lv_chart_set_series_value_by_id(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_series_value_by_id_mpobj, 4, mp_lv_chart_set_series_value_by_id, lv_chart_set_series_value_by_id);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_series_value_by_id_mpobj, 4, mp_lv_chart_set_series_value_by_id, lv_chart_set_series_value_by_id, 1);
     
 
 /*
@@ -24633,7 +24642,7 @@ static mp_obj_t mp_lv_chart_set_series_value_by_id2(size_t mp_n_args, const mp_o
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_series_value_by_id2_mpobj, 5, mp_lv_chart_set_series_value_by_id2, lv_chart_set_series_value_by_id2);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_series_value_by_id2_mpobj, 5, mp_lv_chart_set_series_value_by_id2, lv_chart_set_series_value_by_id2, 1);
     
 
 /*
@@ -24652,11 +24661,11 @@ static mp_obj_t mp_lv_chart_set_series_ext_y_array(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_series_ext_y_array_mpobj, 3, mp_lv_chart_set_series_ext_y_array, lv_chart_set_series_ext_y_array);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_series_ext_y_array_mpobj, 3, mp_lv_chart_set_series_ext_y_array, lv_chart_set_series_ext_y_array, 1);
     
 /* Reusing lv_chart_set_series_ext_y_array for lv_chart_set_series_ext_x_array */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_series_ext_x_array_mpobj, 3, mp_lv_chart_set_series_ext_y_array, lv_chart_set_series_ext_x_array);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_set_series_ext_x_array_mpobj, 3, mp_lv_chart_set_series_ext_y_array, lv_chart_set_series_ext_x_array, 1);
     
 
 /*
@@ -24674,23 +24683,23 @@ static mp_obj_t mp_lv_chart_get_series_y_array(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_series_y_array_mpobj, 2, mp_lv_chart_get_series_y_array, lv_chart_get_series_y_array);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_series_y_array_mpobj, 2, mp_lv_chart_get_series_y_array, lv_chart_get_series_y_array, 1);
     
 /* Reusing lv_chart_get_series_y_array for lv_chart_get_series_x_array */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_series_x_array_mpobj, 2, mp_lv_chart_get_series_y_array, lv_chart_get_series_x_array);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_series_x_array_mpobj, 2, mp_lv_chart_get_series_y_array, lv_chart_get_series_x_array, 1);
     
 /* Reusing lv_obj_get_child_count for lv_chart_get_pressed_point */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_pressed_point_mpobj, 1, mp_lv_obj_get_child_count, lv_chart_get_pressed_point);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_pressed_point_mpobj, 1, mp_lv_obj_get_child_count, lv_chart_get_pressed_point, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_chart_get_first_point_center_offset */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_first_point_center_offset_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_chart_get_first_point_center_offset);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_get_first_point_center_offset_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_chart_get_first_point_center_offset, 1);
     
 /* Reusing lv_obj_create for lv_chart_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_create_mpobj, 1, mp_lv_obj_create, lv_chart_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_chart_create_mpobj, 1, mp_lv_obj_create, lv_chart_create, 1);
     
 
 /*
@@ -24790,11 +24799,11 @@ GENMPY_UNUSED static const mp_lv_obj_type_t mp_lv_chart_type = {
     
 /* Reusing lv_arclabel_set_text for lv_checkbox_set_text */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_checkbox_set_text_mpobj, 2, mp_lv_arclabel_set_text, lv_checkbox_set_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_checkbox_set_text_mpobj, 2, mp_lv_arclabel_set_text, lv_checkbox_set_text, 1);
     
 /* Reusing lv_arclabel_set_text for lv_checkbox_set_text_static */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_checkbox_set_text_static_mpobj, 2, mp_lv_arclabel_set_text, lv_checkbox_set_text_static);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_checkbox_set_text_static_mpobj, 2, mp_lv_arclabel_set_text, lv_checkbox_set_text_static, 1);
     
 
 /*
@@ -24811,11 +24820,11 @@ static mp_obj_t mp_lv_checkbox_get_text(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_checkbox_get_text_mpobj, 1, mp_lv_checkbox_get_text, lv_checkbox_get_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_checkbox_get_text_mpobj, 1, mp_lv_checkbox_get_text, lv_checkbox_get_text, 1);
     
 /* Reusing lv_obj_create for lv_checkbox_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_checkbox_create_mpobj, 1, mp_lv_obj_create, lv_checkbox_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_checkbox_create_mpobj, 1, mp_lv_obj_create, lv_checkbox_create, 1);
     
 
 /*
@@ -24871,19 +24880,19 @@ GENMPY_UNUSED static const mp_lv_obj_type_t mp_lv_checkbox_type = {
     
 /* Reusing lv_arclabel_set_text for lv_dropdown_set_text */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_set_text_mpobj, 2, mp_lv_arclabel_set_text, lv_dropdown_set_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_set_text_mpobj, 2, mp_lv_arclabel_set_text, lv_dropdown_set_text, 1);
     
 /* Reusing lv_arclabel_set_text for lv_dropdown_set_text_static */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_set_text_static_mpobj, 2, mp_lv_arclabel_set_text, lv_dropdown_set_text_static);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_set_text_static_mpobj, 2, mp_lv_arclabel_set_text, lv_dropdown_set_text_static, 1);
     
 /* Reusing lv_arclabel_set_text for lv_dropdown_set_options */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_set_options_mpobj, 2, mp_lv_arclabel_set_text, lv_dropdown_set_options);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_set_options_mpobj, 2, mp_lv_arclabel_set_text, lv_dropdown_set_options, 1);
     
 /* Reusing lv_arclabel_set_text for lv_dropdown_set_options_static */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_set_options_static_mpobj, 2, mp_lv_arclabel_set_text, lv_dropdown_set_options_static);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_set_options_static_mpobj, 2, mp_lv_arclabel_set_text, lv_dropdown_set_options_static, 1);
     
 
 /*
@@ -24902,31 +24911,31 @@ static mp_obj_t mp_lv_dropdown_add_option(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_add_option_mpobj, 3, mp_lv_dropdown_add_option, lv_dropdown_add_option);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_add_option_mpobj, 3, mp_lv_dropdown_add_option, lv_dropdown_add_option, 1);
     
 /* Reusing lv_obj_move_foreground for lv_dropdown_clear_options */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_clear_options_mpobj, 1, mp_lv_obj_move_foreground, lv_dropdown_clear_options);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_clear_options_mpobj, 1, mp_lv_obj_move_foreground, lv_dropdown_clear_options, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_dropdown_set_selected */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_set_selected_mpobj, 2, mp_lv_obj_delete_delayed, lv_dropdown_set_selected);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_set_selected_mpobj, 2, mp_lv_obj_delete_delayed, lv_dropdown_set_selected, 1);
     
 /* Reusing lv_obj_set_scroll_dir for lv_dropdown_set_dir */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_set_dir_mpobj, 2, mp_lv_obj_set_scroll_dir, lv_dropdown_set_dir);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_set_dir_mpobj, 2, mp_lv_obj_set_scroll_dir, lv_dropdown_set_dir, 1);
     
 /* Reusing lv_image_set_src for lv_dropdown_set_symbol */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_set_symbol_mpobj, 2, mp_lv_image_set_src, lv_dropdown_set_symbol);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_set_symbol_mpobj, 2, mp_lv_image_set_src, lv_dropdown_set_symbol, 1);
     
 /* Reusing lv_obj_set_hidden for lv_dropdown_set_selected_highlight */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_set_selected_highlight_mpobj, 2, mp_lv_obj_set_hidden, lv_dropdown_set_selected_highlight);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_set_selected_highlight_mpobj, 2, mp_lv_obj_set_hidden, lv_dropdown_set_selected_highlight, 1);
     
 /* Reusing lv_obj_create for lv_dropdown_get_list */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_get_list_mpobj, 1, mp_lv_obj_create, lv_dropdown_get_list);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_get_list_mpobj, 1, mp_lv_obj_create, lv_dropdown_get_list, 1);
     
 
 /*
@@ -24943,19 +24952,19 @@ static mp_obj_t mp_lv_dropdown_get_text(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_get_text_mpobj, 1, mp_lv_dropdown_get_text, lv_dropdown_get_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_get_text_mpobj, 1, mp_lv_dropdown_get_text, lv_dropdown_get_text, 1);
     
 /* Reusing lv_checkbox_get_text for lv_dropdown_get_options */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_get_options_mpobj, 1, mp_lv_checkbox_get_text, lv_dropdown_get_options);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_get_options_mpobj, 1, mp_lv_checkbox_get_text, lv_dropdown_get_options, 1);
     
 /* Reusing lv_obj_get_child_count for lv_dropdown_get_selected */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_get_selected_mpobj, 1, mp_lv_obj_get_child_count, lv_dropdown_get_selected);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_get_selected_mpobj, 1, mp_lv_obj_get_child_count, lv_dropdown_get_selected, 1);
     
 /* Reusing lv_obj_get_child_count for lv_dropdown_get_option_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_get_option_count_mpobj, 1, mp_lv_obj_get_child_count, lv_dropdown_get_option_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_get_option_count_mpobj, 1, mp_lv_obj_get_child_count, lv_dropdown_get_option_count, 1);
     
 
 /*
@@ -24974,7 +24983,7 @@ static mp_obj_t mp_lv_dropdown_get_selected_str(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_get_selected_str_mpobj, 3, mp_lv_dropdown_get_selected_str, lv_dropdown_get_selected_str);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_get_selected_str_mpobj, 3, mp_lv_dropdown_get_selected_str, lv_dropdown_get_selected_str, 1);
     
 
 /*
@@ -24992,39 +25001,39 @@ static mp_obj_t mp_lv_dropdown_get_option_index(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_get_option_index_mpobj, 2, mp_lv_dropdown_get_option_index, lv_dropdown_get_option_index);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_get_option_index_mpobj, 2, mp_lv_dropdown_get_option_index, lv_dropdown_get_option_index, 1);
     
 /* Reusing lv_dropdown_get_text for lv_dropdown_get_symbol */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_get_symbol_mpobj, 1, mp_lv_dropdown_get_text, lv_dropdown_get_symbol);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_get_symbol_mpobj, 1, mp_lv_dropdown_get_text, lv_dropdown_get_symbol, 1);
     
 /* Reusing lv_obj_refr_size for lv_dropdown_get_selected_highlight */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_get_selected_highlight_mpobj, 1, mp_lv_obj_refr_size, lv_dropdown_get_selected_highlight);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_get_selected_highlight_mpobj, 1, mp_lv_obj_refr_size, lv_dropdown_get_selected_highlight, 1);
     
 /* Reusing lv_obj_get_scroll_dir for lv_dropdown_get_dir */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_get_dir_mpobj, 1, mp_lv_obj_get_scroll_dir, lv_dropdown_get_dir);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_get_dir_mpobj, 1, mp_lv_obj_get_scroll_dir, lv_dropdown_get_dir, 1);
     
 /* Reusing lv_obj_move_foreground for lv_dropdown_open */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_open_mpobj, 1, mp_lv_obj_move_foreground, lv_dropdown_open);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_open_mpobj, 1, mp_lv_obj_move_foreground, lv_dropdown_open, 1);
     
 /* Reusing lv_obj_move_foreground for lv_dropdown_close */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_close_mpobj, 1, mp_lv_obj_move_foreground, lv_dropdown_close);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_close_mpobj, 1, mp_lv_obj_move_foreground, lv_dropdown_close, 1);
     
 /* Reusing lv_obj_refr_size for lv_dropdown_is_open */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_is_open_mpobj, 1, mp_lv_obj_refr_size, lv_dropdown_is_open);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_is_open_mpobj, 1, mp_lv_obj_refr_size, lv_dropdown_is_open, 1);
     
 /* Reusing lv_obj_bind_checked for lv_dropdown_bind_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_bind_value_mpobj, 2, mp_lv_obj_bind_checked, lv_dropdown_bind_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_bind_value_mpobj, 2, mp_lv_obj_bind_checked, lv_dropdown_bind_value, 1);
     
 /* Reusing lv_obj_create for lv_dropdown_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_create_mpobj, 1, mp_lv_obj_create, lv_dropdown_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_dropdown_create_mpobj, 1, mp_lv_obj_create, lv_dropdown_create, 1);
     
 
 /*
@@ -25115,39 +25124,39 @@ static mp_obj_t mp_lv_gif_set_color_format(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_set_color_format_mpobj, 2, mp_lv_gif_set_color_format, lv_gif_set_color_format);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_set_color_format_mpobj, 2, mp_lv_gif_set_color_format, lv_gif_set_color_format, 1);
     
 /* Reusing lv_image_set_src for lv_gif_set_src */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_set_src_mpobj, 2, mp_lv_image_set_src, lv_gif_set_src);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_set_src_mpobj, 2, mp_lv_image_set_src, lv_gif_set_src, 1);
     
 /* Reusing lv_obj_move_foreground for lv_gif_restart */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_restart_mpobj, 1, mp_lv_obj_move_foreground, lv_gif_restart);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_restart_mpobj, 1, mp_lv_obj_move_foreground, lv_gif_restart, 1);
     
 /* Reusing lv_obj_move_foreground for lv_gif_pause */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_pause_mpobj, 1, mp_lv_obj_move_foreground, lv_gif_pause);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_pause_mpobj, 1, mp_lv_obj_move_foreground, lv_gif_pause, 1);
     
 /* Reusing lv_obj_move_foreground for lv_gif_resume */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_resume_mpobj, 1, mp_lv_obj_move_foreground, lv_gif_resume);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_resume_mpobj, 1, mp_lv_obj_move_foreground, lv_gif_resume, 1);
     
 /* Reusing lv_obj_refr_size for lv_gif_is_loaded */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_is_loaded_mpobj, 1, mp_lv_obj_refr_size, lv_gif_is_loaded);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_is_loaded_mpobj, 1, mp_lv_obj_refr_size, lv_gif_is_loaded, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_gif_get_loop_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_get_loop_count_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_gif_get_loop_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_get_loop_count_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_gif_get_loop_count, 1);
     
 /* Reusing lv_obj_move_to_index for lv_gif_set_loop_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_set_loop_count_mpobj, 2, mp_lv_obj_move_to_index, lv_gif_set_loop_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_set_loop_count_mpobj, 2, mp_lv_obj_move_to_index, lv_gif_set_loop_count, 1);
     
 /* Reusing lv_obj_set_hidden for lv_gif_set_auto_pause_invisible */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_set_auto_pause_invisible_mpobj, 2, mp_lv_obj_set_hidden, lv_gif_set_auto_pause_invisible);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_set_auto_pause_invisible_mpobj, 2, mp_lv_obj_set_hidden, lv_gif_set_auto_pause_invisible, 1);
     
 
 /*
@@ -25166,19 +25175,19 @@ static mp_obj_t mp_lv_gif_get_size(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_gif_get_size_mpobj, 3, mp_lv_gif_get_size, lv_gif_get_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_gif_get_size_mpobj, 3, mp_lv_gif_get_size, lv_gif_get_size, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_gif_get_frame_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_get_frame_count_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_gif_get_frame_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_get_frame_count_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_gif_get_frame_count, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_gif_get_current_frame_index */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_get_current_frame_index_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_gif_get_current_frame_index);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_get_current_frame_index_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_gif_get_current_frame_index, 1);
     
 /* Reusing lv_obj_create for lv_gif_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_create_mpobj, 1, mp_lv_obj_create, lv_gif_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_gif_create_mpobj, 1, mp_lv_obj_create, lv_gif_create, 1);
     
 
 /*
@@ -25260,7 +25269,7 @@ static mp_obj_t mp_lv_imagebutton_set_src(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_imagebutton_set_src_mpobj, 5, mp_lv_imagebutton_set_src, lv_imagebutton_set_src);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_imagebutton_set_src_mpobj, 5, mp_lv_imagebutton_set_src, lv_imagebutton_set_src, 1);
     
 
 /*
@@ -25279,15 +25288,15 @@ static mp_obj_t mp_lv_imagebutton_set_src_left(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_imagebutton_set_src_left_mpobj, 3, mp_lv_imagebutton_set_src_left, lv_imagebutton_set_src_left);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_imagebutton_set_src_left_mpobj, 3, mp_lv_imagebutton_set_src_left, lv_imagebutton_set_src_left, 1);
     
 /* Reusing lv_imagebutton_set_src_left for lv_imagebutton_set_src_right */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_imagebutton_set_src_right_mpobj, 3, mp_lv_imagebutton_set_src_left, lv_imagebutton_set_src_right);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_imagebutton_set_src_right_mpobj, 3, mp_lv_imagebutton_set_src_left, lv_imagebutton_set_src_right, 1);
     
 /* Reusing lv_imagebutton_set_src_left for lv_imagebutton_set_src_mid */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_imagebutton_set_src_mid_mpobj, 3, mp_lv_imagebutton_set_src_left, lv_imagebutton_set_src_mid);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_imagebutton_set_src_mid_mpobj, 3, mp_lv_imagebutton_set_src_left, lv_imagebutton_set_src_mid, 1);
     
 
 /*
@@ -25305,7 +25314,7 @@ static mp_obj_t mp_lv_imagebutton_set_state(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_imagebutton_set_state_mpobj, 2, mp_lv_imagebutton_set_state, lv_imagebutton_set_state);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_imagebutton_set_state_mpobj, 2, mp_lv_imagebutton_set_state, lv_imagebutton_set_state, 1);
     
 
 /*
@@ -25323,19 +25332,19 @@ static mp_obj_t mp_lv_imagebutton_get_src_left(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_imagebutton_get_src_left_mpobj, 2, mp_lv_imagebutton_get_src_left, lv_imagebutton_get_src_left);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_imagebutton_get_src_left_mpobj, 2, mp_lv_imagebutton_get_src_left, lv_imagebutton_get_src_left, 1);
     
 /* Reusing lv_imagebutton_get_src_left for lv_imagebutton_get_src_middle */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_imagebutton_get_src_middle_mpobj, 2, mp_lv_imagebutton_get_src_left, lv_imagebutton_get_src_middle);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_imagebutton_get_src_middle_mpobj, 2, mp_lv_imagebutton_get_src_left, lv_imagebutton_get_src_middle, 1);
     
 /* Reusing lv_imagebutton_get_src_left for lv_imagebutton_get_src_right */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_imagebutton_get_src_right_mpobj, 2, mp_lv_imagebutton_get_src_left, lv_imagebutton_get_src_right);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_imagebutton_get_src_right_mpobj, 2, mp_lv_imagebutton_get_src_left, lv_imagebutton_get_src_right, 1);
     
 /* Reusing lv_obj_create for lv_imagebutton_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_imagebutton_create_mpobj, 1, mp_lv_obj_create, lv_imagebutton_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_imagebutton_create_mpobj, 1, mp_lv_obj_create, lv_imagebutton_create, 1);
     
 
 /*
@@ -25397,7 +25406,7 @@ GENMPY_UNUSED static const mp_lv_obj_type_t mp_lv_imagebutton_type = {
     
 /* Reusing lv_obj_set_parent for lv_keyboard_set_textarea */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_keyboard_set_textarea_mpobj, 2, mp_lv_obj_set_parent, lv_keyboard_set_textarea);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_keyboard_set_textarea_mpobj, 2, mp_lv_obj_set_parent, lv_keyboard_set_textarea, 1);
     
 
 /*
@@ -25415,11 +25424,11 @@ static mp_obj_t mp_lv_keyboard_set_mode(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_keyboard_set_mode_mpobj, 2, mp_lv_keyboard_set_mode, lv_keyboard_set_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_keyboard_set_mode_mpobj, 2, mp_lv_keyboard_set_mode, lv_keyboard_set_mode, 1);
     
 /* Reusing lv_obj_set_hidden for lv_keyboard_set_popovers */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_keyboard_set_popovers_mpobj, 2, mp_lv_obj_set_hidden, lv_keyboard_set_popovers);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_keyboard_set_popovers_mpobj, 2, mp_lv_obj_set_hidden, lv_keyboard_set_popovers, 1);
     
 
 /*
@@ -25439,11 +25448,11 @@ static mp_obj_t mp_lv_keyboard_set_map(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_keyboard_set_map_mpobj, 4, mp_lv_keyboard_set_map, lv_keyboard_set_map);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_keyboard_set_map_mpobj, 4, mp_lv_keyboard_set_map, lv_keyboard_set_map, 1);
     
 /* Reusing lv_obj_get_screen for lv_keyboard_get_textarea */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_keyboard_get_textarea_mpobj, 1, mp_lv_obj_get_screen, lv_keyboard_get_textarea);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_keyboard_get_textarea_mpobj, 1, mp_lv_obj_get_screen, lv_keyboard_get_textarea, 1);
     
 
 /*
@@ -25460,27 +25469,27 @@ static mp_obj_t mp_lv_keyboard_get_mode(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_keyboard_get_mode_mpobj, 1, mp_lv_keyboard_get_mode, lv_keyboard_get_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_keyboard_get_mode_mpobj, 1, mp_lv_keyboard_get_mode, lv_keyboard_get_mode, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_keyboard_get_popovers */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_keyboard_get_popovers_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_keyboard_get_popovers);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_keyboard_get_popovers_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_keyboard_get_popovers, 1);
     
 /* Reusing lv_obj_get_child_count for lv_keyboard_get_selected_button */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_keyboard_get_selected_button_mpobj, 1, mp_lv_obj_get_child_count, lv_keyboard_get_selected_button);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_keyboard_get_selected_button_mpobj, 1, mp_lv_obj_get_child_count, lv_keyboard_get_selected_button, 1);
     
 /* Reusing lv_buttonmatrix_get_button_text for lv_keyboard_get_button_text */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_keyboard_get_button_text_mpobj, 2, mp_lv_buttonmatrix_get_button_text, lv_keyboard_get_button_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_keyboard_get_button_text_mpobj, 2, mp_lv_buttonmatrix_get_button_text, lv_keyboard_get_button_text, 1);
     
 /* Reusing funcptr_event_cb for lv_keyboard_def_event_cb */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_keyboard_def_event_cb_mpobj, 1, mp_funcptr_event_cb, lv_keyboard_def_event_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_keyboard_def_event_cb_mpobj, 1, mp_funcptr_event_cb, lv_keyboard_def_event_cb, 1);
     
 /* Reusing lv_obj_create for lv_keyboard_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_keyboard_create_mpobj, 1, mp_lv_obj_create, lv_keyboard_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_keyboard_create_mpobj, 1, mp_lv_obj_create, lv_keyboard_create, 1);
     
 
 /*
@@ -25544,23 +25553,23 @@ GENMPY_UNUSED static const mp_lv_obj_type_t mp_lv_keyboard_type = {
     
 /* Reusing lv_barcode_set_dark_color for lv_led_set_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_led_set_color_mpobj, 2, mp_lv_barcode_set_dark_color, lv_led_set_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_led_set_color_mpobj, 2, mp_lv_barcode_set_dark_color, lv_led_set_color, 1);
     
 /* Reusing lv_obj_set_flex_grow for lv_led_set_brightness */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_led_set_brightness_mpobj, 2, mp_lv_obj_set_flex_grow, lv_led_set_brightness);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_led_set_brightness_mpobj, 2, mp_lv_obj_set_flex_grow, lv_led_set_brightness, 1);
     
 /* Reusing lv_obj_move_foreground for lv_led_on */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_led_on_mpobj, 1, mp_lv_obj_move_foreground, lv_led_on);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_led_on_mpobj, 1, mp_lv_obj_move_foreground, lv_led_on, 1);
     
 /* Reusing lv_obj_move_foreground for lv_led_off */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_led_off_mpobj, 1, mp_lv_obj_move_foreground, lv_led_off);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_led_off_mpobj, 1, mp_lv_obj_move_foreground, lv_led_off, 1);
     
 /* Reusing lv_obj_move_foreground for lv_led_toggle */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_led_toggle_mpobj, 1, mp_lv_obj_move_foreground, lv_led_toggle);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_led_toggle_mpobj, 1, mp_lv_obj_move_foreground, lv_led_toggle, 1);
     
 
 /*
@@ -25577,7 +25586,7 @@ static mp_obj_t mp_lv_led_get_brightness(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_led_get_brightness_mpobj, 1, mp_lv_led_get_brightness, lv_led_get_brightness);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_led_get_brightness_mpobj, 1, mp_lv_led_get_brightness, lv_led_get_brightness, 1);
     
 
 /*
@@ -25594,11 +25603,11 @@ static mp_obj_t mp_lv_led_get_color(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_led_get_color_mpobj, 1, mp_lv_led_get_color, lv_led_get_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_led_get_color_mpobj, 1, mp_lv_led_get_color, lv_led_get_color, 1);
     
 /* Reusing lv_obj_create for lv_led_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_led_create_mpobj, 1, mp_lv_obj_create, lv_led_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_led_create_mpobj, 1, mp_lv_obj_create, lv_led_create, 1);
     
 
 /*
@@ -25704,7 +25713,7 @@ static mp_obj_t mp_lv_line_set_points(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_line_set_points_mpobj, 3, mp_lv_line_set_points, lv_line_set_points);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_line_set_points_mpobj, 3, mp_lv_line_set_points, lv_line_set_points, 1);
     
 
 /*
@@ -25723,11 +25732,11 @@ static mp_obj_t mp_lv_line_set_points_mutable(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_line_set_points_mutable_mpobj, 3, mp_lv_line_set_points_mutable, lv_line_set_points_mutable);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_line_set_points_mutable_mpobj, 3, mp_lv_line_set_points_mutable, lv_line_set_points_mutable, 1);
     
 /* Reusing lv_obj_set_hidden for lv_line_set_y_invert */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_line_set_y_invert_mpobj, 2, mp_lv_obj_set_hidden, lv_line_set_y_invert);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_line_set_y_invert_mpobj, 2, mp_lv_obj_set_hidden, lv_line_set_y_invert, 1);
     
 
 /*
@@ -25744,15 +25753,15 @@ static mp_obj_t mp_lv_line_get_points(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_line_get_points_mpobj, 1, mp_lv_line_get_points, lv_line_get_points);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_line_get_points_mpobj, 1, mp_lv_line_get_points, lv_line_get_points, 1);
     
 /* Reusing lv_obj_get_event_count for lv_line_get_point_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_line_get_point_count_mpobj, 1, mp_lv_obj_get_event_count, lv_line_get_point_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_line_get_point_count_mpobj, 1, mp_lv_obj_get_event_count, lv_line_get_point_count, 1);
     
 /* Reusing lv_obj_refr_size for lv_line_is_point_array_mutable */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_line_is_point_array_mutable_mpobj, 1, mp_lv_obj_refr_size, lv_line_is_point_array_mutable);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_line_is_point_array_mutable_mpobj, 1, mp_lv_obj_refr_size, lv_line_is_point_array_mutable, 1);
     
 
 /*
@@ -25769,15 +25778,15 @@ static mp_obj_t mp_lv_line_get_points_mutable(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_line_get_points_mutable_mpobj, 1, mp_lv_line_get_points_mutable, lv_line_get_points_mutable);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_line_get_points_mutable_mpobj, 1, mp_lv_line_get_points_mutable, lv_line_get_points_mutable, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_line_get_y_invert */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_line_get_y_invert_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_line_get_y_invert);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_line_get_y_invert_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_line_get_y_invert, 1);
     
 /* Reusing lv_obj_create for lv_line_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_line_create_mpobj, 1, mp_lv_obj_create, lv_line_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_line_create_mpobj, 1, mp_lv_obj_create, lv_line_create, 1);
     
 
 /*
@@ -25852,7 +25861,7 @@ static mp_obj_t mp_lv_list_add_text(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_list_add_text_mpobj, 2, mp_lv_list_add_text, lv_list_add_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_list_add_text_mpobj, 2, mp_lv_list_add_text, lv_list_add_text, 1);
     
 
 /*
@@ -25871,7 +25880,7 @@ static mp_obj_t mp_lv_list_add_button(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_list_add_button_mpobj, 3, mp_lv_list_add_button, lv_list_add_button);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_list_add_button_mpobj, 3, mp_lv_list_add_button, lv_list_add_button, 1);
     
 
 /*
@@ -25889,7 +25898,7 @@ static mp_obj_t mp_lv_list_get_button_text(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_list_get_button_text_mpobj, 2, mp_lv_list_get_button_text, lv_list_get_button_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_list_get_button_text_mpobj, 2, mp_lv_list_get_button_text, lv_list_get_button_text, 1);
     
 
 /*
@@ -25908,11 +25917,11 @@ static mp_obj_t mp_lv_list_set_button_text(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_list_set_button_text_mpobj, 3, mp_lv_list_set_button_text, lv_list_set_button_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_list_set_button_text_mpobj, 3, mp_lv_list_set_button_text, lv_list_set_button_text, 1);
     
 /* Reusing lv_obj_create for lv_list_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_list_create_mpobj, 1, mp_lv_obj_create, lv_list_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_list_create_mpobj, 1, mp_lv_obj_create, lv_list_create, 1);
     
 
 /*
@@ -25969,7 +25978,7 @@ GENMPY_UNUSED static const mp_lv_obj_type_t mp_lv_list_type = {
     
 /* Reusing lv_obj_set_parent for lv_menu_set_page */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_set_page_mpobj, 2, mp_lv_obj_set_parent, lv_menu_set_page);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_set_page_mpobj, 2, mp_lv_obj_set_parent, lv_menu_set_page, 1);
     
 
 /*
@@ -25987,15 +25996,15 @@ static mp_obj_t mp_lv_menu_set_page_title(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_set_page_title_mpobj, 2, mp_lv_menu_set_page_title, lv_menu_set_page_title);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_set_page_title_mpobj, 2, mp_lv_menu_set_page_title, lv_menu_set_page_title, 1);
     
 /* Reusing lv_menu_set_page_title for lv_menu_set_page_title_static */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_set_page_title_static_mpobj, 2, mp_lv_menu_set_page_title, lv_menu_set_page_title_static);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_set_page_title_static_mpobj, 2, mp_lv_menu_set_page_title, lv_menu_set_page_title_static, 1);
     
 /* Reusing lv_obj_set_parent for lv_menu_set_sidebar_page */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_set_sidebar_page_mpobj, 2, mp_lv_obj_set_parent, lv_menu_set_sidebar_page);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_set_sidebar_page_mpobj, 2, mp_lv_obj_set_parent, lv_menu_set_sidebar_page, 1);
     
 
 /*
@@ -26013,7 +26022,7 @@ static mp_obj_t mp_lv_menu_set_mode_header(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_set_mode_header_mpobj, 2, mp_lv_menu_set_mode_header, lv_menu_set_mode_header);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_set_mode_header_mpobj, 2, mp_lv_menu_set_mode_header, lv_menu_set_mode_header, 1);
     
 
 /*
@@ -26031,7 +26040,7 @@ static mp_obj_t mp_lv_menu_set_mode_root_back_button(size_t mp_n_args, const mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_set_mode_root_back_button_mpobj, 2, mp_lv_menu_set_mode_root_back_button, lv_menu_set_mode_root_back_button);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_set_mode_root_back_button_mpobj, 2, mp_lv_menu_set_mode_root_back_button, lv_menu_set_mode_root_back_button, 1);
     
 
 /*
@@ -26050,31 +26059,31 @@ static mp_obj_t mp_lv_menu_set_load_page_event(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_set_load_page_event_mpobj, 3, mp_lv_menu_set_load_page_event, lv_menu_set_load_page_event);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_set_load_page_event_mpobj, 3, mp_lv_menu_set_load_page_event, lv_menu_set_load_page_event, 1);
     
 /* Reusing lv_obj_create for lv_menu_get_cur_main_page */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_get_cur_main_page_mpobj, 1, mp_lv_obj_create, lv_menu_get_cur_main_page);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_get_cur_main_page_mpobj, 1, mp_lv_obj_create, lv_menu_get_cur_main_page, 1);
     
 /* Reusing lv_obj_create for lv_menu_get_cur_sidebar_page */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_get_cur_sidebar_page_mpobj, 1, mp_lv_obj_create, lv_menu_get_cur_sidebar_page);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_get_cur_sidebar_page_mpobj, 1, mp_lv_obj_create, lv_menu_get_cur_sidebar_page, 1);
     
 /* Reusing lv_obj_create for lv_menu_get_main_header */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_get_main_header_mpobj, 1, mp_lv_obj_create, lv_menu_get_main_header);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_get_main_header_mpobj, 1, mp_lv_obj_create, lv_menu_get_main_header, 1);
     
 /* Reusing lv_obj_create for lv_menu_get_main_header_back_button */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_get_main_header_back_button_mpobj, 1, mp_lv_obj_create, lv_menu_get_main_header_back_button);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_get_main_header_back_button_mpobj, 1, mp_lv_obj_create, lv_menu_get_main_header_back_button, 1);
     
 /* Reusing lv_obj_create for lv_menu_get_sidebar_header */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_get_sidebar_header_mpobj, 1, mp_lv_obj_create, lv_menu_get_sidebar_header);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_get_sidebar_header_mpobj, 1, mp_lv_obj_create, lv_menu_get_sidebar_header, 1);
     
 /* Reusing lv_obj_create for lv_menu_get_sidebar_header_back_button */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_get_sidebar_header_back_button_mpobj, 1, mp_lv_obj_create, lv_menu_get_sidebar_header_back_button);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_get_sidebar_header_back_button_mpobj, 1, mp_lv_obj_create, lv_menu_get_sidebar_header_back_button, 1);
     
 
 /*
@@ -26092,7 +26101,7 @@ static mp_obj_t mp_lv_menu_back_button_is_root(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_back_button_is_root_mpobj, 2, mp_lv_menu_back_button_is_root, lv_menu_back_button_is_root);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_back_button_is_root_mpobj, 2, mp_lv_menu_back_button_is_root, lv_menu_back_button_is_root, 1);
     
 
 /*
@@ -26109,7 +26118,7 @@ static mp_obj_t mp_lv_menu_get_mode_header(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_get_mode_header_mpobj, 1, mp_lv_menu_get_mode_header, lv_menu_get_mode_header);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_get_mode_header_mpobj, 1, mp_lv_menu_get_mode_header, lv_menu_get_mode_header, 1);
     
 
 /*
@@ -26126,15 +26135,15 @@ static mp_obj_t mp_lv_menu_get_mode_root_back_button(size_t mp_n_args, const mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_get_mode_root_back_button_mpobj, 1, mp_lv_menu_get_mode_root_back_button, lv_menu_get_mode_root_back_button);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_get_mode_root_back_button_mpobj, 1, mp_lv_menu_get_mode_root_back_button, lv_menu_get_mode_root_back_button, 1);
     
 /* Reusing lv_obj_move_foreground for lv_menu_clear_history */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_clear_history_mpobj, 1, mp_lv_obj_move_foreground, lv_menu_clear_history);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_clear_history_mpobj, 1, mp_lv_obj_move_foreground, lv_menu_clear_history, 1);
     
 /* Reusing lv_obj_create for lv_menu_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_create_mpobj, 1, mp_lv_obj_create, lv_menu_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_create_mpobj, 1, mp_lv_obj_create, lv_menu_create, 1);
     
 
 /*
@@ -26220,7 +26229,7 @@ static mp_obj_t mp_lv_menu_page_create(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_page_create_mpobj, 2, mp_lv_menu_page_create, lv_menu_page_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_page_create_mpobj, 2, mp_lv_menu_page_create, lv_menu_page_create, 1);
     
 
 /*
@@ -26274,7 +26283,7 @@ GENMPY_UNUSED static const mp_lv_obj_type_t mp_lv_menu_page_type = {
     
 /* Reusing lv_obj_create for lv_menu_cont_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_cont_create_mpobj, 1, mp_lv_obj_create, lv_menu_cont_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_cont_create_mpobj, 1, mp_lv_obj_create, lv_menu_cont_create, 1);
     
 
 /*
@@ -26328,7 +26337,7 @@ GENMPY_UNUSED static const mp_lv_obj_type_t mp_lv_menu_cont_type = {
     
 /* Reusing lv_obj_create for lv_menu_section_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_section_create_mpobj, 1, mp_lv_obj_create, lv_menu_section_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_section_create_mpobj, 1, mp_lv_obj_create, lv_menu_section_create, 1);
     
 
 /*
@@ -26382,7 +26391,7 @@ GENMPY_UNUSED static const mp_lv_obj_type_t mp_lv_menu_section_type = {
     
 /* Reusing lv_obj_create for lv_menu_separator_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_separator_create_mpobj, 1, mp_lv_obj_create, lv_menu_separator_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_menu_separator_create_mpobj, 1, mp_lv_obj_create, lv_menu_separator_create, 1);
     
 
 /*
@@ -26436,7 +26445,7 @@ GENMPY_UNUSED static const mp_lv_obj_type_t mp_lv_menu_separator_type = {
     
 /* Reusing lv_list_add_text for lv_msgbox_add_title */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_add_title_mpobj, 2, mp_lv_list_add_text, lv_msgbox_add_title);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_add_title_mpobj, 2, mp_lv_list_add_text, lv_msgbox_add_title, 1);
     
 
 /*
@@ -26454,47 +26463,47 @@ static mp_obj_t mp_lv_msgbox_add_header_button(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_add_header_button_mpobj, 2, mp_lv_msgbox_add_header_button, lv_msgbox_add_header_button);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_add_header_button_mpobj, 2, mp_lv_msgbox_add_header_button, lv_msgbox_add_header_button, 1);
     
 /* Reusing lv_list_add_text for lv_msgbox_add_text */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_add_text_mpobj, 2, mp_lv_list_add_text, lv_msgbox_add_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_add_text_mpobj, 2, mp_lv_list_add_text, lv_msgbox_add_text, 1);
     
 /* Reusing lv_list_add_text for lv_msgbox_add_footer_button */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_add_footer_button_mpobj, 2, mp_lv_list_add_text, lv_msgbox_add_footer_button);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_add_footer_button_mpobj, 2, mp_lv_list_add_text, lv_msgbox_add_footer_button, 1);
     
 /* Reusing lv_obj_create for lv_msgbox_add_close_button */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_add_close_button_mpobj, 1, mp_lv_obj_create, lv_msgbox_add_close_button);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_add_close_button_mpobj, 1, mp_lv_obj_create, lv_msgbox_add_close_button, 1);
     
 /* Reusing lv_obj_create for lv_msgbox_get_header */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_get_header_mpobj, 1, mp_lv_obj_create, lv_msgbox_get_header);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_get_header_mpobj, 1, mp_lv_obj_create, lv_msgbox_get_header, 1);
     
 /* Reusing lv_obj_create for lv_msgbox_get_footer */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_get_footer_mpobj, 1, mp_lv_obj_create, lv_msgbox_get_footer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_get_footer_mpobj, 1, mp_lv_obj_create, lv_msgbox_get_footer, 1);
     
 /* Reusing lv_obj_create for lv_msgbox_get_content */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_get_content_mpobj, 1, mp_lv_obj_create, lv_msgbox_get_content);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_get_content_mpobj, 1, mp_lv_obj_create, lv_msgbox_get_content, 1);
     
 /* Reusing lv_obj_create for lv_msgbox_get_title */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_get_title_mpobj, 1, mp_lv_obj_create, lv_msgbox_get_title);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_get_title_mpobj, 1, mp_lv_obj_create, lv_msgbox_get_title, 1);
     
 /* Reusing lv_obj_move_foreground for lv_msgbox_close */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_close_mpobj, 1, mp_lv_obj_move_foreground, lv_msgbox_close);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_close_mpobj, 1, mp_lv_obj_move_foreground, lv_msgbox_close, 1);
     
 /* Reusing lv_obj_move_foreground for lv_msgbox_close_async */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_close_async_mpobj, 1, mp_lv_obj_move_foreground, lv_msgbox_close_async);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_close_async_mpobj, 1, mp_lv_obj_move_foreground, lv_msgbox_close_async, 1);
     
 /* Reusing lv_obj_create for lv_msgbox_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_create_mpobj, 1, mp_lv_obj_create, lv_msgbox_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_msgbox_create_mpobj, 1, mp_lv_obj_create, lv_msgbox_create, 1);
     
 
 /*
@@ -26558,15 +26567,15 @@ GENMPY_UNUSED static const mp_lv_obj_type_t mp_lv_msgbox_type = {
     
 /* Reusing lv_obj_move_to_index for lv_qrcode_set_size */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_set_size_mpobj, 2, mp_lv_obj_move_to_index, lv_qrcode_set_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_set_size_mpobj, 2, mp_lv_obj_move_to_index, lv_qrcode_set_size, 1);
     
 /* Reusing lv_barcode_set_dark_color for lv_qrcode_set_dark_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_set_dark_color_mpobj, 2, mp_lv_barcode_set_dark_color, lv_qrcode_set_dark_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_set_dark_color_mpobj, 2, mp_lv_barcode_set_dark_color, lv_qrcode_set_dark_color, 1);
     
 /* Reusing lv_barcode_set_dark_color for lv_qrcode_set_light_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_set_light_color_mpobj, 2, mp_lv_barcode_set_dark_color, lv_qrcode_set_light_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_set_light_color_mpobj, 2, mp_lv_barcode_set_dark_color, lv_qrcode_set_light_color, 1);
     
 
 /*
@@ -26585,19 +26594,19 @@ static mp_obj_t mp_lv_qrcode_update(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_update_mpobj, 3, mp_lv_qrcode_update, lv_qrcode_update);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_update_mpobj, 3, mp_lv_qrcode_update, lv_qrcode_update, 1);
     
 /* Reusing lv_arclabel_set_text for lv_qrcode_set_data */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_set_data_mpobj, 2, mp_lv_arclabel_set_text, lv_qrcode_set_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_set_data_mpobj, 2, mp_lv_arclabel_set_text, lv_qrcode_set_data, 1);
     
 /* Reusing lv_barcode_render for lv_qrcode_render */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_render_mpobj, 1, mp_lv_barcode_render, lv_qrcode_render);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_render_mpobj, 1, mp_lv_barcode_render, lv_qrcode_render, 1);
     
 /* Reusing lv_obj_set_hidden for lv_qrcode_set_quiet_zone */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_set_quiet_zone_mpobj, 2, mp_lv_obj_set_hidden, lv_qrcode_set_quiet_zone);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_set_quiet_zone_mpobj, 2, mp_lv_obj_set_hidden, lv_qrcode_set_quiet_zone, 1);
     
 
 /*
@@ -26615,7 +26624,7 @@ static mp_obj_t mp_lv_qrcode_set_update_mode(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_set_update_mode_mpobj, 2, mp_lv_qrcode_set_update_mode, lv_qrcode_set_update_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_set_update_mode_mpobj, 2, mp_lv_qrcode_set_update_mode, lv_qrcode_set_update_mode, 1);
     
 
 /*
@@ -26632,15 +26641,15 @@ static mp_obj_t mp_lv_qrcode_get_update_mode(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_get_update_mode_mpobj, 1, mp_lv_qrcode_get_update_mode, lv_qrcode_get_update_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_get_update_mode_mpobj, 1, mp_lv_qrcode_get_update_mode, lv_qrcode_get_update_mode, 1);
     
 /* Reusing lv_obj_refr_size for lv_qrcode_is_render_valid */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_is_render_valid_mpobj, 1, mp_lv_obj_refr_size, lv_qrcode_is_render_valid);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_is_render_valid_mpobj, 1, mp_lv_obj_refr_size, lv_qrcode_is_render_valid, 1);
     
 /* Reusing lv_obj_create for lv_qrcode_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_create_mpobj, 1, mp_lv_obj_create, lv_qrcode_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_qrcode_create_mpobj, 1, mp_lv_obj_create, lv_qrcode_create, 1);
     
 
 /*
@@ -26719,7 +26728,7 @@ static mp_obj_t mp_lv_roller_set_options(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_set_options_mpobj, 3, mp_lv_roller_set_options, lv_roller_set_options);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_set_options_mpobj, 3, mp_lv_roller_set_options, lv_roller_set_options, 1);
     
 
 /*
@@ -26738,7 +26747,7 @@ static mp_obj_t mp_lv_roller_set_selected(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_set_selected_mpobj, 3, mp_lv_roller_set_selected, lv_roller_set_selected);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_set_selected_mpobj, 3, mp_lv_roller_set_selected, lv_roller_set_selected, 1);
     
 
 /*
@@ -26757,27 +26766,27 @@ static mp_obj_t mp_lv_roller_set_selected_str(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_set_selected_str_mpobj, 3, mp_lv_roller_set_selected_str, lv_roller_set_selected_str);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_set_selected_str_mpobj, 3, mp_lv_roller_set_selected_str, lv_roller_set_selected_str, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_roller_set_visible_row_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_set_visible_row_count_mpobj, 2, mp_lv_obj_delete_delayed, lv_roller_set_visible_row_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_set_visible_row_count_mpobj, 2, mp_lv_obj_delete_delayed, lv_roller_set_visible_row_count, 1);
     
 /* Reusing lv_obj_get_child_count for lv_roller_get_selected */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_get_selected_mpobj, 1, mp_lv_obj_get_child_count, lv_roller_get_selected);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_get_selected_mpobj, 1, mp_lv_obj_get_child_count, lv_roller_get_selected, 1);
     
 /* Reusing lv_dropdown_get_selected_str for lv_roller_get_selected_str */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_get_selected_str_mpobj, 3, mp_lv_dropdown_get_selected_str, lv_roller_get_selected_str);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_get_selected_str_mpobj, 3, mp_lv_dropdown_get_selected_str, lv_roller_get_selected_str, 1);
     
 /* Reusing lv_checkbox_get_text for lv_roller_get_options */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_get_options_mpobj, 1, mp_lv_checkbox_get_text, lv_roller_get_options);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_get_options_mpobj, 1, mp_lv_checkbox_get_text, lv_roller_get_options, 1);
     
 /* Reusing lv_obj_get_child_count for lv_roller_get_option_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_get_option_count_mpobj, 1, mp_lv_obj_get_child_count, lv_roller_get_option_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_get_option_count_mpobj, 1, mp_lv_obj_get_child_count, lv_roller_get_option_count, 1);
     
 
 /*
@@ -26797,15 +26806,15 @@ static mp_obj_t mp_lv_roller_get_option_str(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_get_option_str_mpobj, 4, mp_lv_roller_get_option_str, lv_roller_get_option_str);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_get_option_str_mpobj, 4, mp_lv_roller_get_option_str, lv_roller_get_option_str, 1);
     
 /* Reusing lv_obj_bind_checked for lv_roller_bind_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_bind_value_mpobj, 2, mp_lv_obj_bind_checked, lv_roller_bind_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_bind_value_mpobj, 2, mp_lv_obj_bind_checked, lv_roller_bind_value, 1);
     
 /* Reusing lv_obj_create for lv_roller_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_create_mpobj, 1, mp_lv_obj_create, lv_roller_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_roller_create_mpobj, 1, mp_lv_obj_create, lv_roller_create, 1);
     
 
 /*
@@ -26883,39 +26892,39 @@ static mp_obj_t mp_lv_scale_set_mode(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_mode_mpobj, 2, mp_lv_scale_set_mode, lv_scale_set_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_mode_mpobj, 2, mp_lv_scale_set_mode, lv_scale_set_mode, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_scale_set_total_tick_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_total_tick_count_mpobj, 2, mp_lv_obj_delete_delayed, lv_scale_set_total_tick_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_total_tick_count_mpobj, 2, mp_lv_obj_delete_delayed, lv_scale_set_total_tick_count, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_scale_set_major_tick_every */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_major_tick_every_mpobj, 2, mp_lv_obj_delete_delayed, lv_scale_set_major_tick_every);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_major_tick_every_mpobj, 2, mp_lv_obj_delete_delayed, lv_scale_set_major_tick_every, 1);
     
 /* Reusing lv_obj_set_hidden for lv_scale_set_label_show */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_label_show_mpobj, 2, mp_lv_obj_set_hidden, lv_scale_set_label_show);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_label_show_mpobj, 2, mp_lv_obj_set_hidden, lv_scale_set_label_show, 1);
     
 /* Reusing lv_obj_set_pos for lv_scale_set_range */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_range_mpobj, 3, mp_lv_obj_set_pos, lv_scale_set_range);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_range_mpobj, 3, mp_lv_obj_set_pos, lv_scale_set_range, 1);
     
 /* Reusing lv_obj_move_to_index for lv_scale_set_min_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_min_value_mpobj, 2, mp_lv_obj_move_to_index, lv_scale_set_min_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_min_value_mpobj, 2, mp_lv_obj_move_to_index, lv_scale_set_min_value, 1);
     
 /* Reusing lv_obj_move_to_index for lv_scale_set_max_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_max_value_mpobj, 2, mp_lv_obj_move_to_index, lv_scale_set_max_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_max_value_mpobj, 2, mp_lv_obj_move_to_index, lv_scale_set_max_value, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_scale_set_angle_range */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_angle_range_mpobj, 2, mp_lv_obj_delete_delayed, lv_scale_set_angle_range);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_angle_range_mpobj, 2, mp_lv_obj_delete_delayed, lv_scale_set_angle_range, 1);
     
 /* Reusing lv_obj_move_to_index for lv_scale_set_rotation */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_rotation_mpobj, 2, mp_lv_obj_move_to_index, lv_scale_set_rotation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_rotation_mpobj, 2, mp_lv_obj_move_to_index, lv_scale_set_rotation, 1);
     
 
 /*
@@ -26935,7 +26944,7 @@ static mp_obj_t mp_lv_scale_set_line_needle_value(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_line_needle_value_mpobj, 4, mp_lv_scale_set_line_needle_value, lv_scale_set_line_needle_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_line_needle_value_mpobj, 4, mp_lv_scale_set_line_needle_value, lv_scale_set_line_needle_value, 1);
     
 
 /*
@@ -26954,7 +26963,7 @@ static mp_obj_t mp_lv_scale_set_image_needle_value(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_image_needle_value_mpobj, 3, mp_lv_scale_set_image_needle_value, lv_scale_set_image_needle_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_image_needle_value_mpobj, 3, mp_lv_scale_set_image_needle_value, lv_scale_set_image_needle_value, 1);
     
 
 /*
@@ -26972,15 +26981,15 @@ static mp_obj_t mp_lv_scale_set_text_src(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_text_src_mpobj, 2, mp_lv_scale_set_text_src, lv_scale_set_text_src);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_text_src_mpobj, 2, mp_lv_scale_set_text_src, lv_scale_set_text_src, 1);
     
 /* Reusing lv_obj_set_hidden for lv_scale_set_post_draw */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_post_draw_mpobj, 2, mp_lv_obj_set_hidden, lv_scale_set_post_draw);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_post_draw_mpobj, 2, mp_lv_obj_set_hidden, lv_scale_set_post_draw, 1);
     
 /* Reusing lv_obj_set_hidden for lv_scale_set_draw_ticks_on_top */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_draw_ticks_on_top_mpobj, 2, mp_lv_obj_set_hidden, lv_scale_set_draw_ticks_on_top);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_draw_ticks_on_top_mpobj, 2, mp_lv_obj_set_hidden, lv_scale_set_draw_ticks_on_top, 1);
     
 
 /*
@@ -27099,7 +27108,7 @@ static mp_obj_t mp_lv_scale_add_section(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_add_section_mpobj, 1, mp_lv_scale_add_section, lv_scale_add_section);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_add_section_mpobj, 1, mp_lv_scale_add_section, lv_scale_add_section, 1);
     
 
 /*
@@ -27118,7 +27127,7 @@ static mp_obj_t mp_lv_scale_section_set_range(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_section_set_range_mpobj, 3, mp_lv_scale_section_set_range, lv_scale_section_set_range);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_section_set_range_mpobj, 3, mp_lv_scale_section_set_range, lv_scale_section_set_range, 1);
     
 
 /*
@@ -27138,7 +27147,7 @@ static mp_obj_t mp_lv_scale_set_section_range(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_section_range_mpobj, 4, mp_lv_scale_set_section_range, lv_scale_set_section_range);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_section_range_mpobj, 4, mp_lv_scale_set_section_range, lv_scale_set_section_range, 1);
     
 
 /*
@@ -27157,11 +27166,11 @@ static mp_obj_t mp_lv_scale_set_section_min_value(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_section_min_value_mpobj, 3, mp_lv_scale_set_section_min_value, lv_scale_set_section_min_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_section_min_value_mpobj, 3, mp_lv_scale_set_section_min_value, lv_scale_set_section_min_value, 1);
     
 /* Reusing lv_scale_set_section_min_value for lv_scale_set_section_max_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_section_max_value_mpobj, 3, mp_lv_scale_set_section_min_value, lv_scale_set_section_max_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_section_max_value_mpobj, 3, mp_lv_scale_set_section_min_value, lv_scale_set_section_max_value, 1);
     
 
 /*
@@ -27180,7 +27189,7 @@ static mp_obj_t mp_lv_scale_section_set_style(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_section_set_style_mpobj, 3, mp_lv_scale_section_set_style, lv_scale_section_set_style);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_section_set_style_mpobj, 3, mp_lv_scale_section_set_style, lv_scale_section_set_style, 1);
     
 
 /*
@@ -27199,15 +27208,15 @@ static mp_obj_t mp_lv_scale_set_section_style_main(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_section_style_main_mpobj, 3, mp_lv_scale_set_section_style_main, lv_scale_set_section_style_main);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_section_style_main_mpobj, 3, mp_lv_scale_set_section_style_main, lv_scale_set_section_style_main, 1);
     
 /* Reusing lv_scale_set_section_style_main for lv_scale_set_section_style_indicator */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_section_style_indicator_mpobj, 3, mp_lv_scale_set_section_style_main, lv_scale_set_section_style_indicator);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_section_style_indicator_mpobj, 3, mp_lv_scale_set_section_style_main, lv_scale_set_section_style_indicator, 1);
     
 /* Reusing lv_scale_set_section_style_main for lv_scale_set_section_style_items */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_section_style_items_mpobj, 3, mp_lv_scale_set_section_style_main, lv_scale_set_section_style_items);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_set_section_style_items_mpobj, 3, mp_lv_scale_set_section_style_main, lv_scale_set_section_style_items, 1);
     
 
 /*
@@ -27224,35 +27233,35 @@ static mp_obj_t mp_lv_scale_get_mode(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_get_mode_mpobj, 1, mp_lv_scale_get_mode, lv_scale_get_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_get_mode_mpobj, 1, mp_lv_scale_get_mode, lv_scale_get_mode, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_scale_get_total_tick_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_get_total_tick_count_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_scale_get_total_tick_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_get_total_tick_count_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_scale_get_total_tick_count, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_scale_get_major_tick_every */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_get_major_tick_every_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_scale_get_major_tick_every);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_get_major_tick_every_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_scale_get_major_tick_every, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_scale_get_rotation */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_get_rotation_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_scale_get_rotation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_get_rotation_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_scale_get_rotation, 1);
     
 /* Reusing lv_obj_refr_size for lv_scale_get_label_show */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_get_label_show_mpobj, 1, mp_lv_obj_refr_size, lv_scale_get_label_show);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_get_label_show_mpobj, 1, mp_lv_obj_refr_size, lv_scale_get_label_show, 1);
     
 /* Reusing lv_obj_get_event_count for lv_scale_get_angle_range */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_get_angle_range_mpobj, 1, mp_lv_obj_get_event_count, lv_scale_get_angle_range);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_get_angle_range_mpobj, 1, mp_lv_obj_get_event_count, lv_scale_get_angle_range, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_scale_get_range_min_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_get_range_min_value_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_scale_get_range_min_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_get_range_min_value_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_scale_get_range_min_value, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_scale_get_range_max_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_get_range_max_value_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_scale_get_range_max_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_get_range_max_value_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_scale_get_range_max_value, 1);
     
 
 /*
@@ -27271,11 +27280,11 @@ static mp_obj_t mp_lv_scale_bind_section_min_value(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_bind_section_min_value_mpobj, 3, mp_lv_scale_bind_section_min_value, lv_scale_bind_section_min_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_bind_section_min_value_mpobj, 3, mp_lv_scale_bind_section_min_value, lv_scale_bind_section_min_value, 1);
     
 /* Reusing lv_scale_bind_section_min_value for lv_scale_bind_section_max_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_bind_section_max_value_mpobj, 3, mp_lv_scale_bind_section_min_value, lv_scale_bind_section_max_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_bind_section_max_value_mpobj, 3, mp_lv_scale_bind_section_min_value, lv_scale_bind_section_max_value, 1);
     
 
 /*
@@ -27295,7 +27304,7 @@ static mp_obj_t mp_lv_scale_bind_line_needle_value(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_bind_line_needle_value_mpobj, 4, mp_lv_scale_bind_line_needle_value, lv_scale_bind_line_needle_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_bind_line_needle_value_mpobj, 4, mp_lv_scale_bind_line_needle_value, lv_scale_bind_line_needle_value, 1);
     
 
 /*
@@ -27314,11 +27323,11 @@ static mp_obj_t mp_lv_scale_bind_image_needle_value(size_t mp_n_args, const mp_o
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_bind_image_needle_value_mpobj, 3, mp_lv_scale_bind_image_needle_value, lv_scale_bind_image_needle_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_bind_image_needle_value_mpobj, 3, mp_lv_scale_bind_image_needle_value, lv_scale_bind_image_needle_value, 1);
     
 /* Reusing lv_obj_create for lv_scale_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_create_mpobj, 1, mp_lv_obj_create, lv_scale_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_scale_create_mpobj, 1, mp_lv_obj_create, lv_scale_create, 1);
     
 
 /*
@@ -27407,23 +27416,23 @@ GENMPY_UNUSED static const mp_lv_obj_type_t mp_lv_scale_type = {
     
 /* Reusing lv_obj_scroll_to_x for lv_slider_set_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_set_value_mpobj, 3, mp_lv_obj_scroll_to_x, lv_slider_set_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_set_value_mpobj, 3, mp_lv_obj_scroll_to_x, lv_slider_set_value, 1);
     
 /* Reusing lv_obj_scroll_to_x for lv_slider_set_start_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_set_start_value_mpobj, 3, mp_lv_obj_scroll_to_x, lv_slider_set_start_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_set_start_value_mpobj, 3, mp_lv_obj_scroll_to_x, lv_slider_set_start_value, 1);
     
 /* Reusing lv_obj_set_pos for lv_slider_set_range */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_set_range_mpobj, 3, mp_lv_obj_set_pos, lv_slider_set_range);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_set_range_mpobj, 3, mp_lv_obj_set_pos, lv_slider_set_range, 1);
     
 /* Reusing lv_obj_move_to_index for lv_slider_set_min_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_set_min_value_mpobj, 2, mp_lv_obj_move_to_index, lv_slider_set_min_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_set_min_value_mpobj, 2, mp_lv_obj_move_to_index, lv_slider_set_min_value, 1);
     
 /* Reusing lv_obj_move_to_index for lv_slider_set_max_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_set_max_value_mpobj, 2, mp_lv_obj_move_to_index, lv_slider_set_max_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_set_max_value_mpobj, 2, mp_lv_obj_move_to_index, lv_slider_set_max_value, 1);
     
 
 /*
@@ -27441,7 +27450,7 @@ static mp_obj_t mp_lv_slider_set_mode(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_set_mode_mpobj, 2, mp_lv_slider_set_mode, lv_slider_set_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_set_mode_mpobj, 2, mp_lv_slider_set_mode, lv_slider_set_mode, 1);
     
 
 /*
@@ -27459,27 +27468,27 @@ static mp_obj_t mp_lv_slider_set_orientation(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_set_orientation_mpobj, 2, mp_lv_slider_set_orientation, lv_slider_set_orientation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_set_orientation_mpobj, 2, mp_lv_slider_set_orientation, lv_slider_set_orientation, 1);
     
 /* Reusing lv_obj_get_index for lv_slider_get_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_get_value_mpobj, 1, mp_lv_obj_get_index, lv_slider_get_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_get_value_mpobj, 1, mp_lv_obj_get_index, lv_slider_get_value, 1);
     
 /* Reusing lv_obj_get_index for lv_slider_get_left_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_get_left_value_mpobj, 1, mp_lv_obj_get_index, lv_slider_get_left_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_get_left_value_mpobj, 1, mp_lv_obj_get_index, lv_slider_get_left_value, 1);
     
 /* Reusing lv_obj_get_index for lv_slider_get_min_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_get_min_value_mpobj, 1, mp_lv_obj_get_index, lv_slider_get_min_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_get_min_value_mpobj, 1, mp_lv_obj_get_index, lv_slider_get_min_value, 1);
     
 /* Reusing lv_obj_get_index for lv_slider_get_max_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_get_max_value_mpobj, 1, mp_lv_obj_get_index, lv_slider_get_max_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_get_max_value_mpobj, 1, mp_lv_obj_get_index, lv_slider_get_max_value, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_slider_is_dragged */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_is_dragged_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_slider_is_dragged);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_is_dragged_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_slider_is_dragged, 1);
     
 
 /*
@@ -27496,7 +27505,7 @@ static mp_obj_t mp_lv_slider_get_mode(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_get_mode_mpobj, 1, mp_lv_slider_get_mode, lv_slider_get_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_get_mode_mpobj, 1, mp_lv_slider_get_mode, lv_slider_get_mode, 1);
     
 
 /*
@@ -27513,19 +27522,19 @@ static mp_obj_t mp_lv_slider_get_orientation(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_get_orientation_mpobj, 1, mp_lv_slider_get_orientation, lv_slider_get_orientation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_get_orientation_mpobj, 1, mp_lv_slider_get_orientation, lv_slider_get_orientation, 1);
     
 /* Reusing lv_obj_refr_size for lv_slider_is_symmetrical */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_is_symmetrical_mpobj, 1, mp_lv_obj_refr_size, lv_slider_is_symmetrical);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_is_symmetrical_mpobj, 1, mp_lv_obj_refr_size, lv_slider_is_symmetrical, 1);
     
 /* Reusing lv_obj_bind_checked for lv_slider_bind_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_bind_value_mpobj, 2, mp_lv_obj_bind_checked, lv_slider_bind_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_bind_value_mpobj, 2, mp_lv_obj_bind_checked, lv_slider_bind_value, 1);
     
 /* Reusing lv_obj_create for lv_slider_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_create_mpobj, 1, mp_lv_obj_create, lv_slider_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_slider_create_mpobj, 1, mp_lv_obj_create, lv_slider_create, 1);
     
 
 /*
@@ -27695,7 +27704,7 @@ static mp_obj_t mp_lv_spangroup_add_span(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_add_span_mpobj, 1, mp_lv_spangroup_add_span, lv_spangroup_add_span);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_add_span_mpobj, 1, mp_lv_spangroup_add_span, lv_spangroup_add_span, 1);
     
 
 /*
@@ -27713,7 +27722,7 @@ static mp_obj_t mp_lv_spangroup_delete_span(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_delete_span_mpobj, 2, mp_lv_spangroup_delete_span, lv_spangroup_delete_span);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_delete_span_mpobj, 2, mp_lv_spangroup_delete_span, lv_spangroup_delete_span, 1);
     
 
 /*
@@ -27732,11 +27741,11 @@ static mp_obj_t mp_lv_spangroup_set_span_text(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_set_span_text_mpobj, 3, mp_lv_spangroup_set_span_text, lv_spangroup_set_span_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_set_span_text_mpobj, 3, mp_lv_spangroup_set_span_text, lv_spangroup_set_span_text, 1);
     
 /* Reusing lv_spangroup_set_span_text for lv_spangroup_set_span_text_static */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_set_span_text_static_mpobj, 3, mp_lv_spangroup_set_span_text, lv_spangroup_set_span_text_static);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_set_span_text_static_mpobj, 3, mp_lv_spangroup_set_span_text, lv_spangroup_set_span_text_static, 1);
     
 
 /*
@@ -27755,7 +27764,7 @@ static mp_obj_t mp_lv_spangroup_set_span_style(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_set_span_style_mpobj, 3, mp_lv_spangroup_set_span_style, lv_spangroup_set_span_style);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_set_span_style_mpobj, 3, mp_lv_spangroup_set_span_style, lv_spangroup_set_span_style, 1);
     
 
 /*
@@ -27773,7 +27782,7 @@ static mp_obj_t mp_lv_spangroup_set_align(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_set_align_mpobj, 2, mp_lv_spangroup_set_align, lv_spangroup_set_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_set_align_mpobj, 2, mp_lv_spangroup_set_align, lv_spangroup_set_align, 1);
     
 
 /*
@@ -27791,11 +27800,11 @@ static mp_obj_t mp_lv_spangroup_set_overflow(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_set_overflow_mpobj, 2, mp_lv_spangroup_set_overflow, lv_spangroup_set_overflow);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_set_overflow_mpobj, 2, mp_lv_spangroup_set_overflow, lv_spangroup_set_overflow, 1);
     
 /* Reusing lv_obj_move_to_index for lv_spangroup_set_indent */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_set_indent_mpobj, 2, mp_lv_obj_move_to_index, lv_spangroup_set_indent);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_set_indent_mpobj, 2, mp_lv_obj_move_to_index, lv_spangroup_set_indent, 1);
     
 
 /*
@@ -27813,11 +27822,11 @@ static mp_obj_t mp_lv_spangroup_set_mode(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_set_mode_mpobj, 2, mp_lv_spangroup_set_mode, lv_spangroup_set_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_set_mode_mpobj, 2, mp_lv_spangroup_set_mode, lv_spangroup_set_mode, 1);
     
 /* Reusing lv_obj_move_to_index for lv_spangroup_set_max_lines */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_set_max_lines_mpobj, 2, mp_lv_obj_move_to_index, lv_spangroup_set_max_lines);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_set_max_lines_mpobj, 2, mp_lv_obj_move_to_index, lv_spangroup_set_max_lines, 1);
     
 
 /*
@@ -27835,11 +27844,11 @@ static mp_obj_t mp_lv_spangroup_get_child(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_child_mpobj, 2, mp_lv_spangroup_get_child, lv_spangroup_get_child);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_child_mpobj, 2, mp_lv_spangroup_get_child, lv_spangroup_get_child, 1);
     
 /* Reusing lv_obj_get_child_count for lv_spangroup_get_span_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_span_count_mpobj, 1, mp_lv_obj_get_child_count, lv_spangroup_get_span_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_span_count_mpobj, 1, mp_lv_obj_get_child_count, lv_spangroup_get_span_count, 1);
     
 
 /*
@@ -27856,7 +27865,7 @@ static mp_obj_t mp_lv_spangroup_get_align(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_align_mpobj, 1, mp_lv_spangroup_get_align, lv_spangroup_get_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_align_mpobj, 1, mp_lv_spangroup_get_align, lv_spangroup_get_align, 1);
     
 
 /*
@@ -27873,11 +27882,11 @@ static mp_obj_t mp_lv_spangroup_get_overflow(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_overflow_mpobj, 1, mp_lv_spangroup_get_overflow, lv_spangroup_get_overflow);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_overflow_mpobj, 1, mp_lv_spangroup_get_overflow, lv_spangroup_get_overflow, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_spangroup_get_indent */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_indent_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_spangroup_get_indent);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_indent_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_spangroup_get_indent, 1);
     
 
 /*
@@ -27894,15 +27903,15 @@ static mp_obj_t mp_lv_spangroup_get_mode(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_mode_mpobj, 1, mp_lv_spangroup_get_mode, lv_spangroup_get_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_mode_mpobj, 1, mp_lv_spangroup_get_mode, lv_spangroup_get_mode, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_spangroup_get_max_lines */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_max_lines_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_spangroup_get_max_lines);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_max_lines_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_spangroup_get_max_lines, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_spangroup_get_max_line_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_max_line_height_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_spangroup_get_max_line_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_max_line_height_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_spangroup_get_max_line_height, 1);
     
 
 /*
@@ -27920,7 +27929,7 @@ static mp_obj_t mp_lv_spangroup_get_expand_width(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_expand_width_mpobj, 2, mp_lv_spangroup_get_expand_width, lv_spangroup_get_expand_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_expand_width_mpobj, 2, mp_lv_spangroup_get_expand_width, lv_spangroup_get_expand_width, 1);
     
 
 /*
@@ -27938,7 +27947,7 @@ static mp_obj_t mp_lv_spangroup_get_expand_height(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_expand_height_mpobj, 2, mp_lv_spangroup_get_expand_height, lv_spangroup_get_expand_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_expand_height_mpobj, 2, mp_lv_spangroup_get_expand_height, lv_spangroup_get_expand_height, 1);
     
 
 /*
@@ -28038,7 +28047,7 @@ static mp_obj_t mp_lv_spangroup_get_span_coords(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_span_coords_mpobj, 2, mp_lv_spangroup_get_span_coords, lv_spangroup_get_span_coords);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_span_coords_mpobj, 2, mp_lv_spangroup_get_span_coords, lv_spangroup_get_span_coords, 1);
     
 
 /*
@@ -28056,11 +28065,11 @@ static mp_obj_t mp_lv_spangroup_get_span_by_point(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_span_by_point_mpobj, 2, mp_lv_spangroup_get_span_by_point, lv_spangroup_get_span_by_point);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_get_span_by_point_mpobj, 2, mp_lv_spangroup_get_span_by_point, lv_spangroup_get_span_by_point, 1);
     
 /* Reusing lv_obj_move_foreground for lv_spangroup_refresh */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_refresh_mpobj, 1, mp_lv_obj_move_foreground, lv_spangroup_refresh);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_refresh_mpobj, 1, mp_lv_obj_move_foreground, lv_spangroup_refresh, 1);
     
 
 /*
@@ -28080,11 +28089,11 @@ static mp_obj_t mp_lv_spangroup_bind_span_text(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_bind_span_text_mpobj, 4, mp_lv_spangroup_bind_span_text, lv_spangroup_bind_span_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_bind_span_text_mpobj, 4, mp_lv_spangroup_bind_span_text, lv_spangroup_bind_span_text, 1);
     
 /* Reusing lv_obj_create for lv_spangroup_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_create_mpobj, 1, mp_lv_obj_create, lv_spangroup_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spangroup_create_mpobj, 1, mp_lv_obj_create, lv_spangroup_create, 1);
     
 
 /*
@@ -28161,155 +28170,155 @@ GENMPY_UNUSED static const mp_lv_obj_type_t mp_lv_spangroup_type = {
     
 /* Reusing lv_obj_delete_delayed for lv_textarea_add_char */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_add_char_mpobj, 2, mp_lv_obj_delete_delayed, lv_textarea_add_char);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_add_char_mpobj, 2, mp_lv_obj_delete_delayed, lv_textarea_add_char, 1);
     
 /* Reusing lv_arclabel_set_text for lv_textarea_add_text */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_add_text_mpobj, 2, mp_lv_arclabel_set_text, lv_textarea_add_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_add_text_mpobj, 2, mp_lv_arclabel_set_text, lv_textarea_add_text, 1);
     
 /* Reusing lv_obj_move_foreground for lv_textarea_delete_char */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_delete_char_mpobj, 1, mp_lv_obj_move_foreground, lv_textarea_delete_char);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_delete_char_mpobj, 1, mp_lv_obj_move_foreground, lv_textarea_delete_char, 1);
     
 /* Reusing lv_obj_move_foreground for lv_textarea_delete_char_forward */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_delete_char_forward_mpobj, 1, mp_lv_obj_move_foreground, lv_textarea_delete_char_forward);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_delete_char_forward_mpobj, 1, mp_lv_obj_move_foreground, lv_textarea_delete_char_forward, 1);
     
 /* Reusing lv_arclabel_set_text for lv_textarea_set_text */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_text_mpobj, 2, mp_lv_arclabel_set_text, lv_textarea_set_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_text_mpobj, 2, mp_lv_arclabel_set_text, lv_textarea_set_text, 1);
     
 /* Reusing lv_arclabel_set_text for lv_textarea_set_placeholder_text */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_placeholder_text_mpobj, 2, mp_lv_arclabel_set_text, lv_textarea_set_placeholder_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_placeholder_text_mpobj, 2, mp_lv_arclabel_set_text, lv_textarea_set_placeholder_text, 1);
     
 /* Reusing lv_obj_move_to_index for lv_textarea_set_cursor_pos */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_cursor_pos_mpobj, 2, mp_lv_obj_move_to_index, lv_textarea_set_cursor_pos);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_cursor_pos_mpobj, 2, mp_lv_obj_move_to_index, lv_textarea_set_cursor_pos, 1);
     
 /* Reusing lv_obj_set_hidden for lv_textarea_set_cursor_click_pos */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_cursor_click_pos_mpobj, 2, mp_lv_obj_set_hidden, lv_textarea_set_cursor_click_pos);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_cursor_click_pos_mpobj, 2, mp_lv_obj_set_hidden, lv_textarea_set_cursor_click_pos, 1);
     
 /* Reusing lv_obj_set_hidden for lv_textarea_set_password_mode */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_password_mode_mpobj, 2, mp_lv_obj_set_hidden, lv_textarea_set_password_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_password_mode_mpobj, 2, mp_lv_obj_set_hidden, lv_textarea_set_password_mode, 1);
     
 /* Reusing lv_arclabel_set_text for lv_textarea_set_password_bullet */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_password_bullet_mpobj, 2, mp_lv_arclabel_set_text, lv_textarea_set_password_bullet);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_password_bullet_mpobj, 2, mp_lv_arclabel_set_text, lv_textarea_set_password_bullet, 1);
     
 /* Reusing lv_obj_set_hidden for lv_textarea_set_one_line */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_one_line_mpobj, 2, mp_lv_obj_set_hidden, lv_textarea_set_one_line);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_one_line_mpobj, 2, mp_lv_obj_set_hidden, lv_textarea_set_one_line, 1);
     
 /* Reusing lv_arclabel_set_text for lv_textarea_set_accepted_chars */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_accepted_chars_mpobj, 2, mp_lv_arclabel_set_text, lv_textarea_set_accepted_chars);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_accepted_chars_mpobj, 2, mp_lv_arclabel_set_text, lv_textarea_set_accepted_chars, 1);
     
 /* Reusing lv_arclabel_set_text for lv_textarea_set_accepted_chars_static */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_accepted_chars_static_mpobj, 2, mp_lv_arclabel_set_text, lv_textarea_set_accepted_chars_static);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_accepted_chars_static_mpobj, 2, mp_lv_arclabel_set_text, lv_textarea_set_accepted_chars_static, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_textarea_set_max_length */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_max_length_mpobj, 2, mp_lv_obj_delete_delayed, lv_textarea_set_max_length);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_max_length_mpobj, 2, mp_lv_obj_delete_delayed, lv_textarea_set_max_length, 1);
     
 /* Reusing lv_arclabel_set_text for lv_textarea_set_insert_replace */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_insert_replace_mpobj, 2, mp_lv_arclabel_set_text, lv_textarea_set_insert_replace);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_insert_replace_mpobj, 2, mp_lv_arclabel_set_text, lv_textarea_set_insert_replace, 1);
     
 /* Reusing lv_obj_set_hidden for lv_textarea_set_text_selection */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_text_selection_mpobj, 2, mp_lv_obj_set_hidden, lv_textarea_set_text_selection);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_text_selection_mpobj, 2, mp_lv_obj_set_hidden, lv_textarea_set_text_selection, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_textarea_set_password_show_time */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_password_show_time_mpobj, 2, mp_lv_obj_delete_delayed, lv_textarea_set_password_show_time);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_password_show_time_mpobj, 2, mp_lv_obj_delete_delayed, lv_textarea_set_password_show_time, 1);
     
 /* Reusing lv_spangroup_set_align for lv_textarea_set_align */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_align_mpobj, 2, mp_lv_spangroup_set_align, lv_textarea_set_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_set_align_mpobj, 2, mp_lv_spangroup_set_align, lv_textarea_set_align, 1);
     
 /* Reusing lv_checkbox_get_text for lv_textarea_get_text */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_text_mpobj, 1, mp_lv_checkbox_get_text, lv_textarea_get_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_text_mpobj, 1, mp_lv_checkbox_get_text, lv_textarea_get_text, 1);
     
 /* Reusing lv_dropdown_get_text for lv_textarea_get_placeholder_text */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_placeholder_text_mpobj, 1, mp_lv_dropdown_get_text, lv_textarea_get_placeholder_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_placeholder_text_mpobj, 1, mp_lv_dropdown_get_text, lv_textarea_get_placeholder_text, 1);
     
 /* Reusing lv_obj_get_screen for lv_textarea_get_label */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_label_mpobj, 1, mp_lv_obj_get_screen, lv_textarea_get_label);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_label_mpobj, 1, mp_lv_obj_get_screen, lv_textarea_get_label, 1);
     
 /* Reusing lv_obj_get_child_count for lv_textarea_get_cursor_pos */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_cursor_pos_mpobj, 1, mp_lv_obj_get_child_count, lv_textarea_get_cursor_pos);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_cursor_pos_mpobj, 1, mp_lv_obj_get_child_count, lv_textarea_get_cursor_pos, 1);
     
 /* Reusing lv_obj_refr_size for lv_textarea_get_cursor_click_pos */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_cursor_click_pos_mpobj, 1, mp_lv_obj_refr_size, lv_textarea_get_cursor_click_pos);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_cursor_click_pos_mpobj, 1, mp_lv_obj_refr_size, lv_textarea_get_cursor_click_pos, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_textarea_get_password_mode */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_password_mode_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_textarea_get_password_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_password_mode_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_textarea_get_password_mode, 1);
     
 /* Reusing lv_dropdown_get_text for lv_textarea_get_password_bullet */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_password_bullet_mpobj, 1, mp_lv_dropdown_get_text, lv_textarea_get_password_bullet);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_password_bullet_mpobj, 1, mp_lv_dropdown_get_text, lv_textarea_get_password_bullet, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_textarea_get_one_line */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_one_line_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_textarea_get_one_line);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_one_line_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_textarea_get_one_line, 1);
     
 /* Reusing lv_dropdown_get_text for lv_textarea_get_accepted_chars */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_accepted_chars_mpobj, 1, mp_lv_dropdown_get_text, lv_textarea_get_accepted_chars);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_accepted_chars_mpobj, 1, mp_lv_dropdown_get_text, lv_textarea_get_accepted_chars, 1);
     
 /* Reusing lv_obj_get_event_count for lv_textarea_get_max_length */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_max_length_mpobj, 1, mp_lv_obj_get_event_count, lv_textarea_get_max_length);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_max_length_mpobj, 1, mp_lv_obj_get_event_count, lv_textarea_get_max_length, 1);
     
 /* Reusing lv_obj_is_layout_positioned for lv_textarea_text_is_selected */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_text_is_selected_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_textarea_text_is_selected);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_text_is_selected_mpobj, 1, mp_lv_obj_is_layout_positioned, lv_textarea_text_is_selected, 1);
     
 /* Reusing lv_obj_refr_size for lv_textarea_get_text_selection */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_text_selection_mpobj, 1, mp_lv_obj_refr_size, lv_textarea_get_text_selection);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_text_selection_mpobj, 1, mp_lv_obj_refr_size, lv_textarea_get_text_selection, 1);
     
 /* Reusing lv_obj_get_event_count for lv_textarea_get_password_show_time */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_password_show_time_mpobj, 1, mp_lv_obj_get_event_count, lv_textarea_get_password_show_time);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_password_show_time_mpobj, 1, mp_lv_obj_get_event_count, lv_textarea_get_password_show_time, 1);
     
 /* Reusing lv_obj_get_event_count for lv_textarea_get_current_char */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_current_char_mpobj, 1, mp_lv_obj_get_event_count, lv_textarea_get_current_char);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_get_current_char_mpobj, 1, mp_lv_obj_get_event_count, lv_textarea_get_current_char, 1);
     
 /* Reusing lv_obj_move_foreground for lv_textarea_clear_selection */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_clear_selection_mpobj, 1, mp_lv_obj_move_foreground, lv_textarea_clear_selection);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_clear_selection_mpobj, 1, mp_lv_obj_move_foreground, lv_textarea_clear_selection, 1);
     
 /* Reusing lv_obj_move_foreground for lv_textarea_cursor_right */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_cursor_right_mpobj, 1, mp_lv_obj_move_foreground, lv_textarea_cursor_right);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_cursor_right_mpobj, 1, mp_lv_obj_move_foreground, lv_textarea_cursor_right, 1);
     
 /* Reusing lv_obj_move_foreground for lv_textarea_cursor_left */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_cursor_left_mpobj, 1, mp_lv_obj_move_foreground, lv_textarea_cursor_left);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_cursor_left_mpobj, 1, mp_lv_obj_move_foreground, lv_textarea_cursor_left, 1);
     
 /* Reusing lv_obj_move_foreground for lv_textarea_cursor_down */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_cursor_down_mpobj, 1, mp_lv_obj_move_foreground, lv_textarea_cursor_down);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_cursor_down_mpobj, 1, mp_lv_obj_move_foreground, lv_textarea_cursor_down, 1);
     
 /* Reusing lv_obj_move_foreground for lv_textarea_cursor_up */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_cursor_up_mpobj, 1, mp_lv_obj_move_foreground, lv_textarea_cursor_up);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_cursor_up_mpobj, 1, mp_lv_obj_move_foreground, lv_textarea_cursor_up, 1);
     
 /* Reusing lv_obj_create for lv_textarea_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_create_mpobj, 1, mp_lv_obj_create, lv_textarea_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_textarea_create_mpobj, 1, mp_lv_obj_create, lv_textarea_create, 1);
     
 
 /*
@@ -28399,75 +28408,75 @@ GENMPY_UNUSED static const mp_lv_obj_type_t mp_lv_textarea_type = {
     
 /* Reusing lv_obj_move_to_index for lv_spinbox_set_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_value_mpobj, 2, mp_lv_obj_move_to_index, lv_spinbox_set_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_value_mpobj, 2, mp_lv_obj_move_to_index, lv_spinbox_set_value, 1);
     
 /* Reusing lv_obj_set_hidden for lv_spinbox_set_rollover */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_rollover_mpobj, 2, mp_lv_obj_set_hidden, lv_spinbox_set_rollover);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_rollover_mpobj, 2, mp_lv_obj_set_hidden, lv_spinbox_set_rollover, 1);
     
 /* Reusing lv_obj_fade_in for lv_spinbox_set_digit_format */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_digit_format_mpobj, 3, mp_lv_obj_fade_in, lv_spinbox_set_digit_format);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_digit_format_mpobj, 3, mp_lv_obj_fade_in, lv_spinbox_set_digit_format, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_spinbox_set_digit_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_digit_count_mpobj, 2, mp_lv_obj_delete_delayed, lv_spinbox_set_digit_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_digit_count_mpobj, 2, mp_lv_obj_delete_delayed, lv_spinbox_set_digit_count, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_spinbox_set_dec_point_pos */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_dec_point_pos_mpobj, 2, mp_lv_obj_delete_delayed, lv_spinbox_set_dec_point_pos);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_dec_point_pos_mpobj, 2, mp_lv_obj_delete_delayed, lv_spinbox_set_dec_point_pos, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_spinbox_set_step */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_step_mpobj, 2, mp_lv_obj_delete_delayed, lv_spinbox_set_step);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_step_mpobj, 2, mp_lv_obj_delete_delayed, lv_spinbox_set_step, 1);
     
 /* Reusing lv_obj_set_pos for lv_spinbox_set_range */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_range_mpobj, 3, mp_lv_obj_set_pos, lv_spinbox_set_range);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_range_mpobj, 3, mp_lv_obj_set_pos, lv_spinbox_set_range, 1);
     
 /* Reusing lv_obj_move_to_index for lv_spinbox_set_min_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_min_value_mpobj, 2, mp_lv_obj_move_to_index, lv_spinbox_set_min_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_min_value_mpobj, 2, mp_lv_obj_move_to_index, lv_spinbox_set_min_value, 1);
     
 /* Reusing lv_obj_move_to_index for lv_spinbox_set_max_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_max_value_mpobj, 2, mp_lv_obj_move_to_index, lv_spinbox_set_max_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_max_value_mpobj, 2, mp_lv_obj_move_to_index, lv_spinbox_set_max_value, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_spinbox_set_cursor_pos */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_cursor_pos_mpobj, 2, mp_lv_obj_delete_delayed, lv_spinbox_set_cursor_pos);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_cursor_pos_mpobj, 2, mp_lv_obj_delete_delayed, lv_spinbox_set_cursor_pos, 1);
     
 /* Reusing lv_obj_set_scroll_dir for lv_spinbox_set_digit_step_direction */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_digit_step_direction_mpobj, 2, mp_lv_obj_set_scroll_dir, lv_spinbox_set_digit_step_direction);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_set_digit_step_direction_mpobj, 2, mp_lv_obj_set_scroll_dir, lv_spinbox_set_digit_step_direction, 1);
     
 /* Reusing lv_obj_refr_size for lv_spinbox_get_rollover */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_get_rollover_mpobj, 1, mp_lv_obj_refr_size, lv_spinbox_get_rollover);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_get_rollover_mpobj, 1, mp_lv_obj_refr_size, lv_spinbox_get_rollover, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_spinbox_get_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_get_value_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_spinbox_get_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_get_value_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_spinbox_get_value, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_spinbox_get_step */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_get_step_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_spinbox_get_step);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_get_step_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_spinbox_get_step, 1);
     
 /* Reusing lv_obj_get_event_count for lv_spinbox_get_digit_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_get_digit_count_mpobj, 1, mp_lv_obj_get_event_count, lv_spinbox_get_digit_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_get_digit_count_mpobj, 1, mp_lv_obj_get_event_count, lv_spinbox_get_digit_count, 1);
     
 /* Reusing lv_obj_get_event_count for lv_spinbox_get_dec_point_pos */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_get_dec_point_pos_mpobj, 1, mp_lv_obj_get_event_count, lv_spinbox_get_dec_point_pos);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_get_dec_point_pos_mpobj, 1, mp_lv_obj_get_event_count, lv_spinbox_get_dec_point_pos, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_spinbox_get_min_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_get_min_value_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_spinbox_get_min_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_get_min_value_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_spinbox_get_min_value, 1);
     
 /* Reusing lv_obj_get_style_clamped_width for lv_spinbox_get_max_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_get_max_value_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_spinbox_get_max_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_get_max_value_mpobj, 1, mp_lv_obj_get_style_clamped_width, lv_spinbox_get_max_value, 1);
     
 
 /*
@@ -28484,31 +28493,31 @@ static mp_obj_t mp_lv_spinbox_get_digit_step_direction(size_t mp_n_args, const m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_get_digit_step_direction_mpobj, 1, mp_lv_spinbox_get_digit_step_direction, lv_spinbox_get_digit_step_direction);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_get_digit_step_direction_mpobj, 1, mp_lv_spinbox_get_digit_step_direction, lv_spinbox_get_digit_step_direction, 1);
     
 /* Reusing lv_obj_move_foreground for lv_spinbox_step_next */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_step_next_mpobj, 1, mp_lv_obj_move_foreground, lv_spinbox_step_next);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_step_next_mpobj, 1, mp_lv_obj_move_foreground, lv_spinbox_step_next, 1);
     
 /* Reusing lv_obj_move_foreground for lv_spinbox_step_prev */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_step_prev_mpobj, 1, mp_lv_obj_move_foreground, lv_spinbox_step_prev);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_step_prev_mpobj, 1, mp_lv_obj_move_foreground, lv_spinbox_step_prev, 1);
     
 /* Reusing lv_obj_move_foreground for lv_spinbox_increment */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_increment_mpobj, 1, mp_lv_obj_move_foreground, lv_spinbox_increment);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_increment_mpobj, 1, mp_lv_obj_move_foreground, lv_spinbox_increment, 1);
     
 /* Reusing lv_obj_move_foreground for lv_spinbox_decrement */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_decrement_mpobj, 1, mp_lv_obj_move_foreground, lv_spinbox_decrement);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_decrement_mpobj, 1, mp_lv_obj_move_foreground, lv_spinbox_decrement, 1);
     
 /* Reusing lv_obj_bind_checked for lv_spinbox_bind_value */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_bind_value_mpobj, 2, mp_lv_obj_bind_checked, lv_spinbox_bind_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_bind_value_mpobj, 2, mp_lv_obj_bind_checked, lv_spinbox_bind_value, 1);
     
 /* Reusing lv_obj_create for lv_spinbox_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_create_mpobj, 1, mp_lv_obj_create, lv_spinbox_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinbox_create_mpobj, 1, mp_lv_obj_create, lv_spinbox_create, 1);
     
 
 /*
@@ -28585,27 +28594,27 @@ GENMPY_UNUSED static const mp_lv_obj_type_t mp_lv_spinbox_type = {
     
 /* Reusing lv_obj_fade_in for lv_spinner_set_anim_params */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinner_set_anim_params_mpobj, 3, mp_lv_obj_fade_in, lv_spinner_set_anim_params);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinner_set_anim_params_mpobj, 3, mp_lv_obj_fade_in, lv_spinner_set_anim_params, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_spinner_set_anim_duration */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinner_set_anim_duration_mpobj, 2, mp_lv_obj_delete_delayed, lv_spinner_set_anim_duration);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinner_set_anim_duration_mpobj, 2, mp_lv_obj_delete_delayed, lv_spinner_set_anim_duration, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_spinner_set_arc_sweep */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinner_set_arc_sweep_mpobj, 2, mp_lv_obj_delete_delayed, lv_spinner_set_arc_sweep);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinner_set_arc_sweep_mpobj, 2, mp_lv_obj_delete_delayed, lv_spinner_set_arc_sweep, 1);
     
 /* Reusing lv_obj_get_event_count for lv_spinner_get_anim_duration */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinner_get_anim_duration_mpobj, 1, mp_lv_obj_get_event_count, lv_spinner_get_anim_duration);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinner_get_anim_duration_mpobj, 1, mp_lv_obj_get_event_count, lv_spinner_get_anim_duration, 1);
     
 /* Reusing lv_obj_get_event_count for lv_spinner_get_arc_sweep */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinner_get_arc_sweep_mpobj, 1, mp_lv_obj_get_event_count, lv_spinner_get_arc_sweep);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinner_get_arc_sweep_mpobj, 1, mp_lv_obj_get_event_count, lv_spinner_get_arc_sweep, 1);
     
 /* Reusing lv_obj_create for lv_spinner_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinner_create_mpobj, 1, mp_lv_obj_create, lv_spinner_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_spinner_create_mpobj, 1, mp_lv_obj_create, lv_spinner_create, 1);
     
 
 /*
@@ -28677,7 +28686,7 @@ static mp_obj_t mp_lv_switch_set_orientation(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_switch_set_orientation_mpobj, 2, mp_lv_switch_set_orientation, lv_switch_set_orientation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_switch_set_orientation_mpobj, 2, mp_lv_switch_set_orientation, lv_switch_set_orientation, 1);
     
 
 /*
@@ -28694,11 +28703,11 @@ static mp_obj_t mp_lv_switch_get_orientation(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_switch_get_orientation_mpobj, 1, mp_lv_switch_get_orientation, lv_switch_get_orientation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_switch_get_orientation_mpobj, 1, mp_lv_switch_get_orientation, lv_switch_get_orientation, 1);
     
 /* Reusing lv_obj_create for lv_switch_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_switch_create_mpobj, 1, mp_lv_obj_create, lv_switch_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_switch_create_mpobj, 1, mp_lv_obj_create, lv_switch_create, 1);
     
 
 /*
@@ -28770,15 +28779,15 @@ static mp_obj_t mp_lv_table_set_cell_value(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_set_cell_value_mpobj, 4, mp_lv_table_set_cell_value, lv_table_set_cell_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_set_cell_value_mpobj, 4, mp_lv_table_set_cell_value, lv_table_set_cell_value, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_table_set_row_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_set_row_count_mpobj, 2, mp_lv_obj_delete_delayed, lv_table_set_row_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_set_row_count_mpobj, 2, mp_lv_obj_delete_delayed, lv_table_set_row_count, 1);
     
 /* Reusing lv_obj_delete_delayed for lv_table_set_column_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_set_column_count_mpobj, 2, mp_lv_obj_delete_delayed, lv_table_set_column_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_set_column_count_mpobj, 2, mp_lv_obj_delete_delayed, lv_table_set_column_count, 1);
     
 
 /*
@@ -28797,7 +28806,7 @@ static mp_obj_t mp_lv_table_set_column_width(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_set_column_width_mpobj, 3, mp_lv_table_set_column_width, lv_table_set_column_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_set_column_width_mpobj, 3, mp_lv_table_set_column_width, lv_table_set_column_width, 1);
     
 
 /*
@@ -28817,11 +28826,11 @@ static mp_obj_t mp_lv_table_set_cell_ctrl(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_set_cell_ctrl_mpobj, 4, mp_lv_table_set_cell_ctrl, lv_table_set_cell_ctrl);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_set_cell_ctrl_mpobj, 4, mp_lv_table_set_cell_ctrl, lv_table_set_cell_ctrl, 1);
     
 /* Reusing lv_table_set_cell_ctrl for lv_table_clear_cell_ctrl */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_clear_cell_ctrl_mpobj, 4, mp_lv_table_set_cell_ctrl, lv_table_clear_cell_ctrl);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_clear_cell_ctrl_mpobj, 4, mp_lv_table_set_cell_ctrl, lv_table_clear_cell_ctrl, 1);
     
 
 /*
@@ -28841,7 +28850,7 @@ static mp_obj_t mp_lv_table_set_cell_user_data(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_set_cell_user_data_mpobj, 4, mp_lv_table_set_cell_user_data, lv_table_set_cell_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_set_cell_user_data_mpobj, 4, mp_lv_table_set_cell_user_data, lv_table_set_cell_user_data, 1);
     
 
 /*
@@ -28860,7 +28869,7 @@ static mp_obj_t mp_lv_table_set_selected_cell(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_set_selected_cell_mpobj, 3, mp_lv_table_set_selected_cell, lv_table_set_selected_cell);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_set_selected_cell_mpobj, 3, mp_lv_table_set_selected_cell, lv_table_set_selected_cell, 1);
     
 
 /*
@@ -28879,15 +28888,15 @@ static mp_obj_t mp_lv_table_get_cell_value(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_get_cell_value_mpobj, 3, mp_lv_table_get_cell_value, lv_table_get_cell_value);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_get_cell_value_mpobj, 3, mp_lv_table_get_cell_value, lv_table_get_cell_value, 1);
     
 /* Reusing lv_obj_get_event_count for lv_table_get_row_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_get_row_count_mpobj, 1, mp_lv_obj_get_event_count, lv_table_get_row_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_get_row_count_mpobj, 1, mp_lv_obj_get_event_count, lv_table_get_row_count, 1);
     
 /* Reusing lv_obj_get_event_count for lv_table_get_column_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_get_column_count_mpobj, 1, mp_lv_obj_get_event_count, lv_table_get_column_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_get_column_count_mpobj, 1, mp_lv_obj_get_event_count, lv_table_get_column_count, 1);
     
 
 /*
@@ -28905,7 +28914,7 @@ static mp_obj_t mp_lv_table_get_column_width(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_get_column_width_mpobj, 2, mp_lv_table_get_column_width, lv_table_get_column_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_get_column_width_mpobj, 2, mp_lv_table_get_column_width, lv_table_get_column_width, 1);
     
 
 /*
@@ -28925,7 +28934,7 @@ static mp_obj_t mp_lv_table_has_cell_ctrl(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_has_cell_ctrl_mpobj, 4, mp_lv_table_has_cell_ctrl, lv_table_has_cell_ctrl);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_has_cell_ctrl_mpobj, 4, mp_lv_table_has_cell_ctrl, lv_table_has_cell_ctrl, 1);
     
 
 /*
@@ -28944,7 +28953,7 @@ static mp_obj_t mp_lv_table_get_selected_cell(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_get_selected_cell_mpobj, 3, mp_lv_table_get_selected_cell, lv_table_get_selected_cell);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_get_selected_cell_mpobj, 3, mp_lv_table_get_selected_cell, lv_table_get_selected_cell, 1);
     
 
 /*
@@ -28963,11 +28972,11 @@ static mp_obj_t mp_lv_table_get_cell_user_data(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_get_cell_user_data_mpobj, 3, mp_lv_table_get_cell_user_data, lv_table_get_cell_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_get_cell_user_data_mpobj, 3, mp_lv_table_get_cell_user_data, lv_table_get_cell_user_data, 1);
     
 /* Reusing lv_obj_create for lv_table_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_create_mpobj, 1, mp_lv_obj_create, lv_table_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_table_create_mpobj, 1, mp_lv_obj_create, lv_table_create, 1);
     
 
 /*
@@ -29036,31 +29045,31 @@ GENMPY_UNUSED static const mp_lv_obj_type_t mp_lv_table_type = {
     
 /* Reusing lv_list_add_text for lv_tabview_add_tab */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_add_tab_mpobj, 2, mp_lv_list_add_text, lv_tabview_add_tab);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_add_tab_mpobj, 2, mp_lv_list_add_text, lv_tabview_add_tab, 1);
     
 /* Reusing lv_label_ins_text for lv_tabview_set_tab_text */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_set_tab_text_mpobj, 3, mp_lv_label_ins_text, lv_tabview_set_tab_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_set_tab_text_mpobj, 3, mp_lv_label_ins_text, lv_tabview_set_tab_text, 1);
     
 /* Reusing lv_roller_set_selected for lv_tabview_set_active */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_set_active_mpobj, 3, mp_lv_roller_set_selected, lv_tabview_set_active);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_set_active_mpobj, 3, mp_lv_roller_set_selected, lv_tabview_set_active, 1);
     
 /* Reusing lv_obj_set_scroll_dir for lv_tabview_set_tab_bar_position */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_set_tab_bar_position_mpobj, 2, mp_lv_obj_set_scroll_dir, lv_tabview_set_tab_bar_position);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_set_tab_bar_position_mpobj, 2, mp_lv_obj_set_scroll_dir, lv_tabview_set_tab_bar_position, 1);
     
 /* Reusing lv_obj_move_to_index for lv_tabview_set_tab_bar_size */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_set_tab_bar_size_mpobj, 2, mp_lv_obj_move_to_index, lv_tabview_set_tab_bar_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_set_tab_bar_size_mpobj, 2, mp_lv_obj_move_to_index, lv_tabview_set_tab_bar_size, 1);
     
 /* Reusing lv_obj_get_event_count for lv_tabview_get_tab_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_get_tab_count_mpobj, 1, mp_lv_obj_get_event_count, lv_tabview_get_tab_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_get_tab_count_mpobj, 1, mp_lv_obj_get_event_count, lv_tabview_get_tab_count, 1);
     
 /* Reusing lv_obj_get_event_count for lv_tabview_get_tab_active */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_get_tab_active_mpobj, 1, mp_lv_obj_get_event_count, lv_tabview_get_tab_active);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_get_tab_active_mpobj, 1, mp_lv_obj_get_event_count, lv_tabview_get_tab_active, 1);
     
 
 /*
@@ -29078,23 +29087,23 @@ static mp_obj_t mp_lv_tabview_get_tab_button(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_get_tab_button_mpobj, 2, mp_lv_tabview_get_tab_button, lv_tabview_get_tab_button);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_get_tab_button_mpobj, 2, mp_lv_tabview_get_tab_button, lv_tabview_get_tab_button, 1);
     
 /* Reusing lv_obj_create for lv_tabview_get_content */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_get_content_mpobj, 1, mp_lv_obj_create, lv_tabview_get_content);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_get_content_mpobj, 1, mp_lv_obj_create, lv_tabview_get_content, 1);
     
 /* Reusing lv_obj_create for lv_tabview_get_tab_bar */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_get_tab_bar_mpobj, 1, mp_lv_obj_create, lv_tabview_get_tab_bar);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_get_tab_bar_mpobj, 1, mp_lv_obj_create, lv_tabview_get_tab_bar, 1);
     
 /* Reusing lv_spinbox_get_digit_step_direction for lv_tabview_get_tab_bar_position */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_get_tab_bar_position_mpobj, 1, mp_lv_spinbox_get_digit_step_direction, lv_tabview_get_tab_bar_position);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_get_tab_bar_position_mpobj, 1, mp_lv_spinbox_get_digit_step_direction, lv_tabview_get_tab_bar_position, 1);
     
 /* Reusing lv_obj_create for lv_tabview_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_create_mpobj, 1, mp_lv_obj_create, lv_tabview_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tabview_create_mpobj, 1, mp_lv_obj_create, lv_tabview_create, 1);
     
 
 /*
@@ -29174,7 +29183,7 @@ static mp_obj_t mp_lv_tileview_add_tile(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tileview_add_tile_mpobj, 4, mp_lv_tileview_add_tile, lv_tileview_add_tile);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tileview_add_tile_mpobj, 4, mp_lv_tileview_add_tile, lv_tileview_add_tile, 1);
     
 
 /*
@@ -29193,7 +29202,7 @@ static mp_obj_t mp_lv_tileview_set_tile(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tileview_set_tile_mpobj, 3, mp_lv_tileview_set_tile, lv_tileview_set_tile);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tileview_set_tile_mpobj, 3, mp_lv_tileview_set_tile, lv_tileview_set_tile, 1);
     
 
 /*
@@ -29213,15 +29222,15 @@ static mp_obj_t mp_lv_tileview_set_tile_by_index(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tileview_set_tile_by_index_mpobj, 4, mp_lv_tileview_set_tile_by_index, lv_tileview_set_tile_by_index);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tileview_set_tile_by_index_mpobj, 4, mp_lv_tileview_set_tile_by_index, lv_tileview_set_tile_by_index, 1);
     
 /* Reusing lv_obj_create for lv_tileview_get_tile_active */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tileview_get_tile_active_mpobj, 1, mp_lv_obj_create, lv_tileview_get_tile_active);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tileview_get_tile_active_mpobj, 1, mp_lv_obj_create, lv_tileview_get_tile_active, 1);
     
 /* Reusing lv_obj_create for lv_tileview_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tileview_create_mpobj, 1, mp_lv_obj_create, lv_tileview_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tileview_create_mpobj, 1, mp_lv_obj_create, lv_tileview_create, 1);
     
 
 /*
@@ -29278,7 +29287,7 @@ GENMPY_UNUSED static const mp_lv_obj_type_t mp_lv_tileview_type = {
     
 /* Reusing lv_list_add_text for lv_win_add_title */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_win_add_title_mpobj, 2, mp_lv_list_add_text, lv_win_add_title);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_win_add_title_mpobj, 2, mp_lv_list_add_text, lv_win_add_title, 1);
     
 
 /*
@@ -29297,19 +29306,19 @@ static mp_obj_t mp_lv_win_add_button(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_win_add_button_mpobj, 3, mp_lv_win_add_button, lv_win_add_button);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_win_add_button_mpobj, 3, mp_lv_win_add_button, lv_win_add_button, 1);
     
 /* Reusing lv_obj_create for lv_win_get_header */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_win_get_header_mpobj, 1, mp_lv_obj_create, lv_win_get_header);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_win_get_header_mpobj, 1, mp_lv_obj_create, lv_win_get_header, 1);
     
 /* Reusing lv_obj_create for lv_win_get_content */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_win_get_content_mpobj, 1, mp_lv_obj_create, lv_win_get_content);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_win_get_content_mpobj, 1, mp_lv_obj_create, lv_win_get_content, 1);
     
 /* Reusing lv_obj_create for lv_win_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_win_create_mpobj, 1, mp_lv_obj_create, lv_win_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_win_create_mpobj, 1, mp_lv_obj_create, lv_win_create, 1);
     
 
 /*
@@ -29646,7 +29655,7 @@ static mp_obj_t mp_funcptr_create_cb(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_create_cb_mpobj, 2, mp_funcptr_create_cb, funcptr_create_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_create_cb_mpobj, 2, mp_funcptr_create_cb, funcptr_create_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_create_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_create_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -29674,7 +29683,7 @@ static mp_obj_t mp_funcptr_delete_cb(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_delete_cb_mpobj, 1, mp_funcptr_delete_cb, funcptr_delete_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_delete_cb_mpobj, 1, mp_funcptr_delete_cb, funcptr_delete_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_delete_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_delete_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -29702,7 +29711,7 @@ static mp_obj_t mp_funcptr_dup_src_cb(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_dup_src_cb_mpobj, 1, mp_funcptr_dup_src_cb, funcptr_dup_src_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_dup_src_cb_mpobj, 1, mp_funcptr_dup_src_cb, funcptr_dup_src_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_dup_src_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_dup_src_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -29717,7 +29726,7 @@ GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_dup_src_cb(void *func){ retur
 
 /* Reusing funcptr_lv_draw_buf_free_cb_t for funcptr_free_src_cb */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_free_src_cb_mpobj, 1, mp_funcptr_lv_draw_buf_free_cb_t, funcptr_free_src_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_free_src_cb_mpobj, 1, mp_funcptr_lv_draw_buf_free_cb_t, funcptr_free_src_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_free_src_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_free_src_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -30536,7 +30545,7 @@ static mp_obj_t mp_funcptr_lv_tree_constructor_cb_t(size_t mp_n_args, const mp_o
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_tree_constructor_cb_t_mpobj, 2, mp_funcptr_lv_tree_constructor_cb_t, funcptr_lv_tree_constructor_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_tree_constructor_cb_t_mpobj, 2, mp_funcptr_lv_tree_constructor_cb_t, funcptr_lv_tree_constructor_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_tree_constructor_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_tree_constructor_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -30836,7 +30845,7 @@ static inline const mp_obj_type_t *get_mp_lv_mem_monitor_t_type(void)
 
 /* Reusing lv_obj_set_user_data for funcptr_lv_layout_update_cb_t */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_funcptr_lv_layout_update_cb_t_mpobj, 2, mp_lv_obj_set_user_data, funcptr_lv_layout_update_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_funcptr_lv_layout_update_cb_t_mpobj, 2, mp_lv_obj_set_user_data, funcptr_lv_layout_update_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_layout_update_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_layout_update_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -30867,7 +30876,7 @@ static mp_obj_t mp_funcptr_lv_layout_get_min_size_cb_t(size_t mp_n_args, const m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_funcptr_lv_layout_get_min_size_cb_t_mpobj, 4, mp_funcptr_lv_layout_get_min_size_cb_t, funcptr_lv_layout_get_min_size_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_funcptr_lv_layout_get_min_size_cb_t_mpobj, 4, mp_funcptr_lv_layout_get_min_size_cb_t, funcptr_lv_layout_get_min_size_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_layout_get_min_size_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_layout_get_min_size_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -30962,7 +30971,7 @@ static inline const mp_obj_type_t *get_mp_lv_layout_callbacks_t_type(void)
 
 /* Reusing funcptr_lv_draw_buf_free_cb_t for funcptr_lv_timer_handler_resume_cb_t */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_timer_handler_resume_cb_t_mpobj, 1, mp_funcptr_lv_draw_buf_free_cb_t, funcptr_lv_timer_handler_resume_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_timer_handler_resume_cb_t_mpobj, 1, mp_funcptr_lv_draw_buf_free_cb_t, funcptr_lv_timer_handler_resume_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_timer_handler_resume_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_timer_handler_resume_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -31940,7 +31949,7 @@ static mp_obj_t mp_funcptr_lv_indev_read_cb_t(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_indev_read_cb_t_mpobj, 2, mp_funcptr_lv_indev_read_cb_t, funcptr_lv_indev_read_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_indev_read_cb_t_mpobj, 2, mp_funcptr_lv_indev_read_cb_t, funcptr_lv_indev_read_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_indev_read_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_indev_read_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -32243,7 +32252,7 @@ static mp_obj_t mp_funcptr_lv_indev_key_remap_cb_t(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_indev_key_remap_cb_t_mpobj, 2, mp_funcptr_lv_indev_key_remap_cb_t, funcptr_lv_indev_key_remap_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_indev_key_remap_cb_t_mpobj, 2, mp_funcptr_lv_indev_key_remap_cb_t, funcptr_lv_indev_key_remap_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_indev_key_remap_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_indev_key_remap_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -32689,7 +32698,7 @@ static mp_obj_t mp_funcptr_lv_recognizer_func_t(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_recognizer_func_t_mpobj, 3, mp_funcptr_lv_recognizer_func_t, funcptr_lv_recognizer_func_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_recognizer_func_t_mpobj, 3, mp_funcptr_lv_recognizer_func_t, funcptr_lv_recognizer_func_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_recognizer_func_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_recognizer_func_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -33153,7 +33162,7 @@ static inline const mp_obj_type_t *get_mp_lv_binfont_dsc_t_type(void)
 
 /* Reusing funcptr_lv_draw_buf_free_cb_t for funcptr_lv_async_cb_t */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_async_cb_t_mpobj, 1, mp_funcptr_lv_draw_buf_free_cb_t, funcptr_lv_async_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_async_cb_t_mpobj, 1, mp_funcptr_lv_draw_buf_free_cb_t, funcptr_lv_async_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_async_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_async_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -33174,7 +33183,7 @@ static mp_obj_t mp_funcptr_lv_delay_cb_t(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_delay_cb_t_mpobj, 1, mp_funcptr_lv_delay_cb_t, funcptr_lv_delay_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_delay_cb_t_mpobj, 1, mp_funcptr_lv_delay_cb_t, funcptr_lv_delay_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_delay_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_delay_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -33195,7 +33204,7 @@ static mp_obj_t mp_funcptr_lv_tick_get_cb_t(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_tick_get_cb_t_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, funcptr_lv_tick_get_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_tick_get_cb_t_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, funcptr_lv_tick_get_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_tick_get_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_tick_get_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -33317,7 +33326,7 @@ static mp_obj_t mp_funcptr_lv_draw_sw_blend_handler_t(size_t mp_n_args, const mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_sw_blend_handler_t_mpobj, 2, mp_funcptr_lv_draw_sw_blend_handler_t, funcptr_lv_draw_sw_blend_handler_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_sw_blend_handler_t_mpobj, 2, mp_funcptr_lv_draw_sw_blend_handler_t, funcptr_lv_draw_sw_blend_handler_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_draw_sw_blend_handler_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_draw_sw_blend_handler_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -33429,7 +33438,7 @@ static mp_obj_t mp_funcptr_lv_draw_sw_mask_xcb_t(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_sw_mask_xcb_t_mpobj, 5, mp_funcptr_lv_draw_sw_mask_xcb_t, funcptr_lv_draw_sw_mask_xcb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_sw_mask_xcb_t_mpobj, 5, mp_funcptr_lv_draw_sw_mask_xcb_t, funcptr_lv_draw_sw_mask_xcb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_draw_sw_mask_xcb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_draw_sw_mask_xcb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -34840,7 +34849,7 @@ static inline const mp_obj_type_t *get_mp_lv_circle_buf_t_type(void)
 
 /* Reusing funcptr_lv_draw_buf_free_cb_t for funcptr_lv_lru_free_cb_t */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_lru_free_cb_t_mpobj, 1, mp_funcptr_lv_draw_buf_free_cb_t, funcptr_lv_lru_free_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_lru_free_cb_t_mpobj, 1, mp_funcptr_lv_draw_buf_free_cb_t, funcptr_lv_lru_free_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_lru_free_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_lru_free_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -35214,7 +35223,7 @@ static mp_obj_t mp_funcptr_lv_rb_compare_t(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_rb_compare_t_mpobj, 2, mp_funcptr_lv_rb_compare_t, funcptr_lv_rb_compare_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_rb_compare_t_mpobj, 2, mp_funcptr_lv_rb_compare_t, funcptr_lv_rb_compare_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_rb_compare_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_rb_compare_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -35401,7 +35410,7 @@ static MP_DEFINE_CONST_DICT(mp_C_Pointer_locals_dict, mp_C_Pointer_locals_dict_t
         
 /* Reusing funcptr_lv_anim_start_cb_t for lv_anim_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_init_mpobj, 1, mp_funcptr_lv_anim_start_cb_t, lv_anim_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_init_mpobj, 1, mp_funcptr_lv_anim_start_cb_t, lv_anim_init, 1);
     
 
 /*
@@ -35419,7 +35428,7 @@ static mp_obj_t mp_lv_anim_set_var(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_var_mpobj, 2, mp_lv_anim_set_var, lv_anim_set_var);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_var_mpobj, 2, mp_lv_anim_set_var, lv_anim_set_var, 1);
     
 
 /*
@@ -35444,7 +35453,7 @@ static mp_obj_t mp_lv_anim_set_exec_cb(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_exec_cb_mpobj, 2, mp_lv_anim_set_exec_cb, lv_anim_set_exec_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_exec_cb_mpobj, 2, mp_lv_anim_set_exec_cb, lv_anim_set_exec_cb, 1);
     
 
 /*
@@ -35462,23 +35471,23 @@ static mp_obj_t mp_lv_anim_set_duration(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_duration_mpobj, 2, mp_lv_anim_set_duration, lv_anim_set_duration);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_duration_mpobj, 2, mp_lv_anim_set_duration, lv_anim_set_duration, 1);
     
 /* Reusing lv_anim_set_duration for lv_anim_set_delay */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_delay_mpobj, 2, mp_lv_anim_set_duration, lv_anim_set_delay);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_delay_mpobj, 2, mp_lv_anim_set_duration, lv_anim_set_delay, 1);
     
 /* Reusing funcptr_lv_anim_start_cb_t for lv_anim_resume */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_resume_mpobj, 1, mp_funcptr_lv_anim_start_cb_t, lv_anim_resume);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_resume_mpobj, 1, mp_funcptr_lv_anim_start_cb_t, lv_anim_resume, 1);
     
 /* Reusing funcptr_lv_anim_start_cb_t for lv_anim_pause */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_pause_mpobj, 1, mp_funcptr_lv_anim_start_cb_t, lv_anim_pause);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_pause_mpobj, 1, mp_funcptr_lv_anim_start_cb_t, lv_anim_pause, 1);
     
 /* Reusing lv_anim_set_duration for lv_anim_pause_for */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_pause_for_mpobj, 2, mp_lv_anim_set_duration, lv_anim_pause_for);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_pause_for_mpobj, 2, mp_lv_anim_set_duration, lv_anim_pause_for, 1);
     
 
 /*
@@ -35495,7 +35504,7 @@ static mp_obj_t mp_lv_anim_is_paused(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_is_paused_mpobj, 1, mp_lv_anim_is_paused, lv_anim_is_paused);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_is_paused_mpobj, 1, mp_lv_anim_is_paused, lv_anim_is_paused, 1);
     
 
 /*
@@ -35514,7 +35523,7 @@ static mp_obj_t mp_lv_anim_set_values(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_values_mpobj, 3, mp_lv_anim_set_values, lv_anim_set_values);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_values_mpobj, 3, mp_lv_anim_set_values, lv_anim_set_values, 1);
     
 
 /*
@@ -35548,7 +35557,7 @@ static mp_obj_t mp_lv_anim_set_custom_exec_cb(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_custom_exec_cb_mpobj, 2, mp_lv_anim_set_custom_exec_cb, lv_anim_set_custom_exec_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_custom_exec_cb_mpobj, 2, mp_lv_anim_set_custom_exec_cb, lv_anim_set_custom_exec_cb, 1);
     
 
 /*
@@ -35581,7 +35590,7 @@ static mp_obj_t mp_lv_anim_set_path_cb(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_path_cb_mpobj, 2, mp_lv_anim_set_path_cb, lv_anim_set_path_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_path_cb_mpobj, 2, mp_lv_anim_set_path_cb, lv_anim_set_path_cb, 1);
     
 
 /*
@@ -35614,7 +35623,7 @@ static mp_obj_t mp_lv_anim_set_start_cb(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_start_cb_mpobj, 2, mp_lv_anim_set_start_cb, lv_anim_set_start_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_start_cb_mpobj, 2, mp_lv_anim_set_start_cb, lv_anim_set_start_cb, 1);
     
 
 /*
@@ -35647,7 +35656,7 @@ static mp_obj_t mp_lv_anim_set_get_value_cb(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_get_value_cb_mpobj, 2, mp_lv_anim_set_get_value_cb, lv_anim_set_get_value_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_get_value_cb_mpobj, 2, mp_lv_anim_set_get_value_cb, lv_anim_set_get_value_cb, 1);
     
 
 /*
@@ -35680,7 +35689,7 @@ static mp_obj_t mp_lv_anim_set_completed_cb(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_completed_cb_mpobj, 2, mp_lv_anim_set_completed_cb, lv_anim_set_completed_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_completed_cb_mpobj, 2, mp_lv_anim_set_completed_cb, lv_anim_set_completed_cb, 1);
     
 
 /*
@@ -35713,27 +35722,27 @@ static mp_obj_t mp_lv_anim_set_deleted_cb(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_deleted_cb_mpobj, 2, mp_lv_anim_set_deleted_cb, lv_anim_set_deleted_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_deleted_cb_mpobj, 2, mp_lv_anim_set_deleted_cb, lv_anim_set_deleted_cb, 1);
     
 /* Reusing lv_anim_set_duration for lv_anim_set_reverse_duration */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_reverse_duration_mpobj, 2, mp_lv_anim_set_duration, lv_anim_set_reverse_duration);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_reverse_duration_mpobj, 2, mp_lv_anim_set_duration, lv_anim_set_reverse_duration, 1);
     
 /* Reusing lv_anim_set_duration for lv_anim_set_reverse_time */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_reverse_time_mpobj, 2, mp_lv_anim_set_duration, lv_anim_set_reverse_time);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_reverse_time_mpobj, 2, mp_lv_anim_set_duration, lv_anim_set_reverse_time, 1);
     
 /* Reusing lv_anim_set_duration for lv_anim_set_reverse_delay */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_reverse_delay_mpobj, 2, mp_lv_anim_set_duration, lv_anim_set_reverse_delay);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_reverse_delay_mpobj, 2, mp_lv_anim_set_duration, lv_anim_set_reverse_delay, 1);
     
 /* Reusing lv_anim_set_duration for lv_anim_set_repeat_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_repeat_count_mpobj, 2, mp_lv_anim_set_duration, lv_anim_set_repeat_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_repeat_count_mpobj, 2, mp_lv_anim_set_duration, lv_anim_set_repeat_count, 1);
     
 /* Reusing lv_anim_set_duration for lv_anim_set_repeat_delay */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_repeat_delay_mpobj, 2, mp_lv_anim_set_duration, lv_anim_set_repeat_delay);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_repeat_delay_mpobj, 2, mp_lv_anim_set_duration, lv_anim_set_repeat_delay, 1);
     
 
 /*
@@ -35751,11 +35760,11 @@ static mp_obj_t mp_lv_anim_set_early_apply(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_early_apply_mpobj, 2, mp_lv_anim_set_early_apply, lv_anim_set_early_apply);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_early_apply_mpobj, 2, mp_lv_anim_set_early_apply, lv_anim_set_early_apply, 1);
     
 /* Reusing lv_anim_set_var for lv_anim_set_user_data */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_user_data_mpobj, 2, mp_lv_anim_set_var, lv_anim_set_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_user_data_mpobj, 2, mp_lv_anim_set_var, lv_anim_set_user_data, 1);
     
 
 /*
@@ -35776,7 +35785,7 @@ static mp_obj_t mp_lv_anim_set_bezier3_param(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_bezier3_param_mpobj, 5, mp_lv_anim_set_bezier3_param, lv_anim_set_bezier3_param);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_set_bezier3_param_mpobj, 5, mp_lv_anim_set_bezier3_param, lv_anim_set_bezier3_param, 1);
     
 
 /*
@@ -35793,7 +35802,7 @@ static mp_obj_t mp_lv_anim_start(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_start_mpobj, 1, mp_lv_anim_start, lv_anim_start);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_start_mpobj, 1, mp_lv_anim_start, lv_anim_start, 1);
     
 
 /*
@@ -35810,19 +35819,19 @@ static mp_obj_t mp_lv_anim_get_delay(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_get_delay_mpobj, 1, mp_lv_anim_get_delay, lv_anim_get_delay);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_get_delay_mpobj, 1, mp_lv_anim_get_delay, lv_anim_get_delay, 1);
     
 /* Reusing lv_anim_get_delay for lv_anim_get_playtime */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_get_playtime_mpobj, 1, mp_lv_anim_get_delay, lv_anim_get_playtime);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_get_playtime_mpobj, 1, mp_lv_anim_get_delay, lv_anim_get_playtime, 1);
     
 /* Reusing lv_anim_get_delay for lv_anim_get_time */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_get_time_mpobj, 1, mp_lv_anim_get_delay, lv_anim_get_time);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_get_time_mpobj, 1, mp_lv_anim_get_delay, lv_anim_get_time, 1);
     
 /* Reusing lv_anim_get_delay for lv_anim_get_repeat_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_get_repeat_count_mpobj, 1, mp_lv_anim_get_delay, lv_anim_get_repeat_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_get_repeat_count_mpobj, 1, mp_lv_anim_get_delay, lv_anim_get_repeat_count, 1);
     
 
 /*
@@ -35839,7 +35848,7 @@ static mp_obj_t mp_lv_anim_get_user_data(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_get_user_data_mpobj, 1, mp_lv_anim_get_user_data, lv_anim_get_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_get_user_data_mpobj, 1, mp_lv_anim_get_user_data, lv_anim_get_user_data, 1);
     
 
 /*
@@ -35857,7 +35866,7 @@ static mp_obj_t mp_lv_anim_custom_delete(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_custom_delete_mpobj, 2, mp_lv_anim_custom_delete, lv_anim_custom_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_custom_delete_mpobj, 2, mp_lv_anim_custom_delete, lv_anim_custom_delete, 1);
     
 
 /*
@@ -35875,7 +35884,7 @@ static mp_obj_t mp_lv_anim_custom_get(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_custom_get_mpobj, 2, mp_lv_anim_custom_get, lv_anim_custom_get);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_custom_get_mpobj, 2, mp_lv_anim_custom_get, lv_anim_custom_get, 1);
     
 
 /*
@@ -35892,35 +35901,35 @@ static mp_obj_t mp_lv_anim_path_linear(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_path_linear_mpobj, 1, mp_lv_anim_path_linear, lv_anim_path_linear);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_path_linear_mpobj, 1, mp_lv_anim_path_linear, lv_anim_path_linear, 1);
     
 /* Reusing lv_anim_path_linear for lv_anim_path_ease_in */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_path_ease_in_mpobj, 1, mp_lv_anim_path_linear, lv_anim_path_ease_in);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_path_ease_in_mpobj, 1, mp_lv_anim_path_linear, lv_anim_path_ease_in, 1);
     
 /* Reusing lv_anim_path_linear for lv_anim_path_ease_out */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_path_ease_out_mpobj, 1, mp_lv_anim_path_linear, lv_anim_path_ease_out);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_path_ease_out_mpobj, 1, mp_lv_anim_path_linear, lv_anim_path_ease_out, 1);
     
 /* Reusing lv_anim_path_linear for lv_anim_path_ease_in_out */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_path_ease_in_out_mpobj, 1, mp_lv_anim_path_linear, lv_anim_path_ease_in_out);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_path_ease_in_out_mpobj, 1, mp_lv_anim_path_linear, lv_anim_path_ease_in_out, 1);
     
 /* Reusing lv_anim_path_linear for lv_anim_path_overshoot */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_path_overshoot_mpobj, 1, mp_lv_anim_path_linear, lv_anim_path_overshoot);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_path_overshoot_mpobj, 1, mp_lv_anim_path_linear, lv_anim_path_overshoot, 1);
     
 /* Reusing lv_anim_path_linear for lv_anim_path_bounce */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_path_bounce_mpobj, 1, mp_lv_anim_path_linear, lv_anim_path_bounce);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_path_bounce_mpobj, 1, mp_lv_anim_path_linear, lv_anim_path_bounce, 1);
     
 /* Reusing lv_anim_path_linear for lv_anim_path_step */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_path_step_mpobj, 1, mp_lv_anim_path_linear, lv_anim_path_step);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_path_step_mpobj, 1, mp_lv_anim_path_linear, lv_anim_path_step, 1);
     
 /* Reusing lv_anim_path_linear for lv_anim_path_custom_bezier3 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_path_custom_bezier3_mpobj, 1, mp_lv_anim_path_linear, lv_anim_path_custom_bezier3);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_path_custom_bezier3_mpobj, 1, mp_lv_anim_path_linear, lv_anim_path_custom_bezier3, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_anim_t_locals_dict_table[] = {
@@ -35988,11 +35997,11 @@ static MP_DEFINE_CONST_DICT(mp_lv_anim_bezier3_para_t_locals_dict, mp_lv_anim_be
         
 /* Reusing funcptr_lv_display_flush_wait_cb_t for lv_display_delete */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_delete_mpobj, 1, mp_funcptr_lv_display_flush_wait_cb_t, lv_display_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_delete_mpobj, 1, mp_funcptr_lv_display_flush_wait_cb_t, lv_display_delete, 1);
     
 /* Reusing funcptr_lv_display_flush_wait_cb_t for lv_display_set_default */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_default_mpobj, 1, mp_funcptr_lv_display_flush_wait_cb_t, lv_display_set_default);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_default_mpobj, 1, mp_funcptr_lv_display_flush_wait_cb_t, lv_display_set_default, 1);
     
 
 /*
@@ -36009,7 +36018,7 @@ static mp_obj_t mp_lv_display_get_next(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_next_mpobj, 1, mp_lv_display_get_next, lv_display_get_next);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_next_mpobj, 1, mp_lv_display_get_next, lv_display_get_next, 1);
     
 
 /*
@@ -36028,15 +36037,15 @@ static mp_obj_t mp_lv_display_set_resolution(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_resolution_mpobj, 3, mp_lv_display_set_resolution, lv_display_set_resolution);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_resolution_mpobj, 3, mp_lv_display_set_resolution, lv_display_set_resolution, 1);
     
 /* Reusing lv_display_set_resolution for lv_display_set_physical_resolution */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_physical_resolution_mpobj, 3, mp_lv_display_set_resolution, lv_display_set_physical_resolution);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_physical_resolution_mpobj, 3, mp_lv_display_set_resolution, lv_display_set_physical_resolution, 1);
     
 /* Reusing lv_display_set_resolution for lv_display_set_offset */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_offset_mpobj, 3, mp_lv_display_set_resolution, lv_display_set_offset);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_offset_mpobj, 3, mp_lv_display_set_resolution, lv_display_set_offset, 1);
     
 
 /*
@@ -36054,7 +36063,7 @@ static mp_obj_t mp_lv_display_set_rotation(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_rotation_mpobj, 2, mp_lv_display_set_rotation, lv_display_set_rotation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_rotation_mpobj, 2, mp_lv_display_set_rotation, lv_display_set_rotation, 1);
     
 
 /*
@@ -36072,7 +36081,7 @@ static mp_obj_t mp_lv_display_set_matrix_rotation(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_matrix_rotation_mpobj, 2, mp_lv_display_set_matrix_rotation, lv_display_set_matrix_rotation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_matrix_rotation_mpobj, 2, mp_lv_display_set_matrix_rotation, lv_display_set_matrix_rotation, 1);
     
 
 /*
@@ -36090,7 +36099,7 @@ static mp_obj_t mp_lv_display_set_dpi(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_dpi_mpobj, 2, mp_lv_display_set_dpi, lv_display_set_dpi);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_dpi_mpobj, 2, mp_lv_display_set_dpi, lv_display_set_dpi, 1);
     
 
 /*
@@ -36107,35 +36116,35 @@ static mp_obj_t mp_lv_display_get_horizontal_resolution(size_t mp_n_args, const 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_horizontal_resolution_mpobj, 1, mp_lv_display_get_horizontal_resolution, lv_display_get_horizontal_resolution);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_horizontal_resolution_mpobj, 1, mp_lv_display_get_horizontal_resolution, lv_display_get_horizontal_resolution, 1);
     
 /* Reusing lv_display_get_horizontal_resolution for lv_display_get_vertical_resolution */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_vertical_resolution_mpobj, 1, mp_lv_display_get_horizontal_resolution, lv_display_get_vertical_resolution);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_vertical_resolution_mpobj, 1, mp_lv_display_get_horizontal_resolution, lv_display_get_vertical_resolution, 1);
     
 /* Reusing lv_display_get_horizontal_resolution for lv_display_get_original_horizontal_resolution */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_original_horizontal_resolution_mpobj, 1, mp_lv_display_get_horizontal_resolution, lv_display_get_original_horizontal_resolution);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_original_horizontal_resolution_mpobj, 1, mp_lv_display_get_horizontal_resolution, lv_display_get_original_horizontal_resolution, 1);
     
 /* Reusing lv_display_get_horizontal_resolution for lv_display_get_original_vertical_resolution */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_original_vertical_resolution_mpobj, 1, mp_lv_display_get_horizontal_resolution, lv_display_get_original_vertical_resolution);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_original_vertical_resolution_mpobj, 1, mp_lv_display_get_horizontal_resolution, lv_display_get_original_vertical_resolution, 1);
     
 /* Reusing lv_display_get_horizontal_resolution for lv_display_get_physical_horizontal_resolution */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_physical_horizontal_resolution_mpobj, 1, mp_lv_display_get_horizontal_resolution, lv_display_get_physical_horizontal_resolution);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_physical_horizontal_resolution_mpobj, 1, mp_lv_display_get_horizontal_resolution, lv_display_get_physical_horizontal_resolution, 1);
     
 /* Reusing lv_display_get_horizontal_resolution for lv_display_get_physical_vertical_resolution */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_physical_vertical_resolution_mpobj, 1, mp_lv_display_get_horizontal_resolution, lv_display_get_physical_vertical_resolution);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_physical_vertical_resolution_mpobj, 1, mp_lv_display_get_horizontal_resolution, lv_display_get_physical_vertical_resolution, 1);
     
 /* Reusing lv_display_get_horizontal_resolution for lv_display_get_offset_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_offset_x_mpobj, 1, mp_lv_display_get_horizontal_resolution, lv_display_get_offset_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_offset_x_mpobj, 1, mp_lv_display_get_horizontal_resolution, lv_display_get_offset_x, 1);
     
 /* Reusing lv_display_get_horizontal_resolution for lv_display_get_offset_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_offset_y_mpobj, 1, mp_lv_display_get_horizontal_resolution, lv_display_get_offset_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_offset_y_mpobj, 1, mp_lv_display_get_horizontal_resolution, lv_display_get_offset_y, 1);
     
 
 /*
@@ -36152,7 +36161,7 @@ static mp_obj_t mp_lv_display_get_rotation(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_rotation_mpobj, 1, mp_lv_display_get_rotation, lv_display_get_rotation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_rotation_mpobj, 1, mp_lv_display_get_rotation, lv_display_get_rotation, 1);
     
 
 /*
@@ -36169,11 +36178,11 @@ static mp_obj_t mp_lv_display_get_matrix_rotation(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_matrix_rotation_mpobj, 1, mp_lv_display_get_matrix_rotation, lv_display_get_matrix_rotation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_matrix_rotation_mpobj, 1, mp_lv_display_get_matrix_rotation, lv_display_get_matrix_rotation, 1);
     
 /* Reusing lv_display_get_horizontal_resolution for lv_display_get_dpi */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_dpi_mpobj, 1, mp_lv_display_get_horizontal_resolution, lv_display_get_dpi);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_dpi_mpobj, 1, mp_lv_display_get_horizontal_resolution, lv_display_get_dpi, 1);
     
 
 /*
@@ -36194,7 +36203,7 @@ static mp_obj_t mp_lv_display_set_buffers(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_buffers_mpobj, 5, mp_lv_display_set_buffers, lv_display_set_buffers);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_buffers_mpobj, 5, mp_lv_display_set_buffers, lv_display_set_buffers, 1);
     
 
 /*
@@ -36216,7 +36225,7 @@ static mp_obj_t mp_lv_display_set_buffers_with_stride(size_t mp_n_args, const mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_buffers_with_stride_mpobj, 6, mp_lv_display_set_buffers_with_stride, lv_display_set_buffers_with_stride);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_buffers_with_stride_mpobj, 6, mp_lv_display_set_buffers_with_stride, lv_display_set_buffers_with_stride, 1);
     
 
 /*
@@ -36235,7 +36244,7 @@ static mp_obj_t mp_lv_display_set_draw_buffers(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_draw_buffers_mpobj, 3, mp_lv_display_set_draw_buffers, lv_display_set_draw_buffers);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_draw_buffers_mpobj, 3, mp_lv_display_set_draw_buffers, lv_display_set_draw_buffers, 1);
     
 
 /*
@@ -36253,7 +36262,7 @@ static mp_obj_t mp_lv_display_set_3rd_draw_buffer(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_3rd_draw_buffer_mpobj, 2, mp_lv_display_set_3rd_draw_buffer, lv_display_set_3rd_draw_buffer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_3rd_draw_buffer_mpobj, 2, mp_lv_display_set_3rd_draw_buffer, lv_display_set_3rd_draw_buffer, 1);
     
 
 /*
@@ -36271,7 +36280,7 @@ static mp_obj_t mp_lv_display_set_render_mode(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_render_mode_mpobj, 2, mp_lv_display_set_render_mode, lv_display_set_render_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_render_mode_mpobj, 2, mp_lv_display_set_render_mode, lv_display_set_render_mode, 1);
     
 
 /*
@@ -36306,7 +36315,7 @@ static mp_obj_t mp_lv_display_set_flush_cb(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_flush_cb_mpobj, 2, mp_lv_display_set_flush_cb, lv_display_set_flush_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_flush_cb_mpobj, 2, mp_lv_display_set_flush_cb, lv_display_set_flush_cb, 1);
     
 
 /*
@@ -36323,7 +36332,7 @@ static mp_obj_t mp_lv_display_get_flush_cb(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_flush_cb_mpobj, 1, mp_lv_display_get_flush_cb, lv_display_get_flush_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_flush_cb_mpobj, 1, mp_lv_display_get_flush_cb, lv_display_get_flush_cb, 1);
     
 
 /*
@@ -36356,7 +36365,7 @@ static mp_obj_t mp_lv_display_set_flush_wait_cb(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_flush_wait_cb_mpobj, 2, mp_lv_display_set_flush_wait_cb, lv_display_set_flush_wait_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_flush_wait_cb_mpobj, 2, mp_lv_display_set_flush_wait_cb, lv_display_set_flush_wait_cb, 1);
     
 
 /*
@@ -36390,7 +36399,7 @@ static mp_obj_t mp_lv_display_set_sync_cb(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_sync_cb_mpobj, 2, mp_lv_display_set_sync_cb, lv_display_set_sync_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_sync_cb_mpobj, 2, mp_lv_display_set_sync_cb, lv_display_set_sync_cb, 1);
     
 
 /*
@@ -36408,7 +36417,7 @@ static mp_obj_t mp_lv_display_set_sync_wait_cb(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_sync_wait_cb_mpobj, 2, mp_lv_display_set_sync_wait_cb, lv_display_set_sync_wait_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_sync_wait_cb_mpobj, 2, mp_lv_display_set_sync_wait_cb, lv_display_set_sync_wait_cb, 1);
     
 
 /*
@@ -36426,7 +36435,7 @@ static mp_obj_t mp_lv_display_set_color_format(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_color_format_mpobj, 2, mp_lv_display_set_color_format, lv_display_set_color_format);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_color_format_mpobj, 2, mp_lv_display_set_color_format, lv_display_set_color_format, 1);
     
 
 /*
@@ -36443,7 +36452,7 @@ static mp_obj_t mp_lv_display_get_color_format(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_color_format_mpobj, 1, mp_lv_display_get_color_format, lv_display_get_color_format);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_color_format_mpobj, 1, mp_lv_display_get_color_format, lv_display_get_color_format, 1);
     
 
 /*
@@ -36461,7 +36470,7 @@ static mp_obj_t mp_lv_display_set_tile_cnt(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_tile_cnt_mpobj, 2, mp_lv_display_set_tile_cnt, lv_display_set_tile_cnt);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_tile_cnt_mpobj, 2, mp_lv_display_set_tile_cnt, lv_display_set_tile_cnt, 1);
     
 
 /*
@@ -36478,35 +36487,35 @@ static mp_obj_t mp_lv_display_get_tile_cnt(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_tile_cnt_mpobj, 1, mp_lv_display_get_tile_cnt, lv_display_get_tile_cnt);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_tile_cnt_mpobj, 1, mp_lv_display_get_tile_cnt, lv_display_get_tile_cnt, 1);
     
 /* Reusing lv_display_set_matrix_rotation for lv_display_set_antialiasing */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_antialiasing_mpobj, 2, mp_lv_display_set_matrix_rotation, lv_display_set_antialiasing);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_antialiasing_mpobj, 2, mp_lv_display_set_matrix_rotation, lv_display_set_antialiasing, 1);
     
 /* Reusing lv_display_get_matrix_rotation for lv_display_get_antialiasing */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_antialiasing_mpobj, 1, mp_lv_display_get_matrix_rotation, lv_display_get_antialiasing);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_antialiasing_mpobj, 1, mp_lv_display_get_matrix_rotation, lv_display_get_antialiasing, 1);
     
 /* Reusing funcptr_lv_display_flush_wait_cb_t for lv_display_flush_ready */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_flush_ready_mpobj, 1, mp_funcptr_lv_display_flush_wait_cb_t, lv_display_flush_ready);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_flush_ready_mpobj, 1, mp_funcptr_lv_display_flush_wait_cb_t, lv_display_flush_ready, 1);
     
 /* Reusing lv_display_get_matrix_rotation for lv_display_flush_is_last */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_flush_is_last_mpobj, 1, mp_lv_display_get_matrix_rotation, lv_display_flush_is_last);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_flush_is_last_mpobj, 1, mp_lv_display_get_matrix_rotation, lv_display_flush_is_last, 1);
     
 /* Reusing funcptr_lv_display_flush_wait_cb_t for lv_display_sync_ready */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_sync_ready_mpobj, 1, mp_funcptr_lv_display_flush_wait_cb_t, lv_display_sync_ready);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_sync_ready_mpobj, 1, mp_funcptr_lv_display_flush_wait_cb_t, lv_display_sync_ready, 1);
     
 /* Reusing lv_display_get_matrix_rotation for lv_display_sync_is_last */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_sync_is_last_mpobj, 1, mp_lv_display_get_matrix_rotation, lv_display_sync_is_last);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_sync_is_last_mpobj, 1, mp_lv_display_get_matrix_rotation, lv_display_sync_is_last, 1);
     
 /* Reusing lv_display_get_matrix_rotation for lv_display_is_double_buffered */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_is_double_buffered_mpobj, 1, mp_lv_display_get_matrix_rotation, lv_display_is_double_buffered);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_is_double_buffered_mpobj, 1, mp_lv_display_get_matrix_rotation, lv_display_is_double_buffered, 1);
     
 
 /*
@@ -36523,7 +36532,7 @@ static mp_obj_t mp_lv_display_get_render_mode(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_render_mode_mpobj, 1, mp_lv_display_get_render_mode, lv_display_get_render_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_render_mode_mpobj, 1, mp_lv_display_get_render_mode, lv_display_get_render_mode, 1);
     
 
 /*
@@ -36540,27 +36549,27 @@ static mp_obj_t mp_lv_display_get_screen_active(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_screen_active_mpobj, 1, mp_lv_display_get_screen_active, lv_display_get_screen_active);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_screen_active_mpobj, 1, mp_lv_display_get_screen_active, lv_display_get_screen_active, 1);
     
 /* Reusing lv_display_get_screen_active for lv_display_get_screen_prev */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_screen_prev_mpobj, 1, mp_lv_display_get_screen_active, lv_display_get_screen_prev);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_screen_prev_mpobj, 1, mp_lv_display_get_screen_active, lv_display_get_screen_prev, 1);
     
 /* Reusing lv_display_get_screen_active for lv_display_get_screen_loading */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_screen_loading_mpobj, 1, mp_lv_display_get_screen_active, lv_display_get_screen_loading);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_screen_loading_mpobj, 1, mp_lv_display_get_screen_active, lv_display_get_screen_loading, 1);
     
 /* Reusing lv_display_get_screen_active for lv_display_get_layer_top */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_layer_top_mpobj, 1, mp_lv_display_get_screen_active, lv_display_get_layer_top);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_layer_top_mpobj, 1, mp_lv_display_get_screen_active, lv_display_get_layer_top, 1);
     
 /* Reusing lv_display_get_screen_active for lv_display_get_layer_sys */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_layer_sys_mpobj, 1, mp_lv_display_get_screen_active, lv_display_get_layer_sys);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_layer_sys_mpobj, 1, mp_lv_display_get_screen_active, lv_display_get_layer_sys, 1);
     
 /* Reusing lv_display_get_screen_active for lv_display_get_layer_bottom */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_layer_bottom_mpobj, 1, mp_lv_display_get_screen_active, lv_display_get_layer_bottom);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_layer_bottom_mpobj, 1, mp_lv_display_get_screen_active, lv_display_get_layer_bottom, 1);
     
 
 /*
@@ -36595,11 +36604,11 @@ static mp_obj_t mp_lv_display_add_event_cb(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_add_event_cb_mpobj, 4, mp_lv_display_add_event_cb, lv_display_add_event_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_add_event_cb_mpobj, 4, mp_lv_display_add_event_cb, lv_display_add_event_cb, 1);
     
 /* Reusing lv_display_get_tile_cnt for lv_display_get_event_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_event_count_mpobj, 1, mp_lv_display_get_tile_cnt, lv_display_get_event_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_event_count_mpobj, 1, mp_lv_display_get_tile_cnt, lv_display_get_event_count, 1);
     
 
 /*
@@ -36617,7 +36626,7 @@ static mp_obj_t mp_lv_display_get_event_dsc(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_event_dsc_mpobj, 2, mp_lv_display_get_event_dsc, lv_display_get_event_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_event_dsc_mpobj, 2, mp_lv_display_get_event_dsc, lv_display_get_event_dsc, 1);
     
 
 /*
@@ -36635,7 +36644,7 @@ static mp_obj_t mp_lv_display_remove_event(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_remove_event_mpobj, 2, mp_lv_display_remove_event, lv_display_remove_event);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_remove_event_mpobj, 2, mp_lv_display_remove_event, lv_display_remove_event, 1);
     
 
 /*
@@ -36669,7 +36678,7 @@ static mp_obj_t mp_lv_display_remove_event_cb_with_user_data(size_t mp_n_args, c
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_remove_event_cb_with_user_data_mpobj, 3, mp_lv_display_remove_event_cb_with_user_data, lv_display_remove_event_cb_with_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_remove_event_cb_with_user_data_mpobj, 3, mp_lv_display_remove_event_cb_with_user_data, lv_display_remove_event_cb_with_user_data, 1);
     
 
 /*
@@ -36688,7 +36697,7 @@ static mp_obj_t mp_lv_display_send_event(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_send_event_mpobj, 3, mp_lv_display_send_event, lv_display_send_event);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_send_event_mpobj, 3, mp_lv_display_send_event, lv_display_send_event, 1);
     
 
 /*
@@ -36706,7 +36715,7 @@ static mp_obj_t mp_lv_display_set_theme(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_theme_mpobj, 2, mp_lv_display_set_theme, lv_display_set_theme);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_theme_mpobj, 2, mp_lv_display_set_theme, lv_display_set_theme, 1);
     
 
 /*
@@ -36723,7 +36732,7 @@ static mp_obj_t mp_lv_display_get_theme(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_theme_mpobj, 1, mp_lv_display_get_theme, lv_display_get_theme);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_theme_mpobj, 1, mp_lv_display_get_theme, lv_display_get_theme, 1);
     
 
 /*
@@ -36740,19 +36749,19 @@ static mp_obj_t mp_lv_display_get_inactive_time(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_inactive_time_mpobj, 1, mp_lv_display_get_inactive_time, lv_display_get_inactive_time);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_inactive_time_mpobj, 1, mp_lv_display_get_inactive_time, lv_display_get_inactive_time, 1);
     
 /* Reusing funcptr_lv_display_flush_wait_cb_t for lv_display_trigger_activity */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_trigger_activity_mpobj, 1, mp_funcptr_lv_display_flush_wait_cb_t, lv_display_trigger_activity);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_trigger_activity_mpobj, 1, mp_funcptr_lv_display_flush_wait_cb_t, lv_display_trigger_activity, 1);
     
 /* Reusing lv_display_set_matrix_rotation for lv_display_enable_invalidation */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_enable_invalidation_mpobj, 2, mp_lv_display_set_matrix_rotation, lv_display_enable_invalidation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_enable_invalidation_mpobj, 2, mp_lv_display_set_matrix_rotation, lv_display_enable_invalidation, 1);
     
 /* Reusing lv_display_get_matrix_rotation for lv_display_is_invalidation_enabled */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_is_invalidation_enabled_mpobj, 1, mp_lv_display_get_matrix_rotation, lv_display_is_invalidation_enabled);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_is_invalidation_enabled_mpobj, 1, mp_lv_display_get_matrix_rotation, lv_display_is_invalidation_enabled, 1);
     
 
 /*
@@ -36769,11 +36778,11 @@ static mp_obj_t mp_lv_display_get_refr_timer(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_refr_timer_mpobj, 1, mp_lv_display_get_refr_timer, lv_display_get_refr_timer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_refr_timer_mpobj, 1, mp_lv_display_get_refr_timer, lv_display_get_refr_timer, 1);
     
 /* Reusing funcptr_lv_display_flush_wait_cb_t for lv_display_delete_refr_timer */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_delete_refr_timer_mpobj, 1, mp_funcptr_lv_display_flush_wait_cb_t, lv_display_delete_refr_timer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_delete_refr_timer_mpobj, 1, mp_funcptr_lv_display_flush_wait_cb_t, lv_display_delete_refr_timer, 1);
     
 
 /*
@@ -36807,11 +36816,11 @@ static mp_obj_t mp_lv_display_register_vsync_event(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_register_vsync_event_mpobj, 3, mp_lv_display_register_vsync_event, lv_display_register_vsync_event);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_register_vsync_event_mpobj, 3, mp_lv_display_register_vsync_event, lv_display_register_vsync_event, 1);
     
 /* Reusing lv_display_register_vsync_event for lv_display_unregister_vsync_event */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_unregister_vsync_event_mpobj, 3, mp_lv_display_register_vsync_event, lv_display_unregister_vsync_event);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_unregister_vsync_event_mpobj, 3, mp_lv_display_register_vsync_event, lv_display_unregister_vsync_event, 1);
     
 
 /*
@@ -36829,7 +36838,7 @@ static mp_obj_t mp_lv_display_send_vsync_event(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_send_vsync_event_mpobj, 2, mp_lv_display_send_vsync_event, lv_display_send_vsync_event);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_send_vsync_event_mpobj, 2, mp_lv_display_send_vsync_event, lv_display_send_vsync_event, 1);
     
 
 /*
@@ -36847,11 +36856,11 @@ static mp_obj_t mp_lv_display_set_user_data(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_user_data_mpobj, 2, mp_lv_display_set_user_data, lv_display_set_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_user_data_mpobj, 2, mp_lv_display_set_user_data, lv_display_set_user_data, 1);
     
 /* Reusing lv_display_set_user_data for lv_display_set_driver_data */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_driver_data_mpobj, 2, mp_lv_display_set_user_data, lv_display_set_driver_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_driver_data_mpobj, 2, mp_lv_display_set_user_data, lv_display_set_driver_data, 1);
     
 
 /*
@@ -36868,11 +36877,11 @@ static mp_obj_t mp_lv_display_get_user_data(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_user_data_mpobj, 1, mp_lv_display_get_user_data, lv_display_get_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_user_data_mpobj, 1, mp_lv_display_get_user_data, lv_display_get_user_data, 1);
     
 /* Reusing lv_display_get_user_data for lv_display_get_driver_data */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_driver_data_mpobj, 1, mp_lv_display_get_user_data, lv_display_get_driver_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_driver_data_mpobj, 1, mp_lv_display_get_user_data, lv_display_get_driver_data, 1);
     
 
 /*
@@ -36889,7 +36898,7 @@ static mp_obj_t mp_lv_display_get_buf_active(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_buf_active_mpobj, 1, mp_lv_display_get_buf_active, lv_display_get_buf_active);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_buf_active_mpobj, 1, mp_lv_display_get_buf_active, lv_display_get_buf_active, 1);
     
 
 /*
@@ -36907,7 +36916,7 @@ static mp_obj_t mp_lv_display_rotate_area(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_rotate_area_mpobj, 2, mp_lv_display_rotate_area, lv_display_rotate_area);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_rotate_area_mpobj, 2, mp_lv_display_rotate_area, lv_display_rotate_area, 1);
     
 
 /*
@@ -36925,15 +36934,15 @@ static mp_obj_t mp_lv_display_rotate_point(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_rotate_point_mpobj, 2, mp_lv_display_rotate_point, lv_display_rotate_point);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_rotate_point_mpobj, 2, mp_lv_display_rotate_point, lv_display_rotate_point, 1);
     
 /* Reusing lv_display_rotate_point for lv_display_rotate_point_ccw */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_rotate_point_ccw_mpobj, 2, mp_lv_display_rotate_point, lv_display_rotate_point_ccw);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_rotate_point_ccw_mpobj, 2, mp_lv_display_rotate_point, lv_display_rotate_point_ccw, 1);
     
 /* Reusing lv_display_get_tile_cnt for lv_display_get_draw_buf_size */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_draw_buf_size_mpobj, 1, mp_lv_display_get_tile_cnt, lv_display_get_draw_buf_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_draw_buf_size_mpobj, 1, mp_lv_display_get_tile_cnt, lv_display_get_draw_buf_size, 1);
     
 
 /*
@@ -36952,7 +36961,7 @@ static mp_obj_t mp_lv_display_get_invalidated_draw_buf_size(size_t mp_n_args, co
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_invalidated_draw_buf_size_mpobj, 3, mp_lv_display_get_invalidated_draw_buf_size, lv_display_get_invalidated_draw_buf_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_get_invalidated_draw_buf_size_mpobj, 3, mp_lv_display_get_invalidated_draw_buf_size, lv_display_get_invalidated_draw_buf_size, 1);
     
 
 /*
@@ -36970,7 +36979,7 @@ static mp_obj_t mp_lv_display_dpx(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_dpx_mpobj, 2, mp_lv_display_dpx, lv_display_dpx);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_dpx_mpobj, 2, mp_lv_display_dpx, lv_display_dpx, 1);
     
 
 /*
@@ -36988,7 +36997,7 @@ static mp_obj_t mp_lv_draw_dispatch_layer(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_dispatch_layer_mpobj, 2, mp_lv_draw_dispatch_layer, lv_draw_dispatch_layer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_dispatch_layer_mpobj, 2, mp_lv_draw_dispatch_layer, lv_draw_dispatch_layer, 1);
     
 
 /*
@@ -37006,7 +37015,7 @@ static mp_obj_t mp_lv_display_set_draw_buf_handlers(size_t mp_n_args, const mp_o
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_draw_buf_handlers_mpobj, 2, mp_lv_display_set_draw_buf_handlers, lv_display_set_draw_buf_handlers);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_display_set_draw_buf_handlers_mpobj, 2, mp_lv_display_set_draw_buf_handlers, lv_display_set_draw_buf_handlers, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_display_t_locals_dict_table[] = {
@@ -37096,11 +37105,11 @@ static MP_DEFINE_CONST_DICT(mp_lv_display_t_locals_dict, mp_lv_display_t_locals_
         
 /* Reusing funcptr_lv_draw_buf_cache_operation_cb_t for lv_draw_buf_invalidate_cache */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_invalidate_cache_mpobj, 2, mp_funcptr_lv_draw_buf_cache_operation_cb_t, lv_draw_buf_invalidate_cache);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_invalidate_cache_mpobj, 2, mp_funcptr_lv_draw_buf_cache_operation_cb_t, lv_draw_buf_invalidate_cache, 1);
     
 /* Reusing funcptr_lv_draw_buf_cache_operation_cb_t for lv_draw_buf_flush_cache */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_flush_cache_mpobj, 2, mp_funcptr_lv_draw_buf_cache_operation_cb_t, lv_draw_buf_flush_cache);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_flush_cache_mpobj, 2, mp_funcptr_lv_draw_buf_cache_operation_cb_t, lv_draw_buf_flush_cache, 1);
     
 
 /*
@@ -37118,7 +37127,7 @@ static mp_obj_t mp_lv_draw_buf_clear(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_clear_mpobj, 2, mp_lv_draw_buf_clear, lv_draw_buf_clear);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_clear_mpobj, 2, mp_lv_draw_buf_clear, lv_draw_buf_clear, 1);
     
 
 /*
@@ -37135,7 +37144,7 @@ static mp_obj_t mp_lv_draw_buf_dup(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_dup_mpobj, 1, mp_lv_draw_buf_dup, lv_draw_buf_dup);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_dup_mpobj, 1, mp_lv_draw_buf_dup, lv_draw_buf_dup, 1);
     
 
 /*
@@ -37158,7 +37167,7 @@ static mp_obj_t mp_lv_draw_buf_init(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_init_mpobj, 7, mp_lv_draw_buf_init, lv_draw_buf_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_init_mpobj, 7, mp_lv_draw_buf_init, lv_draw_buf_init, 1);
     
 
 /*
@@ -37179,7 +37188,7 @@ static mp_obj_t mp_lv_draw_buf_reshape(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_reshape_mpobj, 5, mp_lv_draw_buf_reshape, lv_draw_buf_reshape);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_reshape_mpobj, 5, mp_lv_draw_buf_reshape, lv_draw_buf_reshape, 1);
     
 
 /*
@@ -37196,11 +37205,11 @@ static mp_obj_t mp_lv_draw_buf_destroy(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_destroy_mpobj, 1, mp_lv_draw_buf_destroy, lv_draw_buf_destroy);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_destroy_mpobj, 1, mp_lv_draw_buf_destroy, lv_draw_buf_destroy, 1);
     
 /* Reusing funcptr_lv_draw_buf_copy_cb_t for lv_draw_buf_copy */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_copy_mpobj, 4, mp_funcptr_lv_draw_buf_copy_cb_t, lv_draw_buf_copy);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_copy_mpobj, 4, mp_funcptr_lv_draw_buf_copy_cb_t, lv_draw_buf_copy, 1);
     
 
 /*
@@ -37219,7 +37228,7 @@ static mp_obj_t mp_lv_draw_buf_goto_xy(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_goto_xy_mpobj, 3, mp_lv_draw_buf_goto_xy, lv_draw_buf_goto_xy);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_goto_xy_mpobj, 3, mp_lv_draw_buf_goto_xy, lv_draw_buf_goto_xy, 1);
     
 
 /*
@@ -37238,7 +37247,7 @@ static mp_obj_t mp_lv_draw_buf_is_position_valid(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_is_position_valid_mpobj, 3, mp_lv_draw_buf_is_position_valid, lv_draw_buf_is_position_valid);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_is_position_valid_mpobj, 3, mp_lv_draw_buf_is_position_valid, lv_draw_buf_is_position_valid, 1);
     
 
 /*
@@ -37256,7 +37265,7 @@ static mp_obj_t mp_lv_draw_buf_adjust_stride(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_adjust_stride_mpobj, 2, mp_lv_draw_buf_adjust_stride, lv_draw_buf_adjust_stride);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_adjust_stride_mpobj, 2, mp_lv_draw_buf_adjust_stride, lv_draw_buf_adjust_stride, 1);
     
 
 /*
@@ -37273,7 +37282,7 @@ static mp_obj_t mp_lv_draw_buf_premultiply(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_premultiply_mpobj, 1, mp_lv_draw_buf_premultiply, lv_draw_buf_premultiply);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_premultiply_mpobj, 1, mp_lv_draw_buf_premultiply, lv_draw_buf_premultiply, 1);
     
 
 /*
@@ -37291,7 +37300,7 @@ static mp_obj_t mp_lv_draw_buf_has_flag(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_has_flag_mpobj, 2, mp_lv_draw_buf_has_flag, lv_draw_buf_has_flag);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_has_flag_mpobj, 2, mp_lv_draw_buf_has_flag, lv_draw_buf_has_flag, 1);
     
 
 /*
@@ -37309,11 +37318,11 @@ static mp_obj_t mp_lv_draw_buf_set_flag(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_set_flag_mpobj, 2, mp_lv_draw_buf_set_flag, lv_draw_buf_set_flag);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_set_flag_mpobj, 2, mp_lv_draw_buf_set_flag, lv_draw_buf_set_flag, 1);
     
 /* Reusing lv_draw_buf_set_flag for lv_draw_buf_clear_flag */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_clear_flag_mpobj, 2, mp_lv_draw_buf_set_flag, lv_draw_buf_clear_flag);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_clear_flag_mpobj, 2, mp_lv_draw_buf_set_flag, lv_draw_buf_clear_flag, 1);
     
 
 /*
@@ -37331,7 +37340,7 @@ static mp_obj_t mp_lv_draw_buf_from_image(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_from_image_mpobj, 2, mp_lv_draw_buf_from_image, lv_draw_buf_from_image);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_from_image_mpobj, 2, mp_lv_draw_buf_from_image, lv_draw_buf_from_image, 1);
     
 
 /*
@@ -37349,7 +37358,7 @@ static mp_obj_t mp_lv_draw_buf_to_image(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_to_image_mpobj, 2, mp_lv_draw_buf_to_image, lv_draw_buf_to_image);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_to_image_mpobj, 2, mp_lv_draw_buf_to_image, lv_draw_buf_to_image, 1);
     
 
 /*
@@ -37368,15 +37377,15 @@ static mp_obj_t mp_lv_draw_buf_set_palette(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_set_palette_mpobj, 3, mp_lv_draw_buf_set_palette, lv_draw_buf_set_palette);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_set_palette_mpobj, 3, mp_lv_draw_buf_set_palette, lv_draw_buf_set_palette, 1);
     
 /* Reusing funcptr_lv_draw_buf_clear_cb_t for lv_draw_buf_clear_ex */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_clear_ex_mpobj, 3, mp_funcptr_lv_draw_buf_clear_cb_t, lv_draw_buf_clear_ex);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_clear_ex_mpobj, 3, mp_funcptr_lv_draw_buf_clear_cb_t, lv_draw_buf_clear_ex, 1);
     
 /* Reusing lv_draw_buf_premultiply for lv_draw_buf_convert_premultiply */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_convert_premultiply_mpobj, 1, mp_lv_draw_buf_premultiply, lv_draw_buf_convert_premultiply);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_convert_premultiply_mpobj, 1, mp_lv_draw_buf_premultiply, lv_draw_buf_convert_premultiply, 1);
     
 
 /*
@@ -37394,7 +37403,7 @@ static mp_obj_t mp_lv_draw_buf_save_to_file(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_save_to_file_mpobj, 2, mp_lv_draw_buf_save_to_file, lv_draw_buf_save_to_file);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_save_to_file_mpobj, 2, mp_lv_draw_buf_save_to_file, lv_draw_buf_save_to_file, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_buf_t_locals_dict_table[] = {
@@ -37448,7 +37457,7 @@ static mp_obj_t mp_lv_draw_buf_init_with_default_handlers(size_t mp_n_args, cons
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_init_with_default_handlers_mpobj, 1, mp_lv_draw_buf_init_with_default_handlers, lv_draw_buf_init_with_default_handlers);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_init_with_default_handlers_mpobj, 1, mp_lv_draw_buf_init_with_default_handlers, lv_draw_buf_init_with_default_handlers, 1);
     
 
 /*
@@ -37521,7 +37530,7 @@ static mp_obj_t mp_lv_draw_buf_handlers_init(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_handlers_init_mpobj, 8, mp_lv_draw_buf_handlers_init, lv_draw_buf_handlers_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_handlers_init_mpobj, 8, mp_lv_draw_buf_handlers_init, lv_draw_buf_handlers_init, 1);
     
 
 /*
@@ -37540,7 +37549,7 @@ static mp_obj_t mp_lv_draw_buf_align_ex(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_align_ex_mpobj, 3, mp_lv_draw_buf_align_ex, lv_draw_buf_align_ex);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_align_ex_mpobj, 3, mp_lv_draw_buf_align_ex, lv_draw_buf_align_ex, 1);
     
 
 /*
@@ -37559,7 +37568,7 @@ static mp_obj_t mp_lv_draw_buf_width_to_stride_ex(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_width_to_stride_ex_mpobj, 3, mp_lv_draw_buf_width_to_stride_ex, lv_draw_buf_width_to_stride_ex);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_width_to_stride_ex_mpobj, 3, mp_lv_draw_buf_width_to_stride_ex, lv_draw_buf_width_to_stride_ex, 1);
     
 
 /*
@@ -37580,7 +37589,7 @@ static mp_obj_t mp_lv_draw_buf_create_ex(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_create_ex_mpobj, 5, mp_lv_draw_buf_create_ex, lv_draw_buf_create_ex);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_create_ex_mpobj, 5, mp_lv_draw_buf_create_ex, lv_draw_buf_create_ex, 1);
     
 
 /*
@@ -37598,7 +37607,7 @@ static mp_obj_t mp_lv_draw_buf_dup_ex(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_dup_ex_mpobj, 2, mp_lv_draw_buf_dup_ex, lv_draw_buf_dup_ex);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_buf_dup_ex_mpobj, 2, mp_lv_draw_buf_dup_ex, lv_draw_buf_dup_ex, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_buf_handlers_t_locals_dict_table[] = {
@@ -37633,7 +37642,7 @@ static mp_obj_t mp_lv_area_set(size_t mp_n_args, const mp_obj_t *mp_args, void *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_set_mpobj, 5, mp_lv_area_set, lv_area_set);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_set_mpobj, 5, mp_lv_area_set, lv_area_set, 0);
     
 
 /*
@@ -37651,7 +37660,7 @@ static mp_obj_t mp_lv_area_copy(size_t mp_n_args, const mp_obj_t *mp_args, void 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_copy_mpobj, 2, mp_lv_area_copy, lv_area_copy);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_copy_mpobj, 2, mp_lv_area_copy, lv_area_copy, 0);
     
 
 /*
@@ -37668,11 +37677,11 @@ static mp_obj_t mp_lv_area_get_width(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_get_width_mpobj, 1, mp_lv_area_get_width, lv_area_get_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_get_width_mpobj, 1, mp_lv_area_get_width, lv_area_get_width, 0);
     
 /* Reusing lv_area_get_width for lv_area_get_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_get_height_mpobj, 1, mp_lv_area_get_width, lv_area_get_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_get_height_mpobj, 1, mp_lv_area_get_width, lv_area_get_height, 0);
     
 
 /*
@@ -37690,11 +37699,11 @@ static mp_obj_t mp_lv_area_set_width(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_set_width_mpobj, 2, mp_lv_area_set_width, lv_area_set_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_set_width_mpobj, 2, mp_lv_area_set_width, lv_area_set_width, 0);
     
 /* Reusing lv_area_set_width for lv_area_set_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_set_height_mpobj, 2, mp_lv_area_set_width, lv_area_set_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_set_height_mpobj, 2, mp_lv_area_set_width, lv_area_set_height, 0);
     
 
 /*
@@ -37711,7 +37720,7 @@ static mp_obj_t mp_lv_area_get_size(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_get_size_mpobj, 1, mp_lv_area_get_size, lv_area_get_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_get_size_mpobj, 1, mp_lv_area_get_size, lv_area_get_size, 0);
     
 
 /*
@@ -37730,11 +37739,11 @@ static mp_obj_t mp_lv_area_increase(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_increase_mpobj, 3, mp_lv_area_increase, lv_area_increase);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_increase_mpobj, 3, mp_lv_area_increase, lv_area_increase, 0);
     
 /* Reusing lv_area_increase for lv_area_move */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_move_mpobj, 3, mp_lv_area_increase, lv_area_move);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_move_mpobj, 3, mp_lv_area_increase, lv_area_move, 0);
     
 
 /*
@@ -37755,11 +37764,11 @@ static mp_obj_t mp_lv_area_align(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_align_mpobj, 5, mp_lv_area_align, lv_area_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_align_mpobj, 5, mp_lv_area_align, lv_area_align, 0);
     
 /* Reusing lv_area_increase for lv_area_set_pos */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_set_pos_mpobj, 3, mp_lv_area_increase, lv_area_set_pos);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_set_pos_mpobj, 3, mp_lv_area_increase, lv_area_set_pos, 0);
     
 
 /*
@@ -37778,7 +37787,7 @@ static mp_obj_t mp_lv_area_intersect(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_intersect_mpobj, 3, mp_lv_area_intersect, lv_area_intersect);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_intersect_mpobj, 3, mp_lv_area_intersect, lv_area_intersect, 0);
     
 
 /*
@@ -37797,7 +37806,7 @@ static mp_obj_t mp_lv_area_diff(size_t mp_n_args, const mp_obj_t *mp_args, void 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_area_diff_mpobj, 3, mp_lv_area_diff, lv_area_diff);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_area_diff_mpobj, 3, mp_lv_area_diff, lv_area_diff, 0);
     
 
 /*
@@ -37816,7 +37825,7 @@ static mp_obj_t mp_lv_area_join(size_t mp_n_args, const mp_obj_t *mp_args, void 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_join_mpobj, 3, mp_lv_area_join, lv_area_join);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_join_mpobj, 3, mp_lv_area_join, lv_area_join, 0);
     
 
 /*
@@ -37835,7 +37844,7 @@ static mp_obj_t mp_lv_area_is_point_on(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_is_point_on_mpobj, 3, mp_lv_area_is_point_on, lv_area_is_point_on);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_is_point_on_mpobj, 3, mp_lv_area_is_point_on, lv_area_is_point_on, 0);
     
 
 /*
@@ -37853,7 +37862,7 @@ static mp_obj_t mp_lv_area_is_on(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_is_on_mpobj, 2, mp_lv_area_is_on, lv_area_is_on);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_is_on_mpobj, 2, mp_lv_area_is_on, lv_area_is_on, 0);
     
 
 /*
@@ -37872,15 +37881,15 @@ static mp_obj_t mp_lv_area_is_in(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_is_in_mpobj, 3, mp_lv_area_is_in, lv_area_is_in);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_is_in_mpobj, 3, mp_lv_area_is_in, lv_area_is_in, 0);
     
 /* Reusing lv_area_is_in for lv_area_is_out */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_is_out_mpobj, 3, mp_lv_area_is_in, lv_area_is_out);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_is_out_mpobj, 3, mp_lv_area_is_in, lv_area_is_out, 0);
     
 /* Reusing lv_area_is_on for lv_area_is_equal */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_is_equal_mpobj, 2, mp_lv_area_is_on, lv_area_is_equal);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_area_is_equal_mpobj, 2, mp_lv_area_is_on, lv_area_is_equal, 0);
     
 
 static const mp_rom_map_elem_t mp_lv_area_t_locals_dict_table[] = {
@@ -37924,11 +37933,11 @@ static mp_obj_t mp_lv_layer_init(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_layer_init_mpobj, 1, mp_lv_layer_init, lv_layer_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_layer_init_mpobj, 1, mp_lv_layer_init, lv_layer_init, 1);
     
 /* Reusing lv_layer_init for lv_layer_reset */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_layer_reset_mpobj, 1, mp_lv_layer_init, lv_layer_reset);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_layer_reset_mpobj, 1, mp_lv_layer_init, lv_layer_reset, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_layer_t_locals_dict_table[] = {
@@ -37955,7 +37964,7 @@ static mp_obj_t mp_lv_draw_get_dependent_count(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_get_dependent_count_mpobj, 1, mp_lv_draw_get_dependent_count, lv_draw_get_dependent_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_get_dependent_count_mpobj, 1, mp_lv_draw_get_dependent_count, lv_draw_get_dependent_count, 1);
     
 
 /*
@@ -37972,7 +37981,7 @@ static mp_obj_t mp_lv_draw_task_get_type(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_type_mpobj, 1, mp_lv_draw_task_get_type, lv_draw_task_get_type);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_type_mpobj, 1, mp_lv_draw_task_get_type, lv_draw_task_get_type, 1);
     
 
 /*
@@ -37989,7 +37998,7 @@ static mp_obj_t mp_lv_draw_task_get_draw_dsc(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_draw_dsc_mpobj, 1, mp_lv_draw_task_get_draw_dsc, lv_draw_task_get_draw_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_draw_dsc_mpobj, 1, mp_lv_draw_task_get_draw_dsc, lv_draw_task_get_draw_dsc, 1);
     
 
 /*
@@ -38007,7 +38016,7 @@ static mp_obj_t mp_lv_draw_task_get_area(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_area_mpobj, 2, mp_lv_draw_task_get_area, lv_draw_task_get_area);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_area_mpobj, 2, mp_lv_draw_task_get_area, lv_draw_task_get_area, 1);
     
 
 /*
@@ -38024,7 +38033,7 @@ static mp_obj_t mp_lv_draw_task_get_fill_dsc(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_fill_dsc_mpobj, 1, mp_lv_draw_task_get_fill_dsc, lv_draw_task_get_fill_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_fill_dsc_mpobj, 1, mp_lv_draw_task_get_fill_dsc, lv_draw_task_get_fill_dsc, 1);
     
 
 /*
@@ -38041,7 +38050,7 @@ static mp_obj_t mp_lv_draw_task_get_border_dsc(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_border_dsc_mpobj, 1, mp_lv_draw_task_get_border_dsc, lv_draw_task_get_border_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_border_dsc_mpobj, 1, mp_lv_draw_task_get_border_dsc, lv_draw_task_get_border_dsc, 1);
     
 
 /*
@@ -38058,7 +38067,7 @@ static mp_obj_t mp_lv_draw_task_get_box_shadow_dsc(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_box_shadow_dsc_mpobj, 1, mp_lv_draw_task_get_box_shadow_dsc, lv_draw_task_get_box_shadow_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_box_shadow_dsc_mpobj, 1, mp_lv_draw_task_get_box_shadow_dsc, lv_draw_task_get_box_shadow_dsc, 1);
     
 
 /*
@@ -38075,7 +38084,7 @@ static mp_obj_t mp_lv_draw_task_get_label_dsc(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_label_dsc_mpobj, 1, mp_lv_draw_task_get_label_dsc, lv_draw_task_get_label_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_label_dsc_mpobj, 1, mp_lv_draw_task_get_label_dsc, lv_draw_task_get_label_dsc, 1);
     
 
 /*
@@ -38104,7 +38113,7 @@ static mp_obj_t mp_funcptr_lv_draw_glyph_cb_t(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_glyph_cb_t_mpobj, 4, mp_funcptr_lv_draw_glyph_cb_t, funcptr_lv_draw_glyph_cb_t);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_glyph_cb_t_mpobj, 4, mp_funcptr_lv_draw_glyph_cb_t, funcptr_lv_draw_glyph_cb_t, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_draw_glyph_cb_t(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_draw_glyph_cb_t_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -38126,7 +38135,7 @@ static mp_obj_t mp_lv_draw_label_iterate_characters(size_t mp_n_args, const mp_o
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_label_iterate_characters_mpobj, 4, mp_lv_draw_label_iterate_characters, lv_draw_label_iterate_characters);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_label_iterate_characters_mpobj, 4, mp_lv_draw_label_iterate_characters, lv_draw_label_iterate_characters, 1);
     
 
 /*
@@ -38155,7 +38164,7 @@ static mp_obj_t mp_lv_draw_unit_draw_letter(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_unit_draw_letter_mpobj, 6, mp_lv_draw_unit_draw_letter, lv_draw_unit_draw_letter);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_unit_draw_letter_mpobj, 6, mp_lv_draw_unit_draw_letter, lv_draw_unit_draw_letter, 1);
     
 
 /*
@@ -38172,7 +38181,7 @@ static mp_obj_t mp_lv_draw_task_get_image_dsc(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_image_dsc_mpobj, 1, mp_lv_draw_task_get_image_dsc, lv_draw_task_get_image_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_image_dsc_mpobj, 1, mp_lv_draw_task_get_image_dsc, lv_draw_task_get_image_dsc, 1);
     
 
 /*
@@ -38189,7 +38198,7 @@ static mp_obj_t mp_lv_draw_task_get_line_dsc(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_line_dsc_mpobj, 1, mp_lv_draw_task_get_line_dsc, lv_draw_task_get_line_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_line_dsc_mpobj, 1, mp_lv_draw_task_get_line_dsc, lv_draw_task_get_line_dsc, 1);
     
 
 /*
@@ -38216,7 +38225,7 @@ static mp_obj_t mp_funcptr_draw_line_cb(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_draw_line_cb_mpobj, 2, mp_funcptr_draw_line_cb, funcptr_draw_line_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_draw_line_cb_mpobj, 2, mp_funcptr_draw_line_cb, funcptr_draw_line_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_draw_line_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_draw_line_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -38237,7 +38246,7 @@ static mp_obj_t mp_lv_draw_line_iterate(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_line_iterate_mpobj, 3, mp_lv_draw_line_iterate, lv_draw_line_iterate);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_line_iterate_mpobj, 3, mp_lv_draw_line_iterate, lv_draw_line_iterate, 1);
     
 
 /*
@@ -38254,7 +38263,7 @@ static mp_obj_t mp_lv_draw_task_get_arc_dsc(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_arc_dsc_mpobj, 1, mp_lv_draw_task_get_arc_dsc, lv_draw_task_get_arc_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_arc_dsc_mpobj, 1, mp_lv_draw_task_get_arc_dsc, lv_draw_task_get_arc_dsc, 1);
     
 
 /*
@@ -38271,7 +38280,7 @@ static mp_obj_t mp_lv_draw_task_get_triangle_dsc(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_triangle_dsc_mpobj, 1, mp_lv_draw_task_get_triangle_dsc, lv_draw_task_get_triangle_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_triangle_dsc_mpobj, 1, mp_lv_draw_task_get_triangle_dsc, lv_draw_task_get_triangle_dsc, 1);
     
 
 /*
@@ -38288,7 +38297,7 @@ static mp_obj_t mp_lv_draw_task_get_blur_dsc(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_blur_dsc_mpobj, 1, mp_lv_draw_task_get_blur_dsc, lv_draw_task_get_blur_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_blur_dsc_mpobj, 1, mp_lv_draw_task_get_blur_dsc, lv_draw_task_get_blur_dsc, 1);
     
 
 /*
@@ -38305,7 +38314,7 @@ static mp_obj_t mp_lv_draw_task_get_mask_rect_dsc(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_mask_rect_dsc_mpobj, 1, mp_lv_draw_task_get_mask_rect_dsc, lv_draw_task_get_mask_rect_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_task_get_mask_rect_dsc_mpobj, 1, mp_lv_draw_task_get_mask_rect_dsc, lv_draw_task_get_mask_rect_dsc, 1);
     
 
 /*
@@ -38322,11 +38331,11 @@ static mp_obj_t mp_lv_draw_cleanup_task(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_cleanup_task_mpobj, 1, mp_lv_draw_cleanup_task, lv_draw_cleanup_task);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_cleanup_task_mpobj, 1, mp_lv_draw_cleanup_task, lv_draw_cleanup_task, 1);
     
 /* Reusing funcptr_lv_draw_sw_blend_handler_t for lv_draw_sw_blend */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_mpobj, 2, mp_funcptr_lv_draw_sw_blend_handler_t, lv_draw_sw_blend);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_mpobj, 2, mp_funcptr_lv_draw_sw_blend_handler_t, lv_draw_sw_blend, 1);
     
 
 /*
@@ -38345,7 +38354,7 @@ static mp_obj_t mp_lv_draw_sw_fill(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_fill_mpobj, 3, mp_lv_draw_sw_fill, lv_draw_sw_fill);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_fill_mpobj, 3, mp_lv_draw_sw_fill, lv_draw_sw_fill, 1);
     
 
 /*
@@ -38364,7 +38373,7 @@ static mp_obj_t mp_lv_draw_sw_border(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_border_mpobj, 3, mp_lv_draw_sw_border, lv_draw_sw_border);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_border_mpobj, 3, mp_lv_draw_sw_border, lv_draw_sw_border, 1);
     
 
 /*
@@ -38383,7 +38392,7 @@ static mp_obj_t mp_lv_draw_sw_box_shadow(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_box_shadow_mpobj, 3, mp_lv_draw_sw_box_shadow, lv_draw_sw_box_shadow);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_box_shadow_mpobj, 3, mp_lv_draw_sw_box_shadow, lv_draw_sw_box_shadow, 1);
     
 
 /*
@@ -38402,7 +38411,7 @@ static mp_obj_t mp_lv_draw_sw_image(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_image_mpobj, 3, mp_lv_draw_sw_image, lv_draw_sw_image);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_image_mpobj, 3, mp_lv_draw_sw_image, lv_draw_sw_image, 1);
     
 
 /*
@@ -38421,7 +38430,7 @@ static mp_obj_t mp_lv_draw_sw_letter(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_letter_mpobj, 3, mp_lv_draw_sw_letter, lv_draw_sw_letter);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_letter_mpobj, 3, mp_lv_draw_sw_letter, lv_draw_sw_letter, 1);
     
 
 /*
@@ -38440,7 +38449,7 @@ static mp_obj_t mp_lv_draw_sw_label(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_label_mpobj, 3, mp_lv_draw_sw_label, lv_draw_sw_label);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_label_mpobj, 3, mp_lv_draw_sw_label, lv_draw_sw_label, 1);
     
 
 /*
@@ -38459,15 +38468,15 @@ static mp_obj_t mp_lv_draw_sw_arc(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_arc_mpobj, 3, mp_lv_draw_sw_arc, lv_draw_sw_arc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_arc_mpobj, 3, mp_lv_draw_sw_arc, lv_draw_sw_arc, 1);
     
 /* Reusing funcptr_draw_line_cb for lv_draw_sw_line */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_line_mpobj, 2, mp_funcptr_draw_line_cb, lv_draw_sw_line);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_line_mpobj, 2, mp_funcptr_draw_line_cb, lv_draw_sw_line, 1);
     
 /* Reusing lv_draw_sw_image for lv_draw_sw_layer */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_layer_mpobj, 3, mp_lv_draw_sw_image, lv_draw_sw_layer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_layer_mpobj, 3, mp_lv_draw_sw_image, lv_draw_sw_layer, 1);
     
 
 /*
@@ -38485,7 +38494,7 @@ static mp_obj_t mp_lv_draw_sw_triangle(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_triangle_mpobj, 2, mp_lv_draw_sw_triangle, lv_draw_sw_triangle);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_triangle_mpobj, 2, mp_lv_draw_sw_triangle, lv_draw_sw_triangle, 1);
     
 
 /*
@@ -38504,7 +38513,7 @@ static mp_obj_t mp_lv_draw_sw_blur(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blur_mpobj, 3, mp_lv_draw_sw_blur, lv_draw_sw_blur);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blur_mpobj, 3, mp_lv_draw_sw_blur, lv_draw_sw_blur, 1);
     
 
 /*
@@ -38522,7 +38531,7 @@ static mp_obj_t mp_lv_draw_sw_mask_rect(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_mask_rect_mpobj, 2, mp_lv_draw_sw_mask_rect, lv_draw_sw_mask_rect);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_mask_rect_mpobj, 2, mp_lv_draw_sw_mask_rect, lv_draw_sw_mask_rect, 1);
     
 
 /*
@@ -38553,7 +38562,7 @@ static mp_obj_t mp_funcptr_lv_draw_image_core_cb(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_image_core_cb_mpobj, 6, mp_funcptr_lv_draw_image_core_cb, funcptr_lv_draw_image_core_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_draw_image_core_cb_mpobj, 6, mp_funcptr_lv_draw_image_core_cb, funcptr_lv_draw_image_core_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_draw_image_core_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_draw_image_core_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -38576,15 +38585,15 @@ static mp_obj_t mp_lv_draw_image_normal_helper(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_image_normal_helper_mpobj, 5, mp_lv_draw_image_normal_helper, lv_draw_image_normal_helper);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_image_normal_helper_mpobj, 5, mp_lv_draw_image_normal_helper, lv_draw_image_normal_helper, 1);
     
 /* Reusing lv_draw_image_normal_helper for lv_draw_image_tiled_helper */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_image_tiled_helper_mpobj, 5, mp_lv_draw_image_normal_helper, lv_draw_image_tiled_helper);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_image_tiled_helper_mpobj, 5, mp_lv_draw_image_normal_helper, lv_draw_image_tiled_helper, 1);
     
 /* Reusing lv_draw_unit_draw_letter for lv_draw_unit_draw_letter_internal */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_unit_draw_letter_internal_mpobj, 6, mp_lv_draw_unit_draw_letter, lv_draw_unit_draw_letter_internal);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_unit_draw_letter_internal_mpobj, 6, mp_lv_draw_unit_draw_letter, lv_draw_unit_draw_letter_internal, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_task_t_locals_dict_table[] = {
@@ -38651,11 +38660,11 @@ static mp_obj_t mp_lv_event_get_target(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_target_mpobj, 1, mp_lv_event_get_target, lv_event_get_target);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_target_mpobj, 1, mp_lv_event_get_target, lv_event_get_target, 1);
     
 /* Reusing lv_event_get_target for lv_event_get_current_target */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_current_target_mpobj, 1, mp_lv_event_get_target, lv_event_get_current_target);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_current_target_mpobj, 1, mp_lv_event_get_target, lv_event_get_current_target, 1);
     
 
 /*
@@ -38672,31 +38681,31 @@ static mp_obj_t mp_lv_event_get_code(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_code_mpobj, 1, mp_lv_event_get_code, lv_event_get_code);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_code_mpobj, 1, mp_lv_event_get_code, lv_event_get_code, 1);
     
 /* Reusing lv_event_get_target for lv_event_get_param */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_param_mpobj, 1, mp_lv_event_get_target, lv_event_get_param);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_param_mpobj, 1, mp_lv_event_get_target, lv_event_get_param, 1);
     
 /* Reusing lv_event_get_target for lv_event_get_user_data */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_user_data_mpobj, 1, mp_lv_event_get_target, lv_event_get_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_user_data_mpobj, 1, mp_lv_event_get_target, lv_event_get_user_data, 1);
     
 /* Reusing funcptr_event_cb for lv_event_stop_bubbling */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_stop_bubbling_mpobj, 1, mp_funcptr_event_cb, lv_event_stop_bubbling);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_stop_bubbling_mpobj, 1, mp_funcptr_event_cb, lv_event_stop_bubbling, 1);
     
 /* Reusing funcptr_event_cb for lv_event_stop_trickling */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_stop_trickling_mpobj, 1, mp_funcptr_event_cb, lv_event_stop_trickling);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_stop_trickling_mpobj, 1, mp_funcptr_event_cb, lv_event_stop_trickling, 1);
     
 /* Reusing funcptr_event_cb for lv_event_stop_processing */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_stop_processing_mpobj, 1, mp_funcptr_event_cb, lv_event_stop_processing);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_stop_processing_mpobj, 1, mp_funcptr_event_cb, lv_event_stop_processing, 1);
     
 /* Reusing funcptr_event_cb for lv_event_free_user_data_cb */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_free_user_data_cb_mpobj, 1, mp_funcptr_event_cb, lv_event_free_user_data_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_free_user_data_cb_mpobj, 1, mp_funcptr_event_cb, lv_event_free_user_data_cb, 1);
     
 
 /*
@@ -38713,7 +38722,7 @@ static mp_obj_t mp_lv_event_get_invalidated_area(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_invalidated_area_mpobj, 1, mp_lv_event_get_invalidated_area, lv_event_get_invalidated_area);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_invalidated_area_mpobj, 1, mp_lv_event_get_invalidated_area, lv_event_get_invalidated_area, 1);
     
 
 /*
@@ -38730,11 +38739,11 @@ static mp_obj_t mp_lv_event_get_current_target_obj(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_current_target_obj_mpobj, 1, mp_lv_event_get_current_target_obj, lv_event_get_current_target_obj);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_current_target_obj_mpobj, 1, mp_lv_event_get_current_target_obj, lv_event_get_current_target_obj, 1);
     
 /* Reusing lv_event_get_current_target_obj for lv_event_get_target_obj */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_target_obj_mpobj, 1, mp_lv_event_get_current_target_obj, lv_event_get_target_obj);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_target_obj_mpobj, 1, mp_lv_event_get_current_target_obj, lv_event_get_target_obj, 1);
     
 
 /*
@@ -38751,7 +38760,7 @@ static mp_obj_t mp_lv_event_get_indev(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_indev_mpobj, 1, mp_lv_event_get_indev, lv_event_get_indev);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_indev_mpobj, 1, mp_lv_event_get_indev, lv_event_get_indev, 1);
     
 
 /*
@@ -38768,7 +38777,7 @@ static mp_obj_t mp_lv_event_get_layer(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_layer_mpobj, 1, mp_lv_event_get_layer, lv_event_get_layer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_layer_mpobj, 1, mp_lv_event_get_layer, lv_event_get_layer, 1);
     
 
 /*
@@ -38785,7 +38794,7 @@ static mp_obj_t mp_lv_event_get_old_size(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_old_size_mpobj, 1, mp_lv_event_get_old_size, lv_event_get_old_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_old_size_mpobj, 1, mp_lv_event_get_old_size, lv_event_get_old_size, 1);
     
 
 /*
@@ -38802,7 +38811,7 @@ static mp_obj_t mp_lv_event_get_key(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_key_mpobj, 1, mp_lv_event_get_key, lv_event_get_key);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_key_mpobj, 1, mp_lv_event_get_key, lv_event_get_key, 1);
     
 
 /*
@@ -38819,7 +38828,7 @@ static mp_obj_t mp_lv_event_get_rotary_diff(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_rotary_diff_mpobj, 1, mp_lv_event_get_rotary_diff, lv_event_get_rotary_diff);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_rotary_diff_mpobj, 1, mp_lv_event_get_rotary_diff, lv_event_get_rotary_diff, 1);
     
 
 /*
@@ -38836,7 +38845,7 @@ static mp_obj_t mp_lv_event_get_scroll_anim(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_scroll_anim_mpobj, 1, mp_lv_event_get_scroll_anim, lv_event_get_scroll_anim);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_scroll_anim_mpobj, 1, mp_lv_event_get_scroll_anim, lv_event_get_scroll_anim, 1);
     
 
 /*
@@ -38854,7 +38863,7 @@ static mp_obj_t mp_lv_event_set_ext_draw_size(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_set_ext_draw_size_mpobj, 2, mp_lv_event_set_ext_draw_size, lv_event_set_ext_draw_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_set_ext_draw_size_mpobj, 2, mp_lv_event_set_ext_draw_size, lv_event_set_ext_draw_size, 1);
     
 
 /*
@@ -38871,7 +38880,7 @@ static mp_obj_t mp_lv_event_get_self_size_info(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_self_size_info_mpobj, 1, mp_lv_event_get_self_size_info, lv_event_get_self_size_info);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_self_size_info_mpobj, 1, mp_lv_event_get_self_size_info, lv_event_get_self_size_info, 1);
     
 
 /*
@@ -38968,11 +38977,11 @@ static mp_obj_t mp_lv_event_get_hit_test_info(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_hit_test_info_mpobj, 1, mp_lv_event_get_hit_test_info, lv_event_get_hit_test_info);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_hit_test_info_mpobj, 1, mp_lv_event_get_hit_test_info, lv_event_get_hit_test_info, 1);
     
 /* Reusing lv_event_get_old_size for lv_event_get_cover_area */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_cover_area_mpobj, 1, mp_lv_event_get_old_size, lv_event_get_cover_area);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_cover_area_mpobj, 1, mp_lv_event_get_old_size, lv_event_get_cover_area, 1);
     
 
 /*
@@ -38990,7 +38999,7 @@ static mp_obj_t mp_lv_event_set_cover_res(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_set_cover_res_mpobj, 2, mp_lv_event_set_cover_res, lv_event_set_cover_res);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_set_cover_res_mpobj, 2, mp_lv_event_set_cover_res, lv_event_set_cover_res, 1);
     
 
 /*
@@ -39007,7 +39016,7 @@ static mp_obj_t mp_lv_event_get_draw_task(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_draw_task_mpobj, 1, mp_lv_event_get_draw_task, lv_event_get_draw_task);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_draw_task_mpobj, 1, mp_lv_event_get_draw_task, lv_event_get_draw_task, 1);
     
 
 /*
@@ -39024,7 +39033,7 @@ static mp_obj_t mp_lv_event_get_prev_state(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_prev_state_mpobj, 1, mp_lv_event_get_prev_state, lv_event_get_prev_state);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_prev_state_mpobj, 1, mp_lv_event_get_prev_state, lv_event_get_prev_state, 1);
     
 
 /*
@@ -39041,15 +39050,15 @@ static mp_obj_t mp_lv_event_get_pinch_scale(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_pinch_scale_mpobj, 1, mp_lv_event_get_pinch_scale, lv_event_get_pinch_scale);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_pinch_scale_mpobj, 1, mp_lv_event_get_pinch_scale, lv_event_get_pinch_scale, 1);
     
 /* Reusing lv_event_get_pinch_scale for lv_event_get_rotation */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_rotation_mpobj, 1, mp_lv_event_get_pinch_scale, lv_event_get_rotation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_rotation_mpobj, 1, mp_lv_event_get_pinch_scale, lv_event_get_rotation, 1);
     
 /* Reusing lv_event_get_pinch_scale for lv_event_get_two_fingers_swipe_distance */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_two_fingers_swipe_distance_mpobj, 1, mp_lv_event_get_pinch_scale, lv_event_get_two_fingers_swipe_distance);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_two_fingers_swipe_distance_mpobj, 1, mp_lv_event_get_pinch_scale, lv_event_get_two_fingers_swipe_distance, 1);
     
 
 /*
@@ -39066,7 +39075,7 @@ static mp_obj_t mp_lv_event_get_two_fingers_swipe_dir(size_t mp_n_args, const mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_two_fingers_swipe_dir_mpobj, 1, mp_lv_event_get_two_fingers_swipe_dir, lv_event_get_two_fingers_swipe_dir);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_two_fingers_swipe_dir_mpobj, 1, mp_lv_event_get_two_fingers_swipe_dir, lv_event_get_two_fingers_swipe_dir, 1);
     
 
 /*
@@ -39084,7 +39093,7 @@ static mp_obj_t mp_lv_event_get_gesture_state(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_gesture_state_mpobj, 2, mp_lv_event_get_gesture_state, lv_event_get_gesture_state);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_gesture_state_mpobj, 2, mp_lv_event_get_gesture_state, lv_event_get_gesture_state, 1);
     
 
 /*
@@ -39101,15 +39110,15 @@ static mp_obj_t mp_lv_event_get_gesture_type(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_gesture_type_mpobj, 1, mp_lv_event_get_gesture_type, lv_event_get_gesture_type);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_gesture_type_mpobj, 1, mp_lv_event_get_gesture_type, lv_event_get_gesture_type, 1);
     
 /* Reusing funcptr_event_cb for lv_event_push */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_push_mpobj, 1, mp_funcptr_event_cb, lv_event_push);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_push_mpobj, 1, mp_funcptr_event_cb, lv_event_push, 1);
     
 /* Reusing funcptr_event_cb for lv_event_pop */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_pop_mpobj, 1, mp_funcptr_event_cb, lv_event_pop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_pop_mpobj, 1, mp_funcptr_event_cb, lv_event_pop, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_event_t_locals_dict_table[] = {
@@ -39167,7 +39176,7 @@ static mp_obj_t mp_lv_color32_unpremultiply(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color32_unpremultiply_mpobj, 1, mp_lv_color32_unpremultiply, lv_color32_unpremultiply);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color32_unpremultiply_mpobj, 1, mp_lv_color32_unpremultiply, lv_color32_unpremultiply, 0);
     
 
 /*
@@ -39185,7 +39194,7 @@ static mp_obj_t mp_lv_color32_lumi_of(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color32_lumi_of_mpobj, 2, mp_lv_color32_lumi_of, lv_color32_lumi_of);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color32_lumi_of_mpobj, 2, mp_lv_color32_lumi_of, lv_color32_lumi_of, 0);
     
 
 /*
@@ -39203,11 +39212,11 @@ static mp_obj_t mp_lv_color_mix32_inlined(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_mix32_inlined_mpobj, 2, mp_lv_color_mix32_inlined, lv_color_mix32_inlined);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_mix32_inlined_mpobj, 2, mp_lv_color_mix32_inlined, lv_color_mix32_inlined, 0);
     
 /* Reusing lv_color_mix32_inlined for lv_color_mix32_premultiplied_inlined */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_mix32_premultiplied_inlined_mpobj, 2, mp_lv_color_mix32_inlined, lv_color_mix32_premultiplied_inlined);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_mix32_premultiplied_inlined_mpobj, 2, mp_lv_color_mix32_inlined, lv_color_mix32_premultiplied_inlined, 0);
     
 
 /*
@@ -39225,7 +39234,7 @@ static mp_obj_t mp_lv_color32_eq(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color32_eq_mpobj, 2, mp_lv_color32_eq, lv_color32_eq);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color32_eq_mpobj, 2, mp_lv_color32_eq, lv_color32_eq, 0);
     
 
 /*
@@ -39242,7 +39251,7 @@ static mp_obj_t mp_lv_color_premultiply(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_premultiply_mpobj, 1, mp_lv_color_premultiply, lv_color_premultiply);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_premultiply_mpobj, 1, mp_lv_color_premultiply, lv_color_premultiply, 0);
     
 
 /*
@@ -39259,19 +39268,19 @@ static mp_obj_t mp_lv_color32_luminance(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color32_luminance_mpobj, 1, mp_lv_color32_luminance, lv_color32_luminance);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color32_luminance_mpobj, 1, mp_lv_color32_luminance, lv_color32_luminance, 0);
     
 /* Reusing lv_color_mix32_inlined for lv_color_mix32 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_mix32_mpobj, 2, mp_lv_color_mix32_inlined, lv_color_mix32);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_mix32_mpobj, 2, mp_lv_color_mix32_inlined, lv_color_mix32, 0);
     
 /* Reusing lv_color_mix32_inlined for lv_color_mix32_premultiplied */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_mix32_premultiplied_mpobj, 2, mp_lv_color_mix32_inlined, lv_color_mix32_premultiplied);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_mix32_premultiplied_mpobj, 2, mp_lv_color_mix32_inlined, lv_color_mix32_premultiplied, 0);
     
 /* Reusing lv_color_mix32_inlined for lv_color_over32 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_over32_mpobj, 2, mp_lv_color_mix32_inlined, lv_color_over32);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_over32_mpobj, 2, mp_lv_color_mix32_inlined, lv_color_over32, 0);
     
 
 static const mp_rom_map_elem_t mp_lv_color32_t_locals_dict_table[] = {
@@ -39307,7 +39316,7 @@ static mp_obj_t mp_lv_ll_init(size_t mp_n_args, const mp_obj_t *mp_args, void *l
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_init_mpobj, 2, mp_lv_ll_init, lv_ll_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_init_mpobj, 2, mp_lv_ll_init, lv_ll_init, 1);
     
 
 /*
@@ -39324,7 +39333,7 @@ static mp_obj_t mp_lv_ll_ins_head(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_ins_head_mpobj, 1, mp_lv_ll_ins_head, lv_ll_ins_head);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_ins_head_mpobj, 1, mp_lv_ll_ins_head, lv_ll_ins_head, 1);
     
 
 /*
@@ -39342,11 +39351,11 @@ static mp_obj_t mp_lv_ll_ins_prev(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_ins_prev_mpobj, 2, mp_lv_ll_ins_prev, lv_ll_ins_prev);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_ins_prev_mpobj, 2, mp_lv_ll_ins_prev, lv_ll_ins_prev, 1);
     
 /* Reusing lv_ll_ins_head for lv_ll_ins_tail */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_ins_tail_mpobj, 1, mp_lv_ll_ins_head, lv_ll_ins_tail);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_ins_tail_mpobj, 1, mp_lv_ll_ins_head, lv_ll_ins_tail, 1);
     
 
 /*
@@ -39364,7 +39373,7 @@ static mp_obj_t mp_lv_ll_remove(size_t mp_n_args, const mp_obj_t *mp_args, void 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_remove_mpobj, 2, mp_lv_ll_remove, lv_ll_remove);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_remove_mpobj, 2, mp_lv_ll_remove, lv_ll_remove, 1);
     
 
 /*
@@ -39389,7 +39398,7 @@ static mp_obj_t mp_lv_ll_clear_custom(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_clear_custom_mpobj, 2, mp_lv_ll_clear_custom, lv_ll_clear_custom);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_clear_custom_mpobj, 2, mp_lv_ll_clear_custom, lv_ll_clear_custom, 1);
     
 
 /*
@@ -39406,7 +39415,7 @@ static mp_obj_t mp_lv_ll_clear(size_t mp_n_args, const mp_obj_t *mp_args, void *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_clear_mpobj, 1, mp_lv_ll_clear, lv_ll_clear);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_clear_mpobj, 1, mp_lv_ll_clear, lv_ll_clear, 1);
     
 
 /*
@@ -39426,7 +39435,7 @@ static mp_obj_t mp_lv_ll_chg_list(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_chg_list_mpobj, 4, mp_lv_ll_chg_list, lv_ll_chg_list);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_chg_list_mpobj, 4, mp_lv_ll_chg_list, lv_ll_chg_list, 1);
     
 
 /*
@@ -39443,11 +39452,11 @@ static mp_obj_t mp_lv_ll_get_head(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_get_head_mpobj, 1, mp_lv_ll_get_head, lv_ll_get_head);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_get_head_mpobj, 1, mp_lv_ll_get_head, lv_ll_get_head, 1);
     
 /* Reusing lv_ll_get_head for lv_ll_get_tail */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_get_tail_mpobj, 1, mp_lv_ll_get_head, lv_ll_get_tail);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_get_tail_mpobj, 1, mp_lv_ll_get_head, lv_ll_get_tail, 1);
     
 
 /*
@@ -39465,11 +39474,11 @@ static mp_obj_t mp_lv_ll_get_next(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_get_next_mpobj, 2, mp_lv_ll_get_next, lv_ll_get_next);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_get_next_mpobj, 2, mp_lv_ll_get_next, lv_ll_get_next, 1);
     
 /* Reusing lv_ll_get_next for lv_ll_get_prev */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_get_prev_mpobj, 2, mp_lv_ll_get_next, lv_ll_get_prev);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_get_prev_mpobj, 2, mp_lv_ll_get_next, lv_ll_get_prev, 1);
     
 
 /*
@@ -39486,7 +39495,7 @@ static mp_obj_t mp_lv_ll_get_len(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_get_len_mpobj, 1, mp_lv_ll_get_len, lv_ll_get_len);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_get_len_mpobj, 1, mp_lv_ll_get_len, lv_ll_get_len, 1);
     
 
 /*
@@ -39505,7 +39514,7 @@ static mp_obj_t mp_lv_ll_move_before(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_move_before_mpobj, 3, mp_lv_ll_move_before, lv_ll_move_before);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_move_before_mpobj, 3, mp_lv_ll_move_before, lv_ll_move_before, 1);
     
 
 /*
@@ -39522,7 +39531,7 @@ static mp_obj_t mp_lv_ll_is_empty(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_is_empty_mpobj, 1, mp_lv_ll_is_empty, lv_ll_is_empty);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_ll_is_empty_mpobj, 1, mp_lv_ll_is_empty, lv_ll_is_empty, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_ll_t_locals_dict_table[] = {
@@ -39564,7 +39573,7 @@ static mp_obj_t mp_lv_event_send(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_send_mpobj, 3, mp_lv_event_send, lv_event_send);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_send_mpobj, 3, mp_lv_event_send, lv_event_send, 1);
     
 
 /*
@@ -39599,7 +39608,7 @@ static mp_obj_t mp_lv_event_add(size_t mp_n_args, const mp_obj_t *mp_args, void 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_add_mpobj, 4, mp_lv_event_add, lv_event_add);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_add_mpobj, 4, mp_lv_event_add, lv_event_add, 1);
     
 
 /*
@@ -39617,7 +39626,7 @@ static mp_obj_t mp_lv_event_remove_dsc(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_remove_dsc_mpobj, 2, mp_lv_event_remove_dsc, lv_event_remove_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_remove_dsc_mpobj, 2, mp_lv_event_remove_dsc, lv_event_remove_dsc, 1);
     
 
 /*
@@ -39634,7 +39643,7 @@ static mp_obj_t mp_lv_event_get_count(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_count_mpobj, 1, mp_lv_event_get_count, lv_event_get_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_count_mpobj, 1, mp_lv_event_get_count, lv_event_get_count, 1);
     
 
 /*
@@ -39652,7 +39661,7 @@ static mp_obj_t mp_lv_event_get_dsc(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_dsc_mpobj, 2, mp_lv_event_get_dsc, lv_event_get_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_get_dsc_mpobj, 2, mp_lv_event_get_dsc, lv_event_get_dsc, 1);
     
 
 /*
@@ -39670,7 +39679,7 @@ static mp_obj_t mp_lv_event_remove(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_remove_mpobj, 2, mp_lv_event_remove, lv_event_remove);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_remove_mpobj, 2, mp_lv_event_remove, lv_event_remove, 1);
     
 
 /*
@@ -39687,7 +39696,7 @@ static mp_obj_t mp_lv_event_remove_all(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_remove_all_mpobj, 1, mp_lv_event_remove_all, lv_event_remove_all);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_remove_all_mpobj, 1, mp_lv_event_remove_all, lv_event_remove_all, 1);
     
 
 /*
@@ -39707,7 +39716,7 @@ static mp_obj_t mp_lv_event_push_and_send(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_push_and_send_mpobj, 4, mp_lv_event_push_and_send, lv_event_push_and_send);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_push_and_send_mpobj, 4, mp_lv_event_push_and_send, lv_event_push_and_send, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_event_list_t_locals_dict_table[] = {
@@ -39740,11 +39749,11 @@ static mp_obj_t mp_lv_array_size(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_size_mpobj, 1, mp_lv_array_size, lv_array_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_size_mpobj, 1, mp_lv_array_size, lv_array_size, 1);
     
 /* Reusing lv_array_size for lv_array_capacity */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_capacity_mpobj, 1, mp_lv_array_size, lv_array_capacity);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_capacity_mpobj, 1, mp_lv_array_size, lv_array_capacity, 1);
     
 
 /*
@@ -39761,11 +39770,11 @@ static mp_obj_t mp_lv_array_is_empty(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_is_empty_mpobj, 1, mp_lv_array_is_empty, lv_array_is_empty);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_is_empty_mpobj, 1, mp_lv_array_is_empty, lv_array_is_empty, 1);
     
 /* Reusing lv_array_is_empty for lv_array_is_full */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_is_full_mpobj, 1, mp_lv_array_is_empty, lv_array_is_full);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_is_full_mpobj, 1, mp_lv_array_is_empty, lv_array_is_full, 1);
     
 
 /*
@@ -39782,7 +39791,7 @@ static mp_obj_t mp_lv_array_clear(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_clear_mpobj, 1, mp_lv_array_clear, lv_array_clear);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_clear_mpobj, 1, mp_lv_array_clear, lv_array_clear, 1);
     
 
 /*
@@ -39799,11 +39808,11 @@ static mp_obj_t mp_lv_array_front(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_front_mpobj, 1, mp_lv_array_front, lv_array_front);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_front_mpobj, 1, mp_lv_array_front, lv_array_front, 1);
     
 /* Reusing lv_array_front for lv_array_back */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_back_mpobj, 1, mp_lv_array_front, lv_array_back);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_back_mpobj, 1, mp_lv_array_front, lv_array_back, 1);
     
 
 /*
@@ -39822,7 +39831,7 @@ static mp_obj_t mp_lv_array_init(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_init_mpobj, 3, mp_lv_array_init, lv_array_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_init_mpobj, 3, mp_lv_array_init, lv_array_init, 1);
     
 
 /*
@@ -39842,7 +39851,7 @@ static mp_obj_t mp_lv_array_init_from_buf(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_init_from_buf_mpobj, 4, mp_lv_array_init_from_buf, lv_array_init_from_buf);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_init_from_buf_mpobj, 4, mp_lv_array_init_from_buf, lv_array_init_from_buf, 1);
     
 
 /*
@@ -39860,11 +39869,11 @@ static mp_obj_t mp_lv_array_resize(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_resize_mpobj, 2, mp_lv_array_resize, lv_array_resize);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_resize_mpobj, 2, mp_lv_array_resize, lv_array_resize, 1);
     
 /* Reusing lv_array_clear for lv_array_deinit */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_deinit_mpobj, 1, mp_lv_array_clear, lv_array_deinit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_deinit_mpobj, 1, mp_lv_array_clear, lv_array_deinit, 1);
     
 
 /*
@@ -39882,11 +39891,11 @@ static mp_obj_t mp_lv_array_copy(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_copy_mpobj, 2, mp_lv_array_copy, lv_array_copy);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_copy_mpobj, 2, mp_lv_array_copy, lv_array_copy, 1);
     
 /* Reusing lv_array_clear for lv_array_shrink */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_shrink_mpobj, 1, mp_lv_array_clear, lv_array_shrink);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_shrink_mpobj, 1, mp_lv_array_clear, lv_array_shrink, 1);
     
 
 /*
@@ -39904,15 +39913,15 @@ static mp_obj_t mp_lv_array_remove(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_remove_mpobj, 2, mp_lv_array_remove, lv_array_remove);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_remove_mpobj, 2, mp_lv_array_remove, lv_array_remove, 1);
     
 /* Reusing lv_array_remove for lv_array_remove_unordered */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_remove_unordered_mpobj, 2, mp_lv_array_remove, lv_array_remove_unordered);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_remove_unordered_mpobj, 2, mp_lv_array_remove, lv_array_remove_unordered, 1);
     
 /* Reusing lv_array_init for lv_array_erase */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_erase_mpobj, 3, mp_lv_array_init, lv_array_erase);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_erase_mpobj, 3, mp_lv_array_init, lv_array_erase, 1);
     
 
 /*
@@ -39930,7 +39939,7 @@ static mp_obj_t mp_lv_array_concat(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_concat_mpobj, 2, mp_lv_array_concat, lv_array_concat);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_concat_mpobj, 2, mp_lv_array_concat, lv_array_concat, 1);
     
 
 /*
@@ -39948,7 +39957,7 @@ static mp_obj_t mp_lv_array_push_back(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_push_back_mpobj, 2, mp_lv_array_push_back, lv_array_push_back);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_push_back_mpobj, 2, mp_lv_array_push_back, lv_array_push_back, 1);
     
 
 /*
@@ -39967,7 +39976,7 @@ static mp_obj_t mp_lv_array_assign(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_assign_mpobj, 3, mp_lv_array_assign, lv_array_assign);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_assign_mpobj, 3, mp_lv_array_assign, lv_array_assign, 1);
     
 
 /*
@@ -39985,7 +39994,7 @@ static mp_obj_t mp_lv_array_at(size_t mp_n_args, const mp_obj_t *mp_args, void *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_at_mpobj, 2, mp_lv_array_at, lv_array_at);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_array_at_mpobj, 2, mp_lv_array_at, lv_array_at, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_array_t_locals_dict_table[] = {
@@ -40031,7 +40040,7 @@ static mp_obj_t mp_lv_theme_copy(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_copy_mpobj, 2, mp_lv_theme_copy, lv_theme_copy);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_copy_mpobj, 2, mp_lv_theme_copy, lv_theme_copy, 1);
     
 
 /*
@@ -40049,7 +40058,7 @@ static mp_obj_t mp_lv_theme_set_parent(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_set_parent_mpobj, 2, mp_lv_theme_set_parent, lv_theme_set_parent);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_set_parent_mpobj, 2, mp_lv_theme_set_parent, lv_theme_set_parent, 1);
     
 
 /*
@@ -40083,7 +40092,7 @@ static mp_obj_t mp_lv_theme_set_apply_cb(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_set_apply_cb_mpobj, 2, mp_lv_theme_set_apply_cb, lv_theme_set_apply_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_set_apply_cb_mpobj, 2, mp_lv_theme_set_apply_cb, lv_theme_set_apply_cb, 1);
     
 
 /*
@@ -40101,7 +40110,7 @@ static mp_obj_t mp_lv_theme_set_user_data(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_set_user_data_mpobj, 2, mp_lv_theme_set_user_data, lv_theme_set_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_set_user_data_mpobj, 2, mp_lv_theme_set_user_data, lv_theme_set_user_data, 1);
     
 
 /*
@@ -40118,7 +40127,7 @@ static mp_obj_t mp_lv_theme_get_user_data(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_get_user_data_mpobj, 1, mp_lv_theme_get_user_data, lv_theme_get_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_get_user_data_mpobj, 1, mp_lv_theme_get_user_data, lv_theme_get_user_data, 1);
     
 
 /*
@@ -40135,7 +40144,7 @@ static mp_obj_t mp_lv_theme_delete(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_delete_mpobj, 1, mp_lv_theme_delete, lv_theme_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_delete_mpobj, 1, mp_lv_theme_delete, lv_theme_delete, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_theme_t_locals_dict_table[] = {
@@ -40168,7 +40177,7 @@ static mp_obj_t mp_lv_color_is_in_range(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_is_in_range_mpobj, 3, mp_lv_color_is_in_range, lv_color_is_in_range);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_is_in_range_mpobj, 3, mp_lv_color_is_in_range, lv_color_is_in_range, 0);
     
 
 /*
@@ -40186,7 +40195,7 @@ static mp_obj_t mp_lv_color_to_32(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_to_32_mpobj, 2, mp_lv_color_to_32, lv_color_to_32);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_to_32_mpobj, 2, mp_lv_color_to_32, lv_color_to_32, 0);
     
 
 /*
@@ -40203,7 +40212,7 @@ static mp_obj_t mp_lv_color_to_int(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_to_int_mpobj, 1, mp_lv_color_to_int, lv_color_to_int);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_to_int_mpobj, 1, mp_lv_color_to_int, lv_color_to_int, 0);
     
 
 /*
@@ -40221,7 +40230,7 @@ static mp_obj_t mp_lv_color_eq(size_t mp_n_args, const mp_obj_t *mp_args, void *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_eq_mpobj, 2, mp_lv_color_eq, lv_color_eq);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_eq_mpobj, 2, mp_lv_color_eq, lv_color_eq, 0);
     
 
 /*
@@ -40238,11 +40247,11 @@ static mp_obj_t mp_lv_color_to_u16(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_to_u16_mpobj, 1, mp_lv_color_to_u16, lv_color_to_u16);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_to_u16_mpobj, 1, mp_lv_color_to_u16, lv_color_to_u16, 0);
     
 /* Reusing lv_color_to_int for lv_color_to_u32 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_to_u32_mpobj, 1, mp_lv_color_to_int, lv_color_to_u32);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_to_u32_mpobj, 1, mp_lv_color_to_int, lv_color_to_u32, 0);
     
 
 /*
@@ -40260,11 +40269,11 @@ static mp_obj_t mp_lv_color_lighten(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_lighten_mpobj, 2, mp_lv_color_lighten, lv_color_lighten);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_lighten_mpobj, 2, mp_lv_color_lighten, lv_color_lighten, 0);
     
 /* Reusing lv_color_lighten for lv_color_darken */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_darken_mpobj, 2, mp_lv_color_lighten, lv_color_darken);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_darken_mpobj, 2, mp_lv_color_lighten, lv_color_darken, 0);
     
 
 /*
@@ -40363,7 +40372,7 @@ static mp_obj_t mp_lv_color_to_hsv(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_to_hsv_mpobj, 1, mp_lv_color_to_hsv, lv_color_to_hsv);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_to_hsv_mpobj, 1, mp_lv_color_to_hsv, lv_color_to_hsv, 0);
     
 
 /*
@@ -40380,7 +40389,7 @@ static mp_obj_t mp_lv_color_luminance(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_luminance_mpobj, 1, mp_lv_color_luminance, lv_color_luminance);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_luminance_mpobj, 1, mp_lv_color_luminance, lv_color_luminance, 0);
     
 
 /*
@@ -40399,11 +40408,11 @@ static mp_obj_t mp_lv_color_mix(size_t mp_n_args, const mp_obj_t *mp_args, void 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_mix_mpobj, 3, mp_lv_color_mix, lv_color_mix);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_mix_mpobj, 3, mp_lv_color_mix, lv_color_mix, 0);
     
 /* Reusing lv_color_luminance for lv_color_brightness */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_brightness_mpobj, 1, mp_lv_color_luminance, lv_color_brightness);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_brightness_mpobj, 1, mp_lv_color_luminance, lv_color_brightness, 0);
     
 
 static const mp_rom_map_elem_t mp_lv_color_t_locals_dict_table[] = {
@@ -40440,7 +40449,7 @@ static mp_obj_t mp_lv_font_get_line_height_internal(size_t mp_n_args, const mp_o
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_line_height_internal_mpobj, 1, mp_lv_font_get_line_height_internal, lv_font_get_line_height_internal);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_line_height_internal_mpobj, 1, mp_lv_font_get_line_height_internal, lv_font_get_line_height_internal, 1);
     
 
 /*
@@ -40457,7 +40466,7 @@ static mp_obj_t mp_lv_font_has_static_bitmap_internal(size_t mp_n_args, const mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_has_static_bitmap_internal_mpobj, 1, mp_lv_font_has_static_bitmap_internal, lv_font_has_static_bitmap_internal);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_has_static_bitmap_internal_mpobj, 1, mp_lv_font_has_static_bitmap_internal, lv_font_has_static_bitmap_internal, 1);
     
 
 /*
@@ -40475,15 +40484,15 @@ static mp_obj_t mp_lv_font_get_bottom_trim_internal(size_t mp_n_args, const mp_o
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_bottom_trim_internal_mpobj, 2, mp_lv_font_get_bottom_trim_internal, lv_font_get_bottom_trim_internal);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_bottom_trim_internal_mpobj, 2, mp_lv_font_get_bottom_trim_internal, lv_font_get_bottom_trim_internal, 1);
     
 /* Reusing lv_font_get_bottom_trim_internal for lv_font_get_top_trim_internal */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_top_trim_internal_mpobj, 2, mp_lv_font_get_bottom_trim_internal, lv_font_get_top_trim_internal);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_top_trim_internal_mpobj, 2, mp_lv_font_get_bottom_trim_internal, lv_font_get_top_trim_internal, 1);
     
 /* Reusing funcptr_get_glyph_dsc for lv_font_get_glyph_dsc */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_glyph_dsc_mpobj, 4, mp_funcptr_get_glyph_dsc, lv_font_get_glyph_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_glyph_dsc_mpobj, 4, mp_funcptr_get_glyph_dsc, lv_font_get_glyph_dsc, 1);
     
 
 /*
@@ -40502,11 +40511,11 @@ static mp_obj_t mp_lv_font_get_glyph_width(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_glyph_width_mpobj, 3, mp_lv_font_get_glyph_width, lv_font_get_glyph_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_glyph_width_mpobj, 3, mp_lv_font_get_glyph_width, lv_font_get_glyph_width, 1);
     
 /* Reusing lv_font_get_line_height_internal for lv_font_get_line_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_line_height_mpobj, 1, mp_lv_font_get_line_height_internal, lv_font_get_line_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_line_height_mpobj, 1, mp_lv_font_get_line_height_internal, lv_font_get_line_height, 1);
     
 
 /*
@@ -40524,31 +40533,31 @@ static mp_obj_t mp_lv_font_set_kerning(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_set_kerning_mpobj, 2, mp_lv_font_set_kerning, lv_font_set_kerning);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_set_kerning_mpobj, 2, mp_lv_font_set_kerning, lv_font_set_kerning, 1);
     
 /* Reusing lv_font_has_static_bitmap_internal for lv_font_has_static_bitmap */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_has_static_bitmap_mpobj, 1, mp_lv_font_has_static_bitmap_internal, lv_font_has_static_bitmap);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_has_static_bitmap_mpobj, 1, mp_lv_font_has_static_bitmap_internal, lv_font_has_static_bitmap, 1);
     
 /* Reusing lv_font_get_bottom_trim_internal for lv_font_get_top_trim */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_top_trim_mpobj, 2, mp_lv_font_get_bottom_trim_internal, lv_font_get_top_trim);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_top_trim_mpobj, 2, mp_lv_font_get_bottom_trim_internal, lv_font_get_top_trim, 1);
     
 /* Reusing lv_font_get_bottom_trim_internal for lv_font_get_bottom_trim */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_bottom_trim_mpobj, 2, mp_lv_font_get_bottom_trim_internal, lv_font_get_bottom_trim);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_bottom_trim_mpobj, 2, mp_lv_font_get_bottom_trim_internal, lv_font_get_bottom_trim, 1);
     
 /* Reusing funcptr_get_glyph_dsc for lv_font_get_glyph_dsc_fmt_txt */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_glyph_dsc_fmt_txt_mpobj, 4, mp_funcptr_get_glyph_dsc, lv_font_get_glyph_dsc_fmt_txt);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_glyph_dsc_fmt_txt_mpobj, 4, mp_funcptr_get_glyph_dsc, lv_font_get_glyph_dsc_fmt_txt, 1);
     
 /* Reusing funcptr_get_glyph_dsc for lv_font_get_glyph_dsc_internal */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_glyph_dsc_internal_mpobj, 4, mp_funcptr_get_glyph_dsc, lv_font_get_glyph_dsc_internal);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_glyph_dsc_internal_mpobj, 4, mp_funcptr_get_glyph_dsc, lv_font_get_glyph_dsc_internal, 1);
     
 /* Reusing lv_font_get_glyph_width for lv_font_get_glyph_width_internal */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_glyph_width_internal_mpobj, 3, mp_lv_font_get_glyph_width, lv_font_get_glyph_width_internal);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_glyph_width_internal_mpobj, 3, mp_lv_font_get_glyph_width, lv_font_get_glyph_width_internal, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_font_t_locals_dict_table[] = {
@@ -40574,7 +40583,7 @@ static MP_DEFINE_CONST_DICT(mp_lv_font_t_locals_dict, mp_lv_font_t_locals_dict_t
         
 /* Reusing funcptr_get_glyph_bitmap for lv_font_get_glyph_bitmap */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_glyph_bitmap_mpobj, 2, mp_funcptr_get_glyph_bitmap, lv_font_get_glyph_bitmap);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_glyph_bitmap_mpobj, 2, mp_funcptr_get_glyph_bitmap, lv_font_get_glyph_bitmap, 1);
     
 
 /*
@@ -40591,7 +40600,7 @@ static mp_obj_t mp_lv_font_get_glyph_static_bitmap(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_glyph_static_bitmap_mpobj, 1, mp_lv_font_get_glyph_static_bitmap, lv_font_get_glyph_static_bitmap);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_glyph_static_bitmap_mpobj, 1, mp_lv_font_get_glyph_static_bitmap, lv_font_get_glyph_static_bitmap, 1);
     
 
 /*
@@ -40608,11 +40617,11 @@ static mp_obj_t mp_lv_font_glyph_release_draw_data(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_glyph_release_draw_data_mpobj, 1, mp_lv_font_glyph_release_draw_data, lv_font_glyph_release_draw_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_glyph_release_draw_data_mpobj, 1, mp_lv_font_glyph_release_draw_data, lv_font_glyph_release_draw_data, 1);
     
 /* Reusing funcptr_get_glyph_bitmap for lv_font_get_bitmap_fmt_txt */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_bitmap_fmt_txt_mpobj, 2, mp_funcptr_get_glyph_bitmap, lv_font_get_bitmap_fmt_txt);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_bitmap_fmt_txt_mpobj, 2, mp_funcptr_get_glyph_bitmap, lv_font_get_bitmap_fmt_txt, 1);
     
 
 /*
@@ -40630,19 +40639,19 @@ static mp_obj_t mp_lv_font_glyph_dsc_compare(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_glyph_dsc_compare_mpobj, 2, mp_lv_font_glyph_dsc_compare, lv_font_glyph_dsc_compare);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_glyph_dsc_compare_mpobj, 2, mp_lv_font_glyph_dsc_compare, lv_font_glyph_dsc_compare, 1);
     
 /* Reusing funcptr_get_glyph_bitmap for lv_font_get_glyph_bitmap_internal */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_glyph_bitmap_internal_mpobj, 2, mp_funcptr_get_glyph_bitmap, lv_font_get_glyph_bitmap_internal);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_glyph_bitmap_internal_mpobj, 2, mp_funcptr_get_glyph_bitmap, lv_font_get_glyph_bitmap_internal, 1);
     
 /* Reusing lv_font_get_glyph_static_bitmap for lv_font_get_glyph_static_bitmap_internal */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_glyph_static_bitmap_internal_mpobj, 1, mp_lv_font_get_glyph_static_bitmap, lv_font_get_glyph_static_bitmap_internal);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_get_glyph_static_bitmap_internal_mpobj, 1, mp_lv_font_get_glyph_static_bitmap, lv_font_get_glyph_static_bitmap_internal, 1);
     
 /* Reusing lv_font_glyph_release_draw_data for lv_font_glyph_release_draw_data_internal */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_glyph_release_draw_data_internal_mpobj, 1, mp_lv_font_glyph_release_draw_data, lv_font_glyph_release_draw_data_internal);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_glyph_release_draw_data_internal_mpobj, 1, mp_lv_font_glyph_release_draw_data, lv_font_glyph_release_draw_data_internal, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_font_glyph_dsc_t_locals_dict_table[] = {
@@ -40670,15 +40679,15 @@ static MP_DEFINE_CONST_DICT(mp_lv_font_glyph_dsc_gid_t_locals_dict, mp_lv_font_g
         
 /* Reusing funcptr_lv_timer_cb_t for lv_timer_delete */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_delete_mpobj, 1, mp_funcptr_lv_timer_cb_t, lv_timer_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_delete_mpobj, 1, mp_funcptr_lv_timer_cb_t, lv_timer_delete, 1);
     
 /* Reusing funcptr_lv_timer_cb_t for lv_timer_pause */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_pause_mpobj, 1, mp_funcptr_lv_timer_cb_t, lv_timer_pause);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_pause_mpobj, 1, mp_funcptr_lv_timer_cb_t, lv_timer_pause, 1);
     
 /* Reusing funcptr_lv_timer_cb_t for lv_timer_resume */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_resume_mpobj, 1, mp_funcptr_lv_timer_cb_t, lv_timer_resume);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_resume_mpobj, 1, mp_funcptr_lv_timer_cb_t, lv_timer_resume, 1);
     
 
 /*
@@ -40711,7 +40720,7 @@ static mp_obj_t mp_lv_timer_set_cb(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_set_cb_mpobj, 2, mp_lv_timer_set_cb, lv_timer_set_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_set_cb_mpobj, 2, mp_lv_timer_set_cb, lv_timer_set_cb, 1);
     
 
 /*
@@ -40729,11 +40738,11 @@ static mp_obj_t mp_lv_timer_set_period(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_set_period_mpobj, 2, mp_lv_timer_set_period, lv_timer_set_period);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_set_period_mpobj, 2, mp_lv_timer_set_period, lv_timer_set_period, 1);
     
 /* Reusing funcptr_lv_timer_cb_t for lv_timer_ready */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_ready_mpobj, 1, mp_funcptr_lv_timer_cb_t, lv_timer_ready);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_ready_mpobj, 1, mp_funcptr_lv_timer_cb_t, lv_timer_ready, 1);
     
 
 /*
@@ -40751,7 +40760,7 @@ static mp_obj_t mp_lv_timer_set_repeat_count(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_set_repeat_count_mpobj, 2, mp_lv_timer_set_repeat_count, lv_timer_set_repeat_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_set_repeat_count_mpobj, 2, mp_lv_timer_set_repeat_count, lv_timer_set_repeat_count, 1);
     
 
 /*
@@ -40769,7 +40778,7 @@ static mp_obj_t mp_lv_timer_set_auto_delete(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_set_auto_delete_mpobj, 2, mp_lv_timer_set_auto_delete, lv_timer_set_auto_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_set_auto_delete_mpobj, 2, mp_lv_timer_set_auto_delete, lv_timer_set_auto_delete, 1);
     
 
 /*
@@ -40787,11 +40796,11 @@ static mp_obj_t mp_lv_timer_set_user_data(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_set_user_data_mpobj, 2, mp_lv_timer_set_user_data, lv_timer_set_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_set_user_data_mpobj, 2, mp_lv_timer_set_user_data, lv_timer_set_user_data, 1);
     
 /* Reusing funcptr_lv_timer_cb_t for lv_timer_reset */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_reset_mpobj, 1, mp_funcptr_lv_timer_cb_t, lv_timer_reset);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_reset_mpobj, 1, mp_funcptr_lv_timer_cb_t, lv_timer_reset, 1);
     
 
 /*
@@ -40808,7 +40817,7 @@ static mp_obj_t mp_lv_timer_get_next(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_get_next_mpobj, 1, mp_lv_timer_get_next, lv_timer_get_next);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_get_next_mpobj, 1, mp_lv_timer_get_next, lv_timer_get_next, 1);
     
 
 /*
@@ -40825,7 +40834,7 @@ static mp_obj_t mp_lv_timer_get_user_data(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_get_user_data_mpobj, 1, mp_lv_timer_get_user_data, lv_timer_get_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_get_user_data_mpobj, 1, mp_lv_timer_get_user_data, lv_timer_get_user_data, 1);
     
 
 /*
@@ -40842,7 +40851,7 @@ static mp_obj_t mp_lv_timer_get_paused(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_get_paused_mpobj, 1, mp_lv_timer_get_paused, lv_timer_get_paused);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_timer_get_paused_mpobj, 1, mp_lv_timer_get_paused, lv_timer_get_paused, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_timer_t_locals_dict_table[] = {
@@ -40903,7 +40912,7 @@ static mp_obj_t mp_lv_point_transform(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_point_transform_mpobj, 6, mp_lv_point_transform, lv_point_transform);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_point_transform_mpobj, 6, mp_lv_point_transform, lv_point_transform, 0);
     
 
 /*
@@ -40926,7 +40935,7 @@ static mp_obj_t mp_lv_point_array_transform(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_point_array_transform_mpobj, 7, mp_lv_point_array_transform, lv_point_array_transform);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_point_array_transform_mpobj, 7, mp_lv_point_array_transform, lv_point_array_transform, 0);
     
 
 /*
@@ -40943,7 +40952,7 @@ static mp_obj_t mp_lv_point_to_precise(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_point_to_precise_mpobj, 1, mp_lv_point_to_precise, lv_point_to_precise);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_point_to_precise_mpobj, 1, mp_lv_point_to_precise, lv_point_to_precise, 0);
     
 
 /*
@@ -40962,7 +40971,7 @@ static mp_obj_t mp_lv_point_set(size_t mp_n_args, const mp_obj_t *mp_args, void 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_point_set_mpobj, 3, mp_lv_point_set, lv_point_set);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_point_set_mpobj, 3, mp_lv_point_set, lv_point_set, 0);
     
 
 /*
@@ -40980,7 +40989,7 @@ static mp_obj_t mp_lv_point_swap(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_point_swap_mpobj, 2, mp_lv_point_swap, lv_point_swap);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_point_swap_mpobj, 2, mp_lv_point_swap, lv_point_swap, 0);
     
 
 static const mp_rom_map_elem_t mp_lv_point_t_locals_dict_table[] = {
@@ -41010,7 +41019,7 @@ static mp_obj_t mp_lv_style_is_const_internal(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_is_const_internal_mpobj, 1, mp_lv_style_is_const_internal, lv_style_is_const_internal);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_is_const_internal_mpobj, 1, mp_lv_style_is_const_internal, lv_style_is_const_internal, 1);
     
 
 /*
@@ -41029,15 +41038,15 @@ static mp_obj_t mp_lv_style_get_prop_internal(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_get_prop_internal_mpobj, 3, mp_lv_style_get_prop_internal, lv_style_get_prop_internal);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_get_prop_internal_mpobj, 3, mp_lv_style_get_prop_internal, lv_style_get_prop_internal, 1);
     
 /* Reusing lv_obj_report_style_change for lv_style_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_init_mpobj, 1, mp_lv_obj_report_style_change, lv_style_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_init_mpobj, 1, mp_lv_obj_report_style_change, lv_style_init, 1);
     
 /* Reusing lv_obj_report_style_change for lv_style_reset */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_reset_mpobj, 1, mp_lv_obj_report_style_change, lv_style_reset);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_reset_mpobj, 1, mp_lv_obj_report_style_change, lv_style_reset, 1);
     
 
 /*
@@ -41055,15 +41064,15 @@ static mp_obj_t mp_lv_style_copy(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_copy_mpobj, 2, mp_lv_style_copy, lv_style_copy);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_copy_mpobj, 2, mp_lv_style_copy, lv_style_copy, 1);
     
 /* Reusing lv_style_copy for lv_style_merge */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_merge_mpobj, 2, mp_lv_style_copy, lv_style_merge);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_merge_mpobj, 2, mp_lv_style_copy, lv_style_merge, 1);
     
 /* Reusing lv_style_is_const_internal for lv_style_is_const */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_is_const_mpobj, 1, mp_lv_style_is_const_internal, lv_style_is_const);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_is_const_mpobj, 1, mp_lv_style_is_const_internal, lv_style_is_const, 1);
     
 
 /*
@@ -41081,7 +41090,7 @@ static mp_obj_t mp_lv_style_remove_prop(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_remove_prop_mpobj, 2, mp_lv_style_remove_prop, lv_style_remove_prop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_remove_prop_mpobj, 2, mp_lv_style_remove_prop, lv_style_remove_prop, 1);
     
 
 /*
@@ -41100,15 +41109,15 @@ static mp_obj_t mp_lv_style_set_prop(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_prop_mpobj, 3, mp_lv_style_set_prop, lv_style_set_prop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_prop_mpobj, 3, mp_lv_style_set_prop, lv_style_set_prop, 1);
     
 /* Reusing lv_style_get_prop_internal for lv_style_get_prop */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_get_prop_mpobj, 3, mp_lv_style_get_prop_internal, lv_style_get_prop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_get_prop_mpobj, 3, mp_lv_style_get_prop_internal, lv_style_get_prop, 1);
     
 /* Reusing lv_style_is_const_internal for lv_style_is_empty */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_is_empty_mpobj, 1, mp_lv_style_is_const_internal, lv_style_is_empty);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_is_empty_mpobj, 1, mp_lv_style_is_const_internal, lv_style_is_empty, 1);
     
 
 /*
@@ -41126,39 +41135,39 @@ static mp_obj_t mp_lv_style_set_width(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_width, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_min_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_min_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_min_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_min_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_min_width, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_max_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_max_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_max_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_max_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_max_width, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_height_mpobj, 2, mp_lv_style_set_width, lv_style_set_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_height_mpobj, 2, mp_lv_style_set_width, lv_style_set_height, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_min_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_min_height_mpobj, 2, mp_lv_style_set_width, lv_style_set_min_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_min_height_mpobj, 2, mp_lv_style_set_width, lv_style_set_min_height, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_max_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_max_height_mpobj, 2, mp_lv_style_set_width, lv_style_set_max_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_max_height_mpobj, 2, mp_lv_style_set_width, lv_style_set_max_height, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_length */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_length_mpobj, 2, mp_lv_style_set_width, lv_style_set_length);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_length_mpobj, 2, mp_lv_style_set_width, lv_style_set_length, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_x_mpobj, 2, mp_lv_style_set_width, lv_style_set_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_x_mpobj, 2, mp_lv_style_set_width, lv_style_set_x, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_y_mpobj, 2, mp_lv_style_set_width, lv_style_set_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_y_mpobj, 2, mp_lv_style_set_width, lv_style_set_y, 1);
     
 
 /*
@@ -41176,99 +41185,99 @@ static mp_obj_t mp_lv_style_set_align(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_align_mpobj, 2, mp_lv_style_set_align, lv_style_set_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_align_mpobj, 2, mp_lv_style_set_align, lv_style_set_align, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_transform_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transform_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_transform_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transform_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_transform_width, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_transform_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transform_height_mpobj, 2, mp_lv_style_set_width, lv_style_set_transform_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transform_height_mpobj, 2, mp_lv_style_set_width, lv_style_set_transform_height, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_translate_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_translate_x_mpobj, 2, mp_lv_style_set_width, lv_style_set_translate_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_translate_x_mpobj, 2, mp_lv_style_set_width, lv_style_set_translate_x, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_translate_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_translate_y_mpobj, 2, mp_lv_style_set_width, lv_style_set_translate_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_translate_y_mpobj, 2, mp_lv_style_set_width, lv_style_set_translate_y, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_translate_radial */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_translate_radial_mpobj, 2, mp_lv_style_set_width, lv_style_set_translate_radial);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_translate_radial_mpobj, 2, mp_lv_style_set_width, lv_style_set_translate_radial, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_transform_scale_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transform_scale_x_mpobj, 2, mp_lv_style_set_width, lv_style_set_transform_scale_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transform_scale_x_mpobj, 2, mp_lv_style_set_width, lv_style_set_transform_scale_x, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_transform_scale_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transform_scale_y_mpobj, 2, mp_lv_style_set_width, lv_style_set_transform_scale_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transform_scale_y_mpobj, 2, mp_lv_style_set_width, lv_style_set_transform_scale_y, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_transform_rotation */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transform_rotation_mpobj, 2, mp_lv_style_set_width, lv_style_set_transform_rotation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transform_rotation_mpobj, 2, mp_lv_style_set_width, lv_style_set_transform_rotation, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_transform_pivot_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transform_pivot_x_mpobj, 2, mp_lv_style_set_width, lv_style_set_transform_pivot_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transform_pivot_x_mpobj, 2, mp_lv_style_set_width, lv_style_set_transform_pivot_x, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_transform_pivot_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transform_pivot_y_mpobj, 2, mp_lv_style_set_width, lv_style_set_transform_pivot_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transform_pivot_y_mpobj, 2, mp_lv_style_set_width, lv_style_set_transform_pivot_y, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_transform_skew_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transform_skew_x_mpobj, 2, mp_lv_style_set_width, lv_style_set_transform_skew_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transform_skew_x_mpobj, 2, mp_lv_style_set_width, lv_style_set_transform_skew_x, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_transform_skew_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transform_skew_y_mpobj, 2, mp_lv_style_set_width, lv_style_set_transform_skew_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transform_skew_y_mpobj, 2, mp_lv_style_set_width, lv_style_set_transform_skew_y, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_pad_top */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_top_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_top);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_top_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_top, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_pad_bottom */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_bottom_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_bottom);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_bottom_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_bottom, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_pad_left */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_left_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_left);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_left_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_left, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_pad_right */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_right_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_right);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_right_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_right, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_pad_row */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_row_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_row);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_row_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_row, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_pad_column */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_column_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_column);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_column_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_column, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_pad_radial */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_radial_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_radial);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_radial_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_radial, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_margin_top */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_margin_top_mpobj, 2, mp_lv_style_set_width, lv_style_set_margin_top);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_margin_top_mpobj, 2, mp_lv_style_set_width, lv_style_set_margin_top, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_margin_bottom */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_margin_bottom_mpobj, 2, mp_lv_style_set_width, lv_style_set_margin_bottom);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_margin_bottom_mpobj, 2, mp_lv_style_set_width, lv_style_set_margin_bottom, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_margin_left */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_margin_left_mpobj, 2, mp_lv_style_set_width, lv_style_set_margin_left);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_margin_left_mpobj, 2, mp_lv_style_set_width, lv_style_set_margin_left, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_margin_right */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_margin_right_mpobj, 2, mp_lv_style_set_width, lv_style_set_margin_right);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_margin_right_mpobj, 2, mp_lv_style_set_width, lv_style_set_margin_right, 1);
     
 
 /*
@@ -41286,7 +41295,7 @@ static mp_obj_t mp_lv_style_set_bg_color(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_color_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_bg_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_color_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_bg_color, 1);
     
 
 /*
@@ -41304,11 +41313,11 @@ static mp_obj_t mp_lv_style_set_bg_opa(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_bg_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_bg_opa, 1);
     
 /* Reusing lv_style_set_bg_color for lv_style_set_bg_grad_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_grad_color_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_bg_grad_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_grad_color_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_bg_grad_color, 1);
     
 
 /*
@@ -41326,23 +41335,23 @@ static mp_obj_t mp_lv_style_set_bg_grad_dir(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_grad_dir_mpobj, 2, mp_lv_style_set_bg_grad_dir, lv_style_set_bg_grad_dir);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_grad_dir_mpobj, 2, mp_lv_style_set_bg_grad_dir, lv_style_set_bg_grad_dir, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_bg_main_stop */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_main_stop_mpobj, 2, mp_lv_style_set_width, lv_style_set_bg_main_stop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_main_stop_mpobj, 2, mp_lv_style_set_width, lv_style_set_bg_main_stop, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_bg_grad_stop */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_grad_stop_mpobj, 2, mp_lv_style_set_width, lv_style_set_bg_grad_stop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_grad_stop_mpobj, 2, mp_lv_style_set_width, lv_style_set_bg_grad_stop, 1);
     
 /* Reusing lv_style_set_bg_opa for lv_style_set_bg_main_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_main_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_bg_main_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_main_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_bg_main_opa, 1);
     
 /* Reusing lv_style_set_bg_opa for lv_style_set_bg_grad_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_grad_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_bg_grad_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_grad_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_bg_grad_opa, 1);
     
 
 /*
@@ -41360,7 +41369,7 @@ static mp_obj_t mp_lv_style_set_bg_grad(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_grad_mpobj, 2, mp_lv_style_set_bg_grad, lv_style_set_bg_grad);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_grad_mpobj, 2, mp_lv_style_set_bg_grad, lv_style_set_bg_grad, 1);
     
 
 /*
@@ -41378,19 +41387,19 @@ static mp_obj_t mp_lv_style_set_bg_image_src(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_image_src_mpobj, 2, mp_lv_style_set_bg_image_src, lv_style_set_bg_image_src);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_image_src_mpobj, 2, mp_lv_style_set_bg_image_src, lv_style_set_bg_image_src, 1);
     
 /* Reusing lv_style_set_bg_opa for lv_style_set_bg_image_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_image_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_bg_image_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_image_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_bg_image_opa, 1);
     
 /* Reusing lv_style_set_bg_color for lv_style_set_bg_image_recolor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_image_recolor_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_bg_image_recolor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_image_recolor_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_bg_image_recolor, 1);
     
 /* Reusing lv_style_set_bg_opa for lv_style_set_bg_image_recolor_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_image_recolor_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_bg_image_recolor_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_image_recolor_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_bg_image_recolor_opa, 1);
     
 
 /*
@@ -41408,19 +41417,19 @@ static mp_obj_t mp_lv_style_set_bg_image_tiled(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_image_tiled_mpobj, 2, mp_lv_style_set_bg_image_tiled, lv_style_set_bg_image_tiled);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bg_image_tiled_mpobj, 2, mp_lv_style_set_bg_image_tiled, lv_style_set_bg_image_tiled, 1);
     
 /* Reusing lv_style_set_bg_color for lv_style_set_border_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_border_color_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_border_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_border_color_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_border_color, 1);
     
 /* Reusing lv_style_set_bg_opa for lv_style_set_border_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_border_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_border_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_border_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_border_opa, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_border_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_border_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_border_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_border_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_border_width, 1);
     
 
 /*
@@ -41438,63 +41447,63 @@ static mp_obj_t mp_lv_style_set_border_side(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_border_side_mpobj, 2, mp_lv_style_set_border_side, lv_style_set_border_side);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_border_side_mpobj, 2, mp_lv_style_set_border_side, lv_style_set_border_side, 1);
     
 /* Reusing lv_style_set_bg_image_tiled for lv_style_set_border_post */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_border_post_mpobj, 2, mp_lv_style_set_bg_image_tiled, lv_style_set_border_post);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_border_post_mpobj, 2, mp_lv_style_set_bg_image_tiled, lv_style_set_border_post, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_outline_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_outline_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_outline_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_outline_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_outline_width, 1);
     
 /* Reusing lv_style_set_bg_color for lv_style_set_outline_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_outline_color_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_outline_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_outline_color_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_outline_color, 1);
     
 /* Reusing lv_style_set_bg_opa for lv_style_set_outline_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_outline_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_outline_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_outline_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_outline_opa, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_outline_pad */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_outline_pad_mpobj, 2, mp_lv_style_set_width, lv_style_set_outline_pad);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_outline_pad_mpobj, 2, mp_lv_style_set_width, lv_style_set_outline_pad, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_shadow_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_shadow_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_shadow_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_shadow_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_shadow_width, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_shadow_offset_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_shadow_offset_x_mpobj, 2, mp_lv_style_set_width, lv_style_set_shadow_offset_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_shadow_offset_x_mpobj, 2, mp_lv_style_set_width, lv_style_set_shadow_offset_x, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_shadow_offset_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_shadow_offset_y_mpobj, 2, mp_lv_style_set_width, lv_style_set_shadow_offset_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_shadow_offset_y_mpobj, 2, mp_lv_style_set_width, lv_style_set_shadow_offset_y, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_shadow_spread */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_shadow_spread_mpobj, 2, mp_lv_style_set_width, lv_style_set_shadow_spread);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_shadow_spread_mpobj, 2, mp_lv_style_set_width, lv_style_set_shadow_spread, 1);
     
 /* Reusing lv_style_set_bg_color for lv_style_set_shadow_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_shadow_color_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_shadow_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_shadow_color_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_shadow_color, 1);
     
 /* Reusing lv_style_set_bg_opa for lv_style_set_shadow_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_shadow_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_shadow_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_shadow_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_shadow_opa, 1);
     
 /* Reusing lv_style_set_bg_opa for lv_style_set_image_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_image_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_image_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_image_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_image_opa, 1);
     
 /* Reusing lv_style_set_bg_color for lv_style_set_image_recolor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_image_recolor_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_image_recolor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_image_recolor_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_image_recolor, 1);
     
 /* Reusing lv_style_set_bg_opa for lv_style_set_image_recolor_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_image_recolor_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_image_recolor_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_image_recolor_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_image_recolor_opa, 1);
     
 
 /*
@@ -41512,59 +41521,59 @@ static mp_obj_t mp_lv_style_set_image_colorkey(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_image_colorkey_mpobj, 2, mp_lv_style_set_image_colorkey, lv_style_set_image_colorkey);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_image_colorkey_mpobj, 2, mp_lv_style_set_image_colorkey, lv_style_set_image_colorkey, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_line_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_line_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_line_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_line_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_line_width, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_line_dash_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_line_dash_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_line_dash_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_line_dash_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_line_dash_width, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_line_dash_gap */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_line_dash_gap_mpobj, 2, mp_lv_style_set_width, lv_style_set_line_dash_gap);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_line_dash_gap_mpobj, 2, mp_lv_style_set_width, lv_style_set_line_dash_gap, 1);
     
 /* Reusing lv_style_set_bg_image_tiled for lv_style_set_line_rounded */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_line_rounded_mpobj, 2, mp_lv_style_set_bg_image_tiled, lv_style_set_line_rounded);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_line_rounded_mpobj, 2, mp_lv_style_set_bg_image_tiled, lv_style_set_line_rounded, 1);
     
 /* Reusing lv_style_set_bg_color for lv_style_set_line_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_line_color_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_line_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_line_color_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_line_color, 1);
     
 /* Reusing lv_style_set_bg_opa for lv_style_set_line_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_line_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_line_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_line_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_line_opa, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_arc_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_arc_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_arc_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_arc_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_arc_width, 1);
     
 /* Reusing lv_style_set_bg_image_tiled for lv_style_set_arc_rounded */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_arc_rounded_mpobj, 2, mp_lv_style_set_bg_image_tiled, lv_style_set_arc_rounded);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_arc_rounded_mpobj, 2, mp_lv_style_set_bg_image_tiled, lv_style_set_arc_rounded, 1);
     
 /* Reusing lv_style_set_bg_color for lv_style_set_arc_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_arc_color_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_arc_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_arc_color_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_arc_color, 1);
     
 /* Reusing lv_style_set_bg_opa for lv_style_set_arc_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_arc_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_arc_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_arc_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_arc_opa, 1);
     
 /* Reusing lv_style_set_bg_image_src for lv_style_set_arc_image_src */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_arc_image_src_mpobj, 2, mp_lv_style_set_bg_image_src, lv_style_set_arc_image_src);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_arc_image_src_mpobj, 2, mp_lv_style_set_bg_image_src, lv_style_set_arc_image_src, 1);
     
 /* Reusing lv_style_set_bg_color for lv_style_set_text_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_color_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_text_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_color_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_text_color, 1);
     
 /* Reusing lv_style_set_bg_opa for lv_style_set_text_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_text_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_text_opa, 1);
     
 
 /*
@@ -41582,15 +41591,15 @@ static mp_obj_t mp_lv_style_set_text_font(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_font_mpobj, 2, mp_lv_style_set_text_font, lv_style_set_text_font);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_font_mpobj, 2, mp_lv_style_set_text_font, lv_style_set_text_font, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_text_letter_space */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_letter_space_mpobj, 2, mp_lv_style_set_width, lv_style_set_text_letter_space);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_letter_space_mpobj, 2, mp_lv_style_set_width, lv_style_set_text_letter_space, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_text_line_space */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_line_space_mpobj, 2, mp_lv_style_set_width, lv_style_set_text_line_space);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_line_space_mpobj, 2, mp_lv_style_set_width, lv_style_set_text_line_space, 1);
     
 
 /*
@@ -41608,7 +41617,7 @@ static mp_obj_t mp_lv_style_set_text_decor(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_decor_mpobj, 2, mp_lv_style_set_text_decor, lv_style_set_text_decor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_decor_mpobj, 2, mp_lv_style_set_text_decor, lv_style_set_text_decor, 1);
     
 
 /*
@@ -41626,19 +41635,19 @@ static mp_obj_t mp_lv_style_set_text_align(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_align_mpobj, 2, mp_lv_style_set_text_align, lv_style_set_text_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_align_mpobj, 2, mp_lv_style_set_text_align, lv_style_set_text_align, 1);
     
 /* Reusing lv_style_set_bg_color for lv_style_set_text_outline_stroke_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_outline_stroke_color_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_text_outline_stroke_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_outline_stroke_color_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_text_outline_stroke_color, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_text_outline_stroke_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_outline_stroke_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_text_outline_stroke_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_outline_stroke_width_mpobj, 2, mp_lv_style_set_width, lv_style_set_text_outline_stroke_width, 1);
     
 /* Reusing lv_style_set_bg_opa for lv_style_set_text_outline_stroke_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_outline_stroke_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_text_outline_stroke_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_outline_stroke_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_text_outline_stroke_opa, 1);
     
 
 /*
@@ -41656,15 +41665,15 @@ static mp_obj_t mp_lv_style_set_text_leading_trim(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_leading_trim_mpobj, 2, mp_lv_style_set_text_leading_trim, lv_style_set_text_leading_trim);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_text_leading_trim_mpobj, 2, mp_lv_style_set_text_leading_trim, lv_style_set_text_leading_trim, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_blur_radius */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_blur_radius_mpobj, 2, mp_lv_style_set_width, lv_style_set_blur_radius);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_blur_radius_mpobj, 2, mp_lv_style_set_width, lv_style_set_blur_radius, 1);
     
 /* Reusing lv_style_set_bg_image_tiled for lv_style_set_blur_backdrop */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_blur_backdrop_mpobj, 2, mp_lv_style_set_bg_image_tiled, lv_style_set_blur_backdrop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_blur_backdrop_mpobj, 2, mp_lv_style_set_bg_image_tiled, lv_style_set_blur_backdrop, 1);
     
 
 /*
@@ -41682,51 +41691,51 @@ static mp_obj_t mp_lv_style_set_blur_quality(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_blur_quality_mpobj, 2, mp_lv_style_set_blur_quality, lv_style_set_blur_quality);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_blur_quality_mpobj, 2, mp_lv_style_set_blur_quality, lv_style_set_blur_quality, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_drop_shadow_radius */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_drop_shadow_radius_mpobj, 2, mp_lv_style_set_width, lv_style_set_drop_shadow_radius);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_drop_shadow_radius_mpobj, 2, mp_lv_style_set_width, lv_style_set_drop_shadow_radius, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_drop_shadow_offset_x */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_drop_shadow_offset_x_mpobj, 2, mp_lv_style_set_width, lv_style_set_drop_shadow_offset_x);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_drop_shadow_offset_x_mpobj, 2, mp_lv_style_set_width, lv_style_set_drop_shadow_offset_x, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_drop_shadow_offset_y */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_drop_shadow_offset_y_mpobj, 2, mp_lv_style_set_width, lv_style_set_drop_shadow_offset_y);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_drop_shadow_offset_y_mpobj, 2, mp_lv_style_set_width, lv_style_set_drop_shadow_offset_y, 1);
     
 /* Reusing lv_style_set_bg_color for lv_style_set_drop_shadow_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_drop_shadow_color_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_drop_shadow_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_drop_shadow_color_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_drop_shadow_color, 1);
     
 /* Reusing lv_style_set_bg_opa for lv_style_set_drop_shadow_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_drop_shadow_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_drop_shadow_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_drop_shadow_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_drop_shadow_opa, 1);
     
 /* Reusing lv_style_set_blur_quality for lv_style_set_drop_shadow_quality */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_drop_shadow_quality_mpobj, 2, mp_lv_style_set_blur_quality, lv_style_set_drop_shadow_quality);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_drop_shadow_quality_mpobj, 2, mp_lv_style_set_blur_quality, lv_style_set_drop_shadow_quality, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_radius */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_radius_mpobj, 2, mp_lv_style_set_width, lv_style_set_radius);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_radius_mpobj, 2, mp_lv_style_set_width, lv_style_set_radius, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_radial_offset */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_radial_offset_mpobj, 2, mp_lv_style_set_width, lv_style_set_radial_offset);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_radial_offset_mpobj, 2, mp_lv_style_set_width, lv_style_set_radial_offset, 1);
     
 /* Reusing lv_style_set_bg_image_tiled for lv_style_set_clip_corner */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_clip_corner_mpobj, 2, mp_lv_style_set_bg_image_tiled, lv_style_set_clip_corner);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_clip_corner_mpobj, 2, mp_lv_style_set_bg_image_tiled, lv_style_set_clip_corner, 1);
     
 /* Reusing lv_style_set_bg_opa for lv_style_set_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_opa, 1);
     
 /* Reusing lv_style_set_bg_opa for lv_style_set_opa_layered */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_opa_layered_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_opa_layered);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_opa_layered_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_opa_layered, 1);
     
 
 /*
@@ -41744,19 +41753,19 @@ static mp_obj_t mp_lv_style_set_color_filter_dsc(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_color_filter_dsc_mpobj, 2, mp_lv_style_set_color_filter_dsc, lv_style_set_color_filter_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_color_filter_dsc_mpobj, 2, mp_lv_style_set_color_filter_dsc, lv_style_set_color_filter_dsc, 1);
     
 /* Reusing lv_style_set_bg_opa for lv_style_set_color_filter_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_color_filter_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_color_filter_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_color_filter_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_color_filter_opa, 1);
     
 /* Reusing lv_style_set_bg_color for lv_style_set_recolor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_recolor_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_recolor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_recolor_mpobj, 2, mp_lv_style_set_bg_color, lv_style_set_recolor, 1);
     
 /* Reusing lv_style_set_bg_opa for lv_style_set_recolor_opa */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_recolor_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_recolor_opa);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_recolor_opa_mpobj, 2, mp_lv_style_set_bg_opa, lv_style_set_recolor_opa, 1);
     
 
 /*
@@ -41774,7 +41783,7 @@ static mp_obj_t mp_lv_style_set_anim(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_anim_mpobj, 2, mp_lv_style_set_anim, lv_style_set_anim);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_anim_mpobj, 2, mp_lv_style_set_anim, lv_style_set_anim, 1);
     
 
 /*
@@ -41792,7 +41801,7 @@ static mp_obj_t mp_lv_style_set_anim_duration(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_anim_duration_mpobj, 2, mp_lv_style_set_anim_duration, lv_style_set_anim_duration);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_anim_duration_mpobj, 2, mp_lv_style_set_anim_duration, lv_style_set_anim_duration, 1);
     
 
 /*
@@ -41810,7 +41819,7 @@ static mp_obj_t mp_lv_style_set_transition(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transition_mpobj, 2, mp_lv_style_set_transition, lv_style_set_transition);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transition_mpobj, 2, mp_lv_style_set_transition, lv_style_set_transition, 1);
     
 
 /*
@@ -41828,7 +41837,7 @@ static mp_obj_t mp_lv_style_set_blend_mode(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_blend_mode_mpobj, 2, mp_lv_style_set_blend_mode, lv_style_set_blend_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_blend_mode_mpobj, 2, mp_lv_style_set_blend_mode, lv_style_set_blend_mode, 1);
     
 
 /*
@@ -41846,7 +41855,7 @@ static mp_obj_t mp_lv_style_set_layout(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_layout_mpobj, 2, mp_lv_style_set_layout, lv_style_set_layout);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_layout_mpobj, 2, mp_lv_style_set_layout, lv_style_set_layout, 1);
     
 
 /*
@@ -41864,15 +41873,15 @@ static mp_obj_t mp_lv_style_set_base_dir(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_base_dir_mpobj, 2, mp_lv_style_set_base_dir, lv_style_set_base_dir);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_base_dir_mpobj, 2, mp_lv_style_set_base_dir, lv_style_set_base_dir, 1);
     
 /* Reusing lv_style_set_bg_image_src for lv_style_set_bitmap_mask_src */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bitmap_mask_src_mpobj, 2, mp_lv_style_set_bg_image_src, lv_style_set_bitmap_mask_src);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_bitmap_mask_src_mpobj, 2, mp_lv_style_set_bg_image_src, lv_style_set_bitmap_mask_src, 1);
     
 /* Reusing lv_style_set_anim_duration for lv_style_set_rotary_sensitivity */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_rotary_sensitivity_mpobj, 2, mp_lv_style_set_anim_duration, lv_style_set_rotary_sensitivity);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_rotary_sensitivity_mpobj, 2, mp_lv_style_set_anim_duration, lv_style_set_rotary_sensitivity, 1);
     
 
 /*
@@ -41890,7 +41899,7 @@ static mp_obj_t mp_lv_style_set_flex_flow(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_flex_flow_mpobj, 2, mp_lv_style_set_flex_flow, lv_style_set_flex_flow);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_flex_flow_mpobj, 2, mp_lv_style_set_flex_flow, lv_style_set_flex_flow, 1);
     
 
 /*
@@ -41908,15 +41917,15 @@ static mp_obj_t mp_lv_style_set_flex_main_place(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_flex_main_place_mpobj, 2, mp_lv_style_set_flex_main_place, lv_style_set_flex_main_place);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_flex_main_place_mpobj, 2, mp_lv_style_set_flex_main_place, lv_style_set_flex_main_place, 1);
     
 /* Reusing lv_style_set_flex_main_place for lv_style_set_flex_cross_place */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_flex_cross_place_mpobj, 2, mp_lv_style_set_flex_main_place, lv_style_set_flex_cross_place);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_flex_cross_place_mpobj, 2, mp_lv_style_set_flex_main_place, lv_style_set_flex_cross_place, 1);
     
 /* Reusing lv_style_set_flex_main_place for lv_style_set_flex_track_place */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_flex_track_place_mpobj, 2, mp_lv_style_set_flex_main_place, lv_style_set_flex_track_place);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_flex_track_place_mpobj, 2, mp_lv_style_set_flex_main_place, lv_style_set_flex_track_place, 1);
     
 
 /*
@@ -41934,7 +41943,7 @@ static mp_obj_t mp_lv_style_set_flex_grow(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_flex_grow_mpobj, 2, mp_lv_style_set_flex_grow, lv_style_set_flex_grow);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_flex_grow_mpobj, 2, mp_lv_style_set_flex_grow, lv_style_set_flex_grow, 1);
     
 
 /*
@@ -41952,7 +41961,7 @@ static mp_obj_t mp_lv_style_set_grid_column_dsc_array(size_t mp_n_args, const mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_grid_column_dsc_array_mpobj, 2, mp_lv_style_set_grid_column_dsc_array, lv_style_set_grid_column_dsc_array);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_grid_column_dsc_array_mpobj, 2, mp_lv_style_set_grid_column_dsc_array, lv_style_set_grid_column_dsc_array, 1);
     
 
 /*
@@ -41970,39 +41979,39 @@ static mp_obj_t mp_lv_style_set_grid_column_align(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_grid_column_align_mpobj, 2, mp_lv_style_set_grid_column_align, lv_style_set_grid_column_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_grid_column_align_mpobj, 2, mp_lv_style_set_grid_column_align, lv_style_set_grid_column_align, 1);
     
 /* Reusing lv_style_set_grid_column_dsc_array for lv_style_set_grid_row_dsc_array */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_grid_row_dsc_array_mpobj, 2, mp_lv_style_set_grid_column_dsc_array, lv_style_set_grid_row_dsc_array);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_grid_row_dsc_array_mpobj, 2, mp_lv_style_set_grid_column_dsc_array, lv_style_set_grid_row_dsc_array, 1);
     
 /* Reusing lv_style_set_grid_column_align for lv_style_set_grid_row_align */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_grid_row_align_mpobj, 2, mp_lv_style_set_grid_column_align, lv_style_set_grid_row_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_grid_row_align_mpobj, 2, mp_lv_style_set_grid_column_align, lv_style_set_grid_row_align, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_grid_cell_column_pos */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_grid_cell_column_pos_mpobj, 2, mp_lv_style_set_width, lv_style_set_grid_cell_column_pos);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_grid_cell_column_pos_mpobj, 2, mp_lv_style_set_width, lv_style_set_grid_cell_column_pos, 1);
     
 /* Reusing lv_style_set_grid_column_align for lv_style_set_grid_cell_x_align */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_grid_cell_x_align_mpobj, 2, mp_lv_style_set_grid_column_align, lv_style_set_grid_cell_x_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_grid_cell_x_align_mpobj, 2, mp_lv_style_set_grid_column_align, lv_style_set_grid_cell_x_align, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_grid_cell_column_span */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_grid_cell_column_span_mpobj, 2, mp_lv_style_set_width, lv_style_set_grid_cell_column_span);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_grid_cell_column_span_mpobj, 2, mp_lv_style_set_width, lv_style_set_grid_cell_column_span, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_grid_cell_row_pos */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_grid_cell_row_pos_mpobj, 2, mp_lv_style_set_width, lv_style_set_grid_cell_row_pos);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_grid_cell_row_pos_mpobj, 2, mp_lv_style_set_width, lv_style_set_grid_cell_row_pos, 1);
     
 /* Reusing lv_style_set_grid_column_align for lv_style_set_grid_cell_y_align */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_grid_cell_y_align_mpobj, 2, mp_lv_style_set_grid_column_align, lv_style_set_grid_cell_y_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_grid_cell_y_align_mpobj, 2, mp_lv_style_set_grid_column_align, lv_style_set_grid_cell_y_align, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_grid_cell_row_span */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_grid_cell_row_span_mpobj, 2, mp_lv_style_set_width, lv_style_set_grid_cell_row_span);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_grid_cell_row_span_mpobj, 2, mp_lv_style_set_width, lv_style_set_grid_cell_row_span, 1);
     
 
 /*
@@ -42021,39 +42030,39 @@ static mp_obj_t mp_lv_style_set_size(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_size_mpobj, 3, mp_lv_style_set_size, lv_style_set_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_size_mpobj, 3, mp_lv_style_set_size, lv_style_set_size, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_pad_all */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_all_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_all);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_all_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_all, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_pad_hor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_hor_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_hor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_hor_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_hor, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_pad_ver */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_ver_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_ver);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_ver_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_ver, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_pad_gap */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_gap_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_gap);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_pad_gap_mpobj, 2, mp_lv_style_set_width, lv_style_set_pad_gap, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_margin_hor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_margin_hor_mpobj, 2, mp_lv_style_set_width, lv_style_set_margin_hor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_margin_hor_mpobj, 2, mp_lv_style_set_width, lv_style_set_margin_hor, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_margin_ver */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_margin_ver_mpobj, 2, mp_lv_style_set_width, lv_style_set_margin_ver);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_margin_ver_mpobj, 2, mp_lv_style_set_width, lv_style_set_margin_ver, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_margin_all */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_margin_all_mpobj, 2, mp_lv_style_set_width, lv_style_set_margin_all);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_margin_all_mpobj, 2, mp_lv_style_set_width, lv_style_set_margin_all, 1);
     
 /* Reusing lv_style_set_width for lv_style_set_transform_scale */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transform_scale_mpobj, 2, mp_lv_style_set_width, lv_style_set_transform_scale);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_set_transform_scale_mpobj, 2, mp_lv_style_set_width, lv_style_set_transform_scale, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_style_t_locals_dict_table[] = {
@@ -42332,7 +42341,7 @@ static mp_obj_t mp_lv_grad_init_stops(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_grad_init_stops_mpobj, 5, mp_lv_grad_init_stops, lv_grad_init_stops);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_grad_init_stops_mpobj, 5, mp_lv_grad_init_stops, lv_grad_init_stops, 1);
     
 
 /*
@@ -42349,11 +42358,11 @@ static mp_obj_t mp_lv_grad_horizontal_init(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_grad_horizontal_init_mpobj, 1, mp_lv_grad_horizontal_init, lv_grad_horizontal_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_grad_horizontal_init_mpobj, 1, mp_lv_grad_horizontal_init, lv_grad_horizontal_init, 1);
     
 /* Reusing lv_grad_horizontal_init for lv_grad_vertical_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_grad_vertical_init_mpobj, 1, mp_lv_grad_horizontal_init, lv_grad_vertical_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_grad_vertical_init_mpobj, 1, mp_lv_grad_horizontal_init, lv_grad_vertical_init, 1);
     
 
 /*
@@ -42375,11 +42384,11 @@ static mp_obj_t mp_lv_grad_linear_init(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_grad_linear_init_mpobj, 6, mp_lv_grad_linear_init, lv_grad_linear_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_grad_linear_init_mpobj, 6, mp_lv_grad_linear_init, lv_grad_linear_init, 1);
     
 /* Reusing lv_grad_linear_init for lv_grad_radial_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_grad_radial_init_mpobj, 6, mp_lv_grad_linear_init, lv_grad_radial_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_grad_radial_init_mpobj, 6, mp_lv_grad_linear_init, lv_grad_radial_init, 1);
     
 
 /*
@@ -42399,11 +42408,11 @@ static mp_obj_t mp_lv_grad_radial_set_focal(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_grad_radial_set_focal_mpobj, 4, mp_lv_grad_radial_set_focal, lv_grad_radial_set_focal);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_grad_radial_set_focal_mpobj, 4, mp_lv_grad_radial_set_focal, lv_grad_radial_set_focal, 1);
     
 /* Reusing lv_grad_linear_init for lv_grad_conical_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_grad_conical_init_mpobj, 6, mp_lv_grad_linear_init, lv_grad_conical_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_grad_conical_init_mpobj, 6, mp_lv_grad_linear_init, lv_grad_conical_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_grad_dsc_t_locals_dict_table[] = {
@@ -42501,7 +42510,7 @@ static mp_obj_t mp_lv_color_filter_dsc_init(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_filter_dsc_init_mpobj, 2, mp_lv_color_filter_dsc_init, lv_color_filter_dsc_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color_filter_dsc_init_mpobj, 2, mp_lv_color_filter_dsc_init, lv_color_filter_dsc_init, 0);
     
 
 static const mp_rom_map_elem_t mp_lv_color_filter_dsc_t_locals_dict_table[] = {
@@ -42578,7 +42587,7 @@ static mp_obj_t mp_lv_style_transition_dsc_init(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_transition_dsc_init_mpobj, 6, mp_lv_style_transition_dsc_init, lv_style_transition_dsc_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_style_transition_dsc_init_mpobj, 6, mp_lv_style_transition_dsc_init, lv_style_transition_dsc_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_style_transition_dsc_t_locals_dict_table[] = {
@@ -42604,7 +42613,7 @@ static mp_obj_t mp_lv_observer_delete(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_observer_delete_mpobj, 1, mp_lv_observer_delete, lv_observer_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_observer_delete_mpobj, 1, mp_lv_observer_delete, lv_observer_delete, 1);
     
 
 /*
@@ -42621,7 +42630,7 @@ static mp_obj_t mp_lv_observer_get_target(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_observer_get_target_mpobj, 1, mp_lv_observer_get_target, lv_observer_get_target);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_observer_get_target_mpobj, 1, mp_lv_observer_get_target, lv_observer_get_target, 1);
     
 
 /*
@@ -42638,7 +42647,7 @@ static mp_obj_t mp_lv_observer_get_target_obj(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_observer_get_target_obj_mpobj, 1, mp_lv_observer_get_target_obj, lv_observer_get_target_obj);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_observer_get_target_obj_mpobj, 1, mp_lv_observer_get_target_obj, lv_observer_get_target_obj, 1);
     
 
 /*
@@ -42655,7 +42664,7 @@ static mp_obj_t mp_lv_observer_get_user_data(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_observer_get_user_data_mpobj, 1, mp_lv_observer_get_user_data, lv_observer_get_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_observer_get_user_data_mpobj, 1, mp_lv_observer_get_user_data, lv_observer_get_user_data, 1);
     
 
 /*
@@ -42673,7 +42682,7 @@ static mp_obj_t mp_lv_observer_set_user_data(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_observer_set_user_data_mpobj, 2, mp_lv_observer_set_user_data, lv_observer_set_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_observer_set_user_data_mpobj, 2, mp_lv_observer_set_user_data, lv_observer_set_user_data, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_observer_t_locals_dict_table[] = {
@@ -42703,7 +42712,7 @@ static mp_obj_t mp_lv_subject_delete(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_delete_mpobj, 1, mp_lv_subject_delete, lv_subject_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_delete_mpobj, 1, mp_lv_subject_delete, lv_subject_delete, 1);
     
 
 /*
@@ -42721,11 +42730,11 @@ static mp_obj_t mp_lv_subject_init_int(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_init_int_mpobj, 2, mp_lv_subject_init_int, lv_subject_init_int);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_init_int_mpobj, 2, mp_lv_subject_init_int, lv_subject_init_int, 1);
     
 /* Reusing lv_subject_init_int for lv_subject_set_int */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_int_mpobj, 2, mp_lv_subject_init_int, lv_subject_set_int);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_int_mpobj, 2, mp_lv_subject_init_int, lv_subject_set_int, 1);
     
 
 /*
@@ -42742,19 +42751,19 @@ static mp_obj_t mp_lv_subject_get_int(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_int_mpobj, 1, mp_lv_subject_get_int, lv_subject_get_int);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_int_mpobj, 1, mp_lv_subject_get_int, lv_subject_get_int, 1);
     
 /* Reusing lv_subject_get_int for lv_subject_get_previous_int */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_previous_int_mpobj, 1, mp_lv_subject_get_int, lv_subject_get_previous_int);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_previous_int_mpobj, 1, mp_lv_subject_get_int, lv_subject_get_previous_int, 1);
     
 /* Reusing lv_subject_init_int for lv_subject_set_min_value_int */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_min_value_int_mpobj, 2, mp_lv_subject_init_int, lv_subject_set_min_value_int);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_min_value_int_mpobj, 2, mp_lv_subject_init_int, lv_subject_set_min_value_int, 1);
     
 /* Reusing lv_subject_init_int for lv_subject_set_max_value_int */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_max_value_int_mpobj, 2, mp_lv_subject_init_int, lv_subject_set_max_value_int);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_max_value_int_mpobj, 2, mp_lv_subject_init_int, lv_subject_set_max_value_int, 1);
     
 
 /*
@@ -42772,11 +42781,11 @@ static mp_obj_t mp_lv_subject_init_float(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_init_float_mpobj, 2, mp_lv_subject_init_float, lv_subject_init_float);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_init_float_mpobj, 2, mp_lv_subject_init_float, lv_subject_init_float, 1);
     
 /* Reusing lv_subject_init_float for lv_subject_set_float */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_float_mpobj, 2, mp_lv_subject_init_float, lv_subject_set_float);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_float_mpobj, 2, mp_lv_subject_init_float, lv_subject_set_float, 1);
     
 
 /*
@@ -42793,19 +42802,19 @@ static mp_obj_t mp_lv_subject_get_float(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_float_mpobj, 1, mp_lv_subject_get_float, lv_subject_get_float);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_float_mpobj, 1, mp_lv_subject_get_float, lv_subject_get_float, 1);
     
 /* Reusing lv_subject_get_float for lv_subject_get_previous_float */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_previous_float_mpobj, 1, mp_lv_subject_get_float, lv_subject_get_previous_float);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_previous_float_mpobj, 1, mp_lv_subject_get_float, lv_subject_get_previous_float, 1);
     
 /* Reusing lv_subject_init_float for lv_subject_set_min_value_float */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_min_value_float_mpobj, 2, mp_lv_subject_init_float, lv_subject_set_min_value_float);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_min_value_float_mpobj, 2, mp_lv_subject_init_float, lv_subject_set_min_value_float, 1);
     
 /* Reusing lv_subject_init_float for lv_subject_set_max_value_float */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_max_value_float_mpobj, 2, mp_lv_subject_init_float, lv_subject_set_max_value_float);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_max_value_float_mpobj, 2, mp_lv_subject_init_float, lv_subject_set_max_value_float, 1);
     
 
 /*
@@ -42826,7 +42835,7 @@ static mp_obj_t mp_lv_subject_init_string(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_init_string_mpobj, 5, mp_lv_subject_init_string, lv_subject_init_string);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_init_string_mpobj, 5, mp_lv_subject_init_string, lv_subject_init_string, 1);
     
 
 /*
@@ -42846,7 +42855,7 @@ static mp_obj_t mp_lv_subject_set_string_buffer_static(size_t mp_n_args, const m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_string_buffer_static_mpobj, 4, mp_lv_subject_set_string_buffer_static, lv_subject_set_string_buffer_static);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_string_buffer_static_mpobj, 4, mp_lv_subject_set_string_buffer_static, lv_subject_set_string_buffer_static, 1);
     
 
 /*
@@ -42864,7 +42873,7 @@ static mp_obj_t mp_lv_subject_set_string(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_string_mpobj, 2, mp_lv_subject_set_string, lv_subject_set_string);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_string_mpobj, 2, mp_lv_subject_set_string, lv_subject_set_string, 1);
     
 
 /*
@@ -42888,11 +42897,11 @@ static mp_obj_t mp_lv_subject_get_string(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_string_mpobj, 1, mp_lv_subject_get_string, lv_subject_get_string);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_string_mpobj, 1, mp_lv_subject_get_string, lv_subject_get_string, 1);
     
 /* Reusing lv_subject_get_string for lv_subject_get_previous_string */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_previous_string_mpobj, 1, mp_lv_subject_get_string, lv_subject_get_previous_string);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_previous_string_mpobj, 1, mp_lv_subject_get_string, lv_subject_get_previous_string, 1);
     
 
 /*
@@ -42910,11 +42919,11 @@ static mp_obj_t mp_lv_subject_init_pointer(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_init_pointer_mpobj, 2, mp_lv_subject_init_pointer, lv_subject_init_pointer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_init_pointer_mpobj, 2, mp_lv_subject_init_pointer, lv_subject_init_pointer, 1);
     
 /* Reusing lv_subject_init_pointer for lv_subject_set_pointer */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_pointer_mpobj, 2, mp_lv_subject_init_pointer, lv_subject_set_pointer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_pointer_mpobj, 2, mp_lv_subject_init_pointer, lv_subject_set_pointer, 1);
     
 
 /*
@@ -42931,11 +42940,11 @@ static mp_obj_t mp_lv_subject_get_pointer(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_pointer_mpobj, 1, mp_lv_subject_get_pointer, lv_subject_get_pointer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_pointer_mpobj, 1, mp_lv_subject_get_pointer, lv_subject_get_pointer, 1);
     
 /* Reusing lv_subject_get_pointer for lv_subject_get_previous_pointer */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_previous_pointer_mpobj, 1, mp_lv_subject_get_pointer, lv_subject_get_previous_pointer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_previous_pointer_mpobj, 1, mp_lv_subject_get_pointer, lv_subject_get_previous_pointer, 1);
     
 
 /*
@@ -42953,11 +42962,11 @@ static mp_obj_t mp_lv_subject_init_color(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_init_color_mpobj, 2, mp_lv_subject_init_color, lv_subject_init_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_init_color_mpobj, 2, mp_lv_subject_init_color, lv_subject_init_color, 1);
     
 /* Reusing lv_subject_init_color for lv_subject_set_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_color_mpobj, 2, mp_lv_subject_init_color, lv_subject_set_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_color_mpobj, 2, mp_lv_subject_init_color, lv_subject_set_color, 1);
     
 
 /*
@@ -42974,11 +42983,11 @@ static mp_obj_t mp_lv_subject_get_color(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_color_mpobj, 1, mp_lv_subject_get_color, lv_subject_get_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_color_mpobj, 1, mp_lv_subject_get_color, lv_subject_get_color, 1);
     
 /* Reusing lv_subject_get_color for lv_subject_get_previous_color */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_previous_color_mpobj, 1, mp_lv_subject_get_color, lv_subject_get_previous_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_previous_color_mpobj, 1, mp_lv_subject_get_color, lv_subject_get_previous_color, 1);
     
 
 /*
@@ -43028,15 +43037,15 @@ static mp_obj_t mp_lv_subject_init_group(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_init_group_mpobj, 3, mp_lv_subject_init_group, lv_subject_init_group);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_init_group_mpobj, 3, mp_lv_subject_init_group, lv_subject_init_group, 1);
     
 /* Reusing lv_subject_init_group for lv_subject_set_group_list_static */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_group_list_static_mpobj, 3, mp_lv_subject_init_group, lv_subject_set_group_list_static);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_set_group_list_static_mpobj, 3, mp_lv_subject_init_group, lv_subject_set_group_list_static, 1);
     
 /* Reusing lv_subject_delete for lv_subject_deinit */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_deinit_mpobj, 1, mp_lv_subject_delete, lv_subject_deinit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_deinit_mpobj, 1, mp_lv_subject_delete, lv_subject_deinit, 1);
     
 
 /*
@@ -43054,7 +43063,7 @@ static mp_obj_t mp_lv_subject_get_group_element(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_group_element_mpobj, 2, mp_lv_subject_get_group_element, lv_subject_get_group_element);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_get_group_element_mpobj, 2, mp_lv_subject_get_group_element, lv_subject_get_group_element, 1);
     
 
 /*
@@ -43089,7 +43098,7 @@ static mp_obj_t mp_lv_subject_add_observer(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_add_observer_mpobj, 3, mp_lv_subject_add_observer, lv_subject_add_observer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_add_observer_mpobj, 3, mp_lv_subject_add_observer, lv_subject_add_observer, 1);
     
 
 /*
@@ -43125,7 +43134,7 @@ static mp_obj_t mp_lv_subject_add_observer_obj(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_add_observer_obj_mpobj, 4, mp_lv_subject_add_observer_obj, lv_subject_add_observer_obj);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_add_observer_obj_mpobj, 4, mp_lv_subject_add_observer_obj, lv_subject_add_observer_obj, 1);
     
 
 /*
@@ -43161,11 +43170,11 @@ static mp_obj_t mp_lv_subject_add_observer_with_target(size_t mp_n_args, const m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_add_observer_with_target_mpobj, 4, mp_lv_subject_add_observer_with_target, lv_subject_add_observer_with_target);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_add_observer_with_target_mpobj, 4, mp_lv_subject_add_observer_with_target, lv_subject_add_observer_with_target, 1);
     
 /* Reusing lv_subject_delete for lv_subject_notify */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_notify_mpobj, 1, mp_lv_subject_delete, lv_subject_notify);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_subject_notify_mpobj, 1, mp_lv_subject_delete, lv_subject_notify, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_subject_t_locals_dict_table[] = {
@@ -43232,7 +43241,7 @@ static mp_obj_t mp_lv_draw_rect_dsc_init(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_rect_dsc_init_mpobj, 1, mp_lv_draw_rect_dsc_init, lv_draw_rect_dsc_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_rect_dsc_init_mpobj, 1, mp_lv_draw_rect_dsc_init, lv_draw_rect_dsc_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_rect_dsc_t_locals_dict_table[] = {
@@ -43266,7 +43275,7 @@ static mp_obj_t mp_lv_draw_label_dsc_init(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_label_dsc_init_mpobj, 1, mp_lv_draw_label_dsc_init, lv_draw_label_dsc_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_label_dsc_init_mpobj, 1, mp_lv_draw_label_dsc_init, lv_draw_label_dsc_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_label_dsc_t_locals_dict_table[] = {
@@ -43300,7 +43309,7 @@ static mp_obj_t mp_lv_draw_image_dsc_init(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_image_dsc_init_mpobj, 1, mp_lv_draw_image_dsc_init, lv_draw_image_dsc_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_image_dsc_init_mpobj, 1, mp_lv_draw_image_dsc_init, lv_draw_image_dsc_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_image_dsc_t_locals_dict_table[] = {
@@ -43344,7 +43353,7 @@ static mp_obj_t mp_lv_draw_line_dsc_init(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_line_dsc_init_mpobj, 1, mp_lv_draw_line_dsc_init, lv_draw_line_dsc_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_line_dsc_init_mpobj, 1, mp_lv_draw_line_dsc_init, lv_draw_line_dsc_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_line_dsc_t_locals_dict_table[] = {
@@ -43370,7 +43379,7 @@ static mp_obj_t mp_lv_point_from_precise(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_point_from_precise_mpobj, 1, mp_lv_point_from_precise, lv_point_from_precise);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_point_from_precise_mpobj, 1, mp_lv_point_from_precise, lv_point_from_precise, 0);
     
 
 /*
@@ -43389,7 +43398,7 @@ static mp_obj_t mp_lv_point_precise_set(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_point_precise_set_mpobj, 3, mp_lv_point_precise_set, lv_point_precise_set);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_point_precise_set_mpobj, 3, mp_lv_point_precise_set, lv_point_precise_set, 0);
     
 
 /*
@@ -43407,7 +43416,7 @@ static mp_obj_t mp_lv_point_precise_swap(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_point_precise_swap_mpobj, 2, mp_lv_point_precise_swap, lv_point_precise_swap);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_point_precise_swap_mpobj, 2, mp_lv_point_precise_swap, lv_point_precise_swap, 0);
     
 
 static const mp_rom_map_elem_t mp_lv_point_precise_t_locals_dict_table[] = {
@@ -43435,7 +43444,7 @@ static mp_obj_t mp_lv_draw_arc_dsc_init(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_arc_dsc_init_mpobj, 1, mp_lv_draw_arc_dsc_init, lv_draw_arc_dsc_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_arc_dsc_init_mpobj, 1, mp_lv_draw_arc_dsc_init, lv_draw_arc_dsc_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_arc_dsc_t_locals_dict_table[] = {
@@ -43461,7 +43470,7 @@ static mp_obj_t mp_lv_draw_blur_dsc_init(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_blur_dsc_init_mpobj, 1, mp_lv_draw_blur_dsc_init, lv_draw_blur_dsc_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_blur_dsc_init_mpobj, 1, mp_lv_draw_blur_dsc_init, lv_draw_blur_dsc_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_blur_dsc_t_locals_dict_table[] = {
@@ -43487,7 +43496,7 @@ static mp_obj_t mp_lv_event_dsc_get_cb(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_dsc_get_cb_mpobj, 1, mp_lv_event_dsc_get_cb, lv_event_dsc_get_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_dsc_get_cb_mpobj, 1, mp_lv_event_dsc_get_cb, lv_event_dsc_get_cb, 1);
     
 
 /*
@@ -43504,7 +43513,7 @@ static mp_obj_t mp_lv_event_dsc_get_user_data(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_dsc_get_user_data_mpobj, 1, mp_lv_event_dsc_get_user_data, lv_event_dsc_get_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_event_dsc_get_user_data_mpobj, 1, mp_lv_event_dsc_get_user_data, lv_event_dsc_get_user_data, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_event_dsc_t_locals_dict_table[] = {
@@ -43518,11 +43527,11 @@ static MP_DEFINE_CONST_DICT(mp_lv_event_dsc_t_locals_dict, mp_lv_event_dsc_t_loc
         
 /* Reusing funcptr_lv_group_focus_cb_t for lv_group_delete */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_delete_mpobj, 1, mp_funcptr_lv_group_focus_cb_t, lv_group_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_delete_mpobj, 1, mp_funcptr_lv_group_focus_cb_t, lv_group_delete, 1);
     
 /* Reusing funcptr_lv_group_focus_cb_t for lv_group_set_default */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_set_default_mpobj, 1, mp_funcptr_lv_group_focus_cb_t, lv_group_set_default);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_set_default_mpobj, 1, mp_funcptr_lv_group_focus_cb_t, lv_group_set_default, 1);
     
 
 /*
@@ -43540,23 +43549,23 @@ static mp_obj_t mp_lv_group_add_obj(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_add_obj_mpobj, 2, mp_lv_group_add_obj, lv_group_add_obj);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_add_obj_mpobj, 2, mp_lv_group_add_obj, lv_group_add_obj, 1);
     
 /* Reusing funcptr_lv_group_focus_cb_t for lv_group_remove_all_objs */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_remove_all_objs_mpobj, 1, mp_funcptr_lv_group_focus_cb_t, lv_group_remove_all_objs);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_remove_all_objs_mpobj, 1, mp_funcptr_lv_group_focus_cb_t, lv_group_remove_all_objs, 1);
     
 /* Reusing funcptr_lv_group_focus_cb_t for lv_group_focus_next */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_focus_next_mpobj, 1, mp_funcptr_lv_group_focus_cb_t, lv_group_focus_next);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_focus_next_mpobj, 1, mp_funcptr_lv_group_focus_cb_t, lv_group_focus_next, 1);
     
 /* Reusing funcptr_lv_group_focus_cb_t for lv_group_focus_prev */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_focus_prev_mpobj, 1, mp_funcptr_lv_group_focus_cb_t, lv_group_focus_prev);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_focus_prev_mpobj, 1, mp_funcptr_lv_group_focus_cb_t, lv_group_focus_prev, 1);
     
 /* Reusing funcptr_lv_group_edge_cb_t for lv_group_focus_freeze */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_focus_freeze_mpobj, 2, mp_funcptr_lv_group_edge_cb_t, lv_group_focus_freeze);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_focus_freeze_mpobj, 2, mp_funcptr_lv_group_edge_cb_t, lv_group_focus_freeze, 1);
     
 
 /*
@@ -43574,7 +43583,7 @@ static mp_obj_t mp_lv_group_send_data(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_send_data_mpobj, 2, mp_lv_group_send_data, lv_group_send_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_send_data_mpobj, 2, mp_lv_group_send_data, lv_group_send_data, 1);
     
 
 /*
@@ -43607,7 +43616,7 @@ static mp_obj_t mp_lv_group_set_focus_cb(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_set_focus_cb_mpobj, 2, mp_lv_group_set_focus_cb, lv_group_set_focus_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_set_focus_cb_mpobj, 2, mp_lv_group_set_focus_cb, lv_group_set_focus_cb, 1);
     
 
 /*
@@ -43641,7 +43650,7 @@ static mp_obj_t mp_lv_group_set_edge_cb(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_set_edge_cb_mpobj, 2, mp_lv_group_set_edge_cb, lv_group_set_edge_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_set_edge_cb_mpobj, 2, mp_lv_group_set_edge_cb, lv_group_set_edge_cb, 1);
     
 
 /*
@@ -43659,15 +43668,15 @@ static mp_obj_t mp_lv_group_set_refocus_policy(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_set_refocus_policy_mpobj, 2, mp_lv_group_set_refocus_policy, lv_group_set_refocus_policy);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_set_refocus_policy_mpobj, 2, mp_lv_group_set_refocus_policy, lv_group_set_refocus_policy, 1);
     
 /* Reusing funcptr_lv_group_edge_cb_t for lv_group_set_editing */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_set_editing_mpobj, 2, mp_funcptr_lv_group_edge_cb_t, lv_group_set_editing);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_set_editing_mpobj, 2, mp_funcptr_lv_group_edge_cb_t, lv_group_set_editing, 1);
     
 /* Reusing funcptr_lv_group_edge_cb_t for lv_group_set_wrap */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_set_wrap_mpobj, 2, mp_funcptr_lv_group_edge_cb_t, lv_group_set_wrap);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_set_wrap_mpobj, 2, mp_funcptr_lv_group_edge_cb_t, lv_group_set_wrap, 1);
     
 
 /*
@@ -43684,7 +43693,7 @@ static mp_obj_t mp_lv_group_get_focused(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_get_focused_mpobj, 1, mp_lv_group_get_focused, lv_group_get_focused);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_get_focused_mpobj, 1, mp_lv_group_get_focused, lv_group_get_focused, 1);
     
 
 /*
@@ -43701,7 +43710,7 @@ static mp_obj_t mp_lv_group_get_focus_cb(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_get_focus_cb_mpobj, 1, mp_lv_group_get_focus_cb, lv_group_get_focus_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_get_focus_cb_mpobj, 1, mp_lv_group_get_focus_cb, lv_group_get_focus_cb, 1);
     
 
 /*
@@ -43718,7 +43727,7 @@ static mp_obj_t mp_lv_group_get_edge_cb(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_get_edge_cb_mpobj, 1, mp_lv_group_get_edge_cb, lv_group_get_edge_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_get_edge_cb_mpobj, 1, mp_lv_group_get_edge_cb, lv_group_get_edge_cb, 1);
     
 
 /*
@@ -43735,7 +43744,7 @@ static mp_obj_t mp_lv_group_get_editing(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_get_editing_mpobj, 1, mp_lv_group_get_editing, lv_group_get_editing);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_get_editing_mpobj, 1, mp_lv_group_get_editing, lv_group_get_editing, 1);
     
 
 /*
@@ -43752,7 +43761,7 @@ static mp_obj_t mp_lv_group_get_wrap(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_get_wrap_mpobj, 1, mp_lv_group_get_wrap, lv_group_get_wrap);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_get_wrap_mpobj, 1, mp_lv_group_get_wrap, lv_group_get_wrap, 1);
     
 
 /*
@@ -43769,7 +43778,7 @@ static mp_obj_t mp_lv_group_get_obj_count(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_get_obj_count_mpobj, 1, mp_lv_group_get_obj_count, lv_group_get_obj_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_get_obj_count_mpobj, 1, mp_lv_group_get_obj_count, lv_group_get_obj_count, 1);
     
 
 /*
@@ -43787,7 +43796,7 @@ static mp_obj_t mp_lv_group_get_obj_by_index(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_get_obj_by_index_mpobj, 2, mp_lv_group_get_obj_by_index, lv_group_get_obj_by_index);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_get_obj_by_index_mpobj, 2, mp_lv_group_get_obj_by_index, lv_group_get_obj_by_index, 1);
     
 
 /*
@@ -43805,7 +43814,7 @@ static mp_obj_t mp_lv_group_set_user_data(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_set_user_data_mpobj, 2, mp_lv_group_set_user_data, lv_group_set_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_set_user_data_mpobj, 2, mp_lv_group_set_user_data, lv_group_set_user_data, 1);
     
 
 /*
@@ -43822,7 +43831,7 @@ static mp_obj_t mp_lv_group_get_user_data(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_get_user_data_mpobj, 1, mp_lv_group_get_user_data, lv_group_get_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_get_user_data_mpobj, 1, mp_lv_group_get_user_data, lv_group_get_user_data, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_group_t_locals_dict_table[] = {
@@ -43877,7 +43886,7 @@ static mp_obj_t mp_lv_anim_timeline_delete(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_delete_mpobj, 1, mp_lv_anim_timeline_delete, lv_anim_timeline_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_delete_mpobj, 1, mp_lv_anim_timeline_delete, lv_anim_timeline_delete, 1);
     
 
 /*
@@ -43896,7 +43905,7 @@ static mp_obj_t mp_lv_anim_timeline_add(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_add_mpobj, 3, mp_lv_anim_timeline_add, lv_anim_timeline_add);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_add_mpobj, 3, mp_lv_anim_timeline_add, lv_anim_timeline_add, 1);
     
 
 /*
@@ -43913,15 +43922,15 @@ static mp_obj_t mp_lv_anim_timeline_start(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_start_mpobj, 1, mp_lv_anim_timeline_start, lv_anim_timeline_start);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_start_mpobj, 1, mp_lv_anim_timeline_start, lv_anim_timeline_start, 1);
     
 /* Reusing lv_anim_timeline_start for lv_anim_timeline_restart */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_restart_mpobj, 1, mp_lv_anim_timeline_start, lv_anim_timeline_restart);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_restart_mpobj, 1, mp_lv_anim_timeline_start, lv_anim_timeline_restart, 1);
     
 /* Reusing lv_anim_timeline_delete for lv_anim_timeline_pause */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_pause_mpobj, 1, mp_lv_anim_timeline_delete, lv_anim_timeline_pause);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_pause_mpobj, 1, mp_lv_anim_timeline_delete, lv_anim_timeline_pause, 1);
     
 
 /*
@@ -43939,7 +43948,7 @@ static mp_obj_t mp_lv_anim_timeline_set_reverse(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_set_reverse_mpobj, 2, mp_lv_anim_timeline_set_reverse, lv_anim_timeline_set_reverse);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_set_reverse_mpobj, 2, mp_lv_anim_timeline_set_reverse, lv_anim_timeline_set_reverse, 1);
     
 
 /*
@@ -43957,15 +43966,15 @@ static mp_obj_t mp_lv_anim_timeline_set_delay(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_set_delay_mpobj, 2, mp_lv_anim_timeline_set_delay, lv_anim_timeline_set_delay);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_set_delay_mpobj, 2, mp_lv_anim_timeline_set_delay, lv_anim_timeline_set_delay, 1);
     
 /* Reusing lv_anim_timeline_set_delay for lv_anim_timeline_set_repeat_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_set_repeat_count_mpobj, 2, mp_lv_anim_timeline_set_delay, lv_anim_timeline_set_repeat_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_set_repeat_count_mpobj, 2, mp_lv_anim_timeline_set_delay, lv_anim_timeline_set_repeat_count, 1);
     
 /* Reusing lv_anim_timeline_set_delay for lv_anim_timeline_set_repeat_delay */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_set_repeat_delay_mpobj, 2, mp_lv_anim_timeline_set_delay, lv_anim_timeline_set_repeat_delay);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_set_repeat_delay_mpobj, 2, mp_lv_anim_timeline_set_delay, lv_anim_timeline_set_repeat_delay, 1);
     
 
 /*
@@ -43983,7 +43992,7 @@ static mp_obj_t mp_lv_anim_timeline_set_progress(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_set_progress_mpobj, 2, mp_lv_anim_timeline_set_progress, lv_anim_timeline_set_progress);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_set_progress_mpobj, 2, mp_lv_anim_timeline_set_progress, lv_anim_timeline_set_progress, 1);
     
 
 /*
@@ -44001,11 +44010,11 @@ static mp_obj_t mp_lv_anim_timeline_set_user_data(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_set_user_data_mpobj, 2, mp_lv_anim_timeline_set_user_data, lv_anim_timeline_set_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_set_user_data_mpobj, 2, mp_lv_anim_timeline_set_user_data, lv_anim_timeline_set_user_data, 1);
     
 /* Reusing lv_anim_timeline_start for lv_anim_timeline_get_playtime */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_get_playtime_mpobj, 1, mp_lv_anim_timeline_start, lv_anim_timeline_get_playtime);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_get_playtime_mpobj, 1, mp_lv_anim_timeline_start, lv_anim_timeline_get_playtime, 1);
     
 
 /*
@@ -44022,11 +44031,11 @@ static mp_obj_t mp_lv_anim_timeline_get_reverse(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_get_reverse_mpobj, 1, mp_lv_anim_timeline_get_reverse, lv_anim_timeline_get_reverse);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_get_reverse_mpobj, 1, mp_lv_anim_timeline_get_reverse, lv_anim_timeline_get_reverse, 1);
     
 /* Reusing lv_anim_timeline_start for lv_anim_timeline_get_delay */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_get_delay_mpobj, 1, mp_lv_anim_timeline_start, lv_anim_timeline_get_delay);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_get_delay_mpobj, 1, mp_lv_anim_timeline_start, lv_anim_timeline_get_delay, 1);
     
 
 /*
@@ -44043,15 +44052,15 @@ static mp_obj_t mp_lv_anim_timeline_get_progress(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_get_progress_mpobj, 1, mp_lv_anim_timeline_get_progress, lv_anim_timeline_get_progress);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_get_progress_mpobj, 1, mp_lv_anim_timeline_get_progress, lv_anim_timeline_get_progress, 1);
     
 /* Reusing lv_anim_timeline_start for lv_anim_timeline_get_repeat_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_get_repeat_count_mpobj, 1, mp_lv_anim_timeline_start, lv_anim_timeline_get_repeat_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_get_repeat_count_mpobj, 1, mp_lv_anim_timeline_start, lv_anim_timeline_get_repeat_count, 1);
     
 /* Reusing lv_anim_timeline_start for lv_anim_timeline_get_repeat_delay */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_get_repeat_delay_mpobj, 1, mp_lv_anim_timeline_start, lv_anim_timeline_get_repeat_delay);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_get_repeat_delay_mpobj, 1, mp_lv_anim_timeline_start, lv_anim_timeline_get_repeat_delay, 1);
     
 
 /*
@@ -44068,7 +44077,7 @@ static mp_obj_t mp_lv_anim_timeline_get_user_data(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_get_user_data_mpobj, 1, mp_lv_anim_timeline_get_user_data, lv_anim_timeline_get_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_get_user_data_mpobj, 1, mp_lv_anim_timeline_get_user_data, lv_anim_timeline_get_user_data, 1);
     
 
 /*
@@ -44087,7 +44096,7 @@ static mp_obj_t mp_lv_anim_timeline_merge(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_merge_mpobj, 3, mp_lv_anim_timeline_merge, lv_anim_timeline_merge);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_anim_timeline_merge_mpobj, 3, mp_lv_anim_timeline_merge, lv_anim_timeline_merge, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_anim_timeline_t_locals_dict_table[] = {
@@ -44200,7 +44209,7 @@ static mp_obj_t mp_lv_fs_open(size_t mp_n_args, const mp_obj_t *mp_args, void *l
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_open_mpobj, 3, mp_lv_fs_open, lv_fs_open);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_open_mpobj, 3, mp_lv_fs_open, lv_fs_open, 1);
     
 
 /*
@@ -44217,7 +44226,7 @@ static mp_obj_t mp_lv_fs_close(size_t mp_n_args, const mp_obj_t *mp_args, void *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_close_mpobj, 1, mp_lv_fs_close, lv_fs_close);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_close_mpobj, 1, mp_lv_fs_close, lv_fs_close, 1);
     
 
 /*
@@ -44237,7 +44246,7 @@ static mp_obj_t mp_lv_fs_read(size_t mp_n_args, const mp_obj_t *mp_args, void *l
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_read_mpobj, 4, mp_lv_fs_read, lv_fs_read);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_read_mpobj, 4, mp_lv_fs_read, lv_fs_read, 1);
     
 
 /*
@@ -44257,7 +44266,7 @@ static mp_obj_t mp_lv_fs_write(size_t mp_n_args, const mp_obj_t *mp_args, void *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_write_mpobj, 4, mp_lv_fs_write, lv_fs_write);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_write_mpobj, 4, mp_lv_fs_write, lv_fs_write, 1);
     
 
 /*
@@ -44276,7 +44285,7 @@ static mp_obj_t mp_lv_fs_seek(size_t mp_n_args, const mp_obj_t *mp_args, void *l
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_seek_mpobj, 3, mp_lv_fs_seek, lv_fs_seek);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_seek_mpobj, 3, mp_lv_fs_seek, lv_fs_seek, 1);
     
 
 /*
@@ -44294,11 +44303,11 @@ static mp_obj_t mp_lv_fs_tell(size_t mp_n_args, const mp_obj_t *mp_args, void *l
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_tell_mpobj, 2, mp_lv_fs_tell, lv_fs_tell);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_tell_mpobj, 2, mp_lv_fs_tell, lv_fs_tell, 1);
     
 /* Reusing lv_fs_tell for lv_fs_get_size */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_get_size_mpobj, 2, mp_lv_fs_tell, lv_fs_get_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_get_size_mpobj, 2, mp_lv_fs_tell, lv_fs_get_size, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_fs_file_t_locals_dict_table[] = {
@@ -44317,11 +44326,11 @@ static MP_DEFINE_CONST_DICT(mp_lv_fs_file_t_locals_dict, mp_lv_fs_file_t_locals_
         
 /* Reusing funcptr_remove_cb for lv_fs_drv_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_drv_init_mpobj, 1, mp_funcptr_remove_cb, lv_fs_drv_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_drv_init_mpobj, 1, mp_funcptr_remove_cb, lv_fs_drv_init, 1);
     
 /* Reusing funcptr_remove_cb for lv_fs_drv_register */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_drv_register_mpobj, 1, mp_funcptr_remove_cb, lv_fs_drv_register);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_drv_register_mpobj, 1, mp_funcptr_remove_cb, lv_fs_drv_register, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_fs_drv_t_locals_dict_table[] = {
@@ -44343,23 +44352,23 @@ static MP_DEFINE_CONST_DICT(mp_lv_fs_file_cache_t_locals_dict, mp_lv_fs_file_cac
         
 /* Reusing funcptr_lv_cache_destroy_cb_t for lv_cache_destroy */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_destroy_mpobj, 2, mp_funcptr_lv_cache_destroy_cb_t, lv_cache_destroy);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_destroy_mpobj, 2, mp_funcptr_lv_cache_destroy_cb_t, lv_cache_destroy, 1);
     
 /* Reusing funcptr_lv_cache_get_cb_t for lv_cache_acquire */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_acquire_mpobj, 3, mp_funcptr_lv_cache_get_cb_t, lv_cache_acquire);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_acquire_mpobj, 3, mp_funcptr_lv_cache_get_cb_t, lv_cache_acquire, 1);
     
 /* Reusing funcptr_lv_cache_get_cb_t for lv_cache_acquire_or_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_acquire_or_create_mpobj, 3, mp_funcptr_lv_cache_get_cb_t, lv_cache_acquire_or_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_acquire_or_create_mpobj, 3, mp_funcptr_lv_cache_get_cb_t, lv_cache_acquire_or_create, 1);
     
 /* Reusing funcptr_lv_cache_get_cb_t for lv_cache_add */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_add_mpobj, 3, mp_funcptr_lv_cache_get_cb_t, lv_cache_add);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_add_mpobj, 3, mp_funcptr_lv_cache_get_cb_t, lv_cache_add, 1);
     
 /* Reusing funcptr_lv_cache_remove_cb_t for lv_cache_release */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_release_mpobj, 3, mp_funcptr_lv_cache_remove_cb_t, lv_cache_release);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_release_mpobj, 3, mp_funcptr_lv_cache_remove_cb_t, lv_cache_release, 1);
     
 
 /*
@@ -44378,15 +44387,15 @@ static mp_obj_t mp_lv_cache_reserve(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_reserve_mpobj, 3, mp_lv_cache_reserve, lv_cache_reserve);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_reserve_mpobj, 3, mp_lv_cache_reserve, lv_cache_reserve, 1);
     
 /* Reusing funcptr_lv_cache_drop_cb_t for lv_cache_drop */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_drop_mpobj, 3, mp_funcptr_lv_cache_drop_cb_t, lv_cache_drop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_drop_mpobj, 3, mp_funcptr_lv_cache_drop_cb_t, lv_cache_drop, 1);
     
 /* Reusing funcptr_lv_cache_destroy_cb_t for lv_cache_drop_all */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_drop_all_mpobj, 2, mp_funcptr_lv_cache_destroy_cb_t, lv_cache_drop_all);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_drop_all_mpobj, 2, mp_funcptr_lv_cache_destroy_cb_t, lv_cache_drop_all, 1);
     
 
 /*
@@ -44404,7 +44413,7 @@ static mp_obj_t mp_lv_cache_evict_one(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_evict_one_mpobj, 2, mp_lv_cache_evict_one, lv_cache_evict_one);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_evict_one_mpobj, 2, mp_lv_cache_evict_one, lv_cache_evict_one, 1);
     
 
 /*
@@ -44423,7 +44432,7 @@ static mp_obj_t mp_lv_cache_set_max_size(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_set_max_size_mpobj, 3, mp_lv_cache_set_max_size, lv_cache_set_max_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_set_max_size_mpobj, 3, mp_lv_cache_set_max_size, lv_cache_set_max_size, 1);
     
 
 /*
@@ -44441,19 +44450,19 @@ static mp_obj_t mp_lv_cache_get_max_size(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_get_max_size_mpobj, 2, mp_lv_cache_get_max_size, lv_cache_get_max_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_get_max_size_mpobj, 2, mp_lv_cache_get_max_size, lv_cache_get_max_size, 1);
     
 /* Reusing lv_cache_get_max_size for lv_cache_get_size */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_get_size_mpobj, 2, mp_lv_cache_get_max_size, lv_cache_get_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_get_size_mpobj, 2, mp_lv_cache_get_max_size, lv_cache_get_size, 1);
     
 /* Reusing lv_cache_get_max_size for lv_cache_get_free_size */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_get_free_size_mpobj, 2, mp_lv_cache_get_max_size, lv_cache_get_free_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_get_free_size_mpobj, 2, mp_lv_cache_get_max_size, lv_cache_get_free_size, 1);
     
 /* Reusing funcptr_lv_cache_init_cb_t for lv_cache_is_enabled */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_is_enabled_mpobj, 1, mp_funcptr_lv_cache_init_cb_t, lv_cache_is_enabled);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_is_enabled_mpobj, 1, mp_funcptr_lv_cache_init_cb_t, lv_cache_is_enabled, 1);
     
 
 /*
@@ -44479,7 +44488,7 @@ static mp_obj_t mp_lv_cache_set_compare_cb(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_set_compare_cb_mpobj, 3, mp_lv_cache_set_compare_cb, lv_cache_set_compare_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_set_compare_cb_mpobj, 3, mp_lv_cache_set_compare_cb, lv_cache_set_compare_cb, 1);
     
 
 /*
@@ -44514,7 +44523,7 @@ static mp_obj_t mp_lv_cache_set_create_cb(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_set_create_cb_mpobj, 3, mp_lv_cache_set_create_cb, lv_cache_set_create_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_set_create_cb_mpobj, 3, mp_lv_cache_set_create_cb, lv_cache_set_create_cb, 1);
     
 
 /*
@@ -44549,7 +44558,7 @@ static mp_obj_t mp_lv_cache_set_free_cb(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_set_free_cb_mpobj, 3, mp_lv_cache_set_free_cb, lv_cache_set_free_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_set_free_cb_mpobj, 3, mp_lv_cache_set_free_cb, lv_cache_set_free_cb, 1);
     
 
 /*
@@ -44567,7 +44576,7 @@ static mp_obj_t mp_lv_cache_set_name(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_set_name_mpobj, 2, mp_lv_cache_set_name, lv_cache_set_name);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_set_name_mpobj, 2, mp_lv_cache_set_name, lv_cache_set_name, 1);
     
 
 /*
@@ -44584,11 +44593,11 @@ static mp_obj_t mp_lv_cache_get_name(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_get_name_mpobj, 1, mp_lv_cache_get_name, lv_cache_get_name);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_get_name_mpobj, 1, mp_lv_cache_get_name, lv_cache_get_name, 1);
     
 /* Reusing funcptr_lv_cache_iter_create_cb for lv_cache_iter_create */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_iter_create_mpobj, 1, mp_funcptr_lv_cache_iter_create_cb, lv_cache_iter_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_iter_create_mpobj, 1, mp_funcptr_lv_cache_iter_create_cb, lv_cache_iter_create, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_cache_t_locals_dict_table[] = {
@@ -44636,7 +44645,7 @@ static mp_obj_t mp_lv_cache_create(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_create_mpobj, 4, mp_lv_cache_create, lv_cache_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_create_mpobj, 4, mp_lv_cache_create, lv_cache_create, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_cache_class_t_locals_dict_table[] = {
@@ -44662,7 +44671,7 @@ static mp_obj_t mp_lv_cache_entry_get_cache(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_get_cache_mpobj, 1, mp_lv_cache_entry_get_cache, lv_cache_entry_get_cache);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_get_cache_mpobj, 1, mp_lv_cache_entry_get_cache, lv_cache_entry_get_cache, 1);
     
 
 /*
@@ -44681,7 +44690,7 @@ static mp_obj_t mp_lv_cache_entry_init(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_init_mpobj, 3, mp_lv_cache_entry_init, lv_cache_entry_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_init_mpobj, 3, mp_lv_cache_entry_init, lv_cache_entry_init, 1);
     
 
 /*
@@ -44698,7 +44707,7 @@ static mp_obj_t mp_lv_cache_entry_delete(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_delete_mpobj, 1, mp_lv_cache_entry_delete, lv_cache_entry_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_delete_mpobj, 1, mp_lv_cache_entry_delete, lv_cache_entry_delete, 1);
     
 
 /*
@@ -44715,7 +44724,7 @@ static mp_obj_t mp_lv_cache_entry_get_ref(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_get_ref_mpobj, 1, mp_lv_cache_entry_get_ref, lv_cache_entry_get_ref);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_get_ref_mpobj, 1, mp_lv_cache_entry_get_ref, lv_cache_entry_get_ref, 1);
     
 
 /*
@@ -44732,7 +44741,7 @@ static mp_obj_t mp_lv_cache_entry_get_node_size(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_get_node_size_mpobj, 1, mp_lv_cache_entry_get_node_size, lv_cache_entry_get_node_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_get_node_size_mpobj, 1, mp_lv_cache_entry_get_node_size, lv_cache_entry_get_node_size, 1);
     
 
 /*
@@ -44749,7 +44758,7 @@ static mp_obj_t mp_lv_cache_entry_is_invalid(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_is_invalid_mpobj, 1, mp_lv_cache_entry_is_invalid, lv_cache_entry_is_invalid);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_is_invalid_mpobj, 1, mp_lv_cache_entry_is_invalid, lv_cache_entry_is_invalid, 1);
     
 
 /*
@@ -44766,19 +44775,19 @@ static mp_obj_t mp_lv_cache_entry_get_data(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_get_data_mpobj, 1, mp_lv_cache_entry_get_data, lv_cache_entry_get_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_get_data_mpobj, 1, mp_lv_cache_entry_get_data, lv_cache_entry_get_data, 1);
     
 /* Reusing lv_cache_entry_delete for lv_cache_entry_reset_ref */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_reset_ref_mpobj, 1, mp_lv_cache_entry_delete, lv_cache_entry_reset_ref);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_reset_ref_mpobj, 1, mp_lv_cache_entry_delete, lv_cache_entry_reset_ref, 1);
     
 /* Reusing lv_cache_entry_delete for lv_cache_entry_inc_ref */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_inc_ref_mpobj, 1, mp_lv_cache_entry_delete, lv_cache_entry_inc_ref);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_inc_ref_mpobj, 1, mp_lv_cache_entry_delete, lv_cache_entry_inc_ref, 1);
     
 /* Reusing lv_cache_entry_delete for lv_cache_entry_dec_ref */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_dec_ref_mpobj, 1, mp_lv_cache_entry_delete, lv_cache_entry_dec_ref);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_dec_ref_mpobj, 1, mp_lv_cache_entry_delete, lv_cache_entry_dec_ref, 1);
     
 
 /*
@@ -44796,7 +44805,7 @@ static mp_obj_t mp_lv_cache_entry_set_node_size(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_set_node_size_mpobj, 2, mp_lv_cache_entry_set_node_size, lv_cache_entry_set_node_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_set_node_size_mpobj, 2, mp_lv_cache_entry_set_node_size, lv_cache_entry_set_node_size, 1);
     
 
 /*
@@ -44814,11 +44823,11 @@ static mp_obj_t mp_lv_cache_entry_set_cache(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_set_cache_mpobj, 2, mp_lv_cache_entry_set_cache, lv_cache_entry_set_cache);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_set_cache_mpobj, 2, mp_lv_cache_entry_set_cache, lv_cache_entry_set_cache, 1);
     
 /* Reusing lv_cache_entry_get_data for lv_cache_entry_acquire_data */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_acquire_data_mpobj, 1, mp_lv_cache_entry_get_data, lv_cache_entry_acquire_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_acquire_data_mpobj, 1, mp_lv_cache_entry_get_data, lv_cache_entry_acquire_data, 1);
     
 
 /*
@@ -44836,7 +44845,7 @@ static mp_obj_t mp_lv_cache_entry_release_data(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_release_data_mpobj, 2, mp_lv_cache_entry_release_data, lv_cache_entry_release_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_release_data_mpobj, 2, mp_lv_cache_entry_release_data, lv_cache_entry_release_data, 1);
     
 
 /*
@@ -44854,11 +44863,11 @@ static mp_obj_t mp_lv_cache_entry_set_flag(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_set_flag_mpobj, 2, mp_lv_cache_entry_set_flag, lv_cache_entry_set_flag);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_set_flag_mpobj, 2, mp_lv_cache_entry_set_flag, lv_cache_entry_set_flag, 1);
     
 /* Reusing lv_cache_entry_set_flag for lv_cache_entry_remove_flag */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_remove_flag_mpobj, 2, mp_lv_cache_entry_set_flag, lv_cache_entry_remove_flag);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_remove_flag_mpobj, 2, mp_lv_cache_entry_set_flag, lv_cache_entry_remove_flag, 1);
     
 
 /*
@@ -44876,7 +44885,7 @@ static mp_obj_t mp_lv_cache_entry_has_flag(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_has_flag_mpobj, 2, mp_lv_cache_entry_has_flag, lv_cache_entry_has_flag);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_cache_entry_has_flag_mpobj, 2, mp_lv_cache_entry_has_flag, lv_cache_entry_has_flag, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_cache_entry_t_locals_dict_table[] = {
@@ -44918,7 +44927,7 @@ static mp_obj_t mp_lv_iter_get_context(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_iter_get_context_mpobj, 1, mp_lv_iter_get_context, lv_iter_get_context);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_iter_get_context_mpobj, 1, mp_lv_iter_get_context, lv_iter_get_context, 1);
     
 
 /*
@@ -44935,7 +44944,7 @@ static mp_obj_t mp_lv_iter_destroy(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_iter_destroy_mpobj, 1, mp_lv_iter_destroy, lv_iter_destroy);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_iter_destroy_mpobj, 1, mp_lv_iter_destroy, lv_iter_destroy, 1);
     
 
 /*
@@ -44953,7 +44962,7 @@ static mp_obj_t mp_lv_iter_next(size_t mp_n_args, const mp_obj_t *mp_args, void 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_iter_next_mpobj, 2, mp_lv_iter_next, lv_iter_next);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_iter_next_mpobj, 2, mp_lv_iter_next, lv_iter_next, 1);
     
 
 /*
@@ -44971,11 +44980,11 @@ static mp_obj_t mp_lv_iter_make_peekable(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_iter_make_peekable_mpobj, 2, mp_lv_iter_make_peekable, lv_iter_make_peekable);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_iter_make_peekable_mpobj, 2, mp_lv_iter_make_peekable, lv_iter_make_peekable, 1);
     
 /* Reusing lv_iter_next for lv_iter_peek */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_iter_peek_mpobj, 2, mp_lv_iter_next, lv_iter_peek);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_iter_peek_mpobj, 2, mp_lv_iter_next, lv_iter_peek, 1);
     
 
 /*
@@ -44992,11 +45001,11 @@ static mp_obj_t mp_lv_iter_peek_advance(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_iter_peek_advance_mpobj, 1, mp_lv_iter_peek_advance, lv_iter_peek_advance);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_iter_peek_advance_mpobj, 1, mp_lv_iter_peek_advance, lv_iter_peek_advance, 1);
     
 /* Reusing lv_iter_peek_advance for lv_iter_peek_reset */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_iter_peek_reset_mpobj, 1, mp_lv_iter_peek_advance, lv_iter_peek_reset);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_iter_peek_reset_mpobj, 1, mp_lv_iter_peek_advance, lv_iter_peek_reset, 1);
     
 
 /*
@@ -45009,7 +45018,7 @@ static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_iter_peek_reset_mpobj, 1, mp_lv_iter
 
 /* Reusing funcptr_lv_draw_buf_free_cb_t for funcptr_lv_iter_inspect_cb */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_iter_inspect_cb_mpobj, 1, mp_funcptr_lv_draw_buf_free_cb_t, funcptr_lv_iter_inspect_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_iter_inspect_cb_mpobj, 1, mp_funcptr_lv_draw_buf_free_cb_t, funcptr_lv_iter_inspect_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_iter_inspect_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_iter_inspect_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -45029,7 +45038,7 @@ static mp_obj_t mp_lv_iter_inspect(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_iter_inspect_mpobj, 2, mp_lv_iter_inspect, lv_iter_inspect);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_iter_inspect_mpobj, 2, mp_lv_iter_inspect, lv_iter_inspect, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_iter_t_locals_dict_table[] = {
@@ -45121,7 +45130,7 @@ static mp_obj_t mp_lv_span_set_text(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_span_set_text_mpobj, 2, mp_lv_span_set_text, lv_span_set_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_span_set_text_mpobj, 2, mp_lv_span_set_text, lv_span_set_text, 1);
     
 
 /*
@@ -45132,7 +45141,7 @@ static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_span_set_text_mpobj, 2, mp_lv_span_s
     
 /* Reusing lv_span_set_text for lv_span_set_text_static */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_span_set_text_static_mpobj, 2, mp_lv_span_set_text, lv_span_set_text_static);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_span_set_text_static_mpobj, 2, mp_lv_span_set_text, lv_span_set_text_static, 1);
     
 
 /*
@@ -45149,7 +45158,7 @@ static mp_obj_t mp_lv_span_get_style(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_span_get_style_mpobj, 1, mp_lv_span_get_style, lv_span_get_style);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_span_get_style_mpobj, 1, mp_lv_span_get_style, lv_span_get_style, 1);
     
 
 /*
@@ -45166,7 +45175,7 @@ static mp_obj_t mp_lv_span_get_text(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_span_get_text_mpobj, 1, mp_lv_span_get_text, lv_span_get_text);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_span_get_text_mpobj, 1, mp_lv_span_get_text, lv_span_get_text, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_span_t_locals_dict_table[] = {
@@ -45220,7 +45229,7 @@ static mp_obj_t mp_lv_font_info_is_equal(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_info_is_equal_mpobj, 2, mp_lv_font_info_is_equal, lv_font_info_is_equal);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_font_info_is_equal_mpobj, 2, mp_lv_font_info_is_equal, lv_font_info_is_equal, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_font_info_t_locals_dict_table[] = {
@@ -45247,7 +45256,7 @@ static mp_obj_t mp_lv_tree_node_create(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tree_node_create_mpobj, 2, mp_lv_tree_node_create, lv_tree_node_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tree_node_create_mpobj, 2, mp_lv_tree_node_create, lv_tree_node_create, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_tree_class_t_locals_dict_table[] = {
@@ -45273,7 +45282,7 @@ static mp_obj_t mp_lv_tree_node_delete(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tree_node_delete_mpobj, 1, mp_lv_tree_node_delete, lv_tree_node_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tree_node_delete_mpobj, 1, mp_lv_tree_node_delete, lv_tree_node_delete, 1);
     
 
 /*
@@ -45343,7 +45352,7 @@ static mp_obj_t mp_lv_tree_walk(size_t mp_n_args, const mp_obj_t *mp_args, void 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tree_walk_mpobj, 6, mp_lv_tree_walk, lv_tree_walk);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_tree_walk_mpobj, 6, mp_lv_tree_walk, lv_tree_walk, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_tree_node_t_locals_dict_table[] = {
@@ -45370,7 +45379,7 @@ static mp_obj_t mp_lv_color16_to_color(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color16_to_color_mpobj, 1, mp_lv_color16_to_color, lv_color16_to_color);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color16_to_color_mpobj, 1, mp_lv_color16_to_color, lv_color16_to_color, 0);
     
 
 /*
@@ -45388,7 +45397,7 @@ static mp_obj_t mp_lv_color16_premultiply(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color16_premultiply_mpobj, 2, mp_lv_color16_premultiply, lv_color16_premultiply);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color16_premultiply_mpobj, 2, mp_lv_color16_premultiply, lv_color16_premultiply, 0);
     
 
 /*
@@ -45405,7 +45414,7 @@ static mp_obj_t mp_lv_color16_luminance(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color16_luminance_mpobj, 1, mp_lv_color16_luminance, lv_color16_luminance);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_color16_luminance_mpobj, 1, mp_lv_color16_luminance, lv_color16_luminance, 0);
     
 
 static const mp_rom_map_elem_t mp_lv_color16_t_locals_dict_table[] = {
@@ -45433,11 +45442,11 @@ static mp_obj_t mp_lv_mem_monitor_core(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_mem_monitor_core_mpobj, 1, mp_lv_mem_monitor_core, lv_mem_monitor_core);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_mem_monitor_core_mpobj, 1, mp_lv_mem_monitor_core, lv_mem_monitor_core, 1);
     
 /* Reusing lv_mem_monitor_core for lv_mem_monitor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_mem_monitor_mpobj, 1, mp_lv_mem_monitor_core, lv_mem_monitor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_mem_monitor_mpobj, 1, mp_lv_mem_monitor_core, lv_mem_monitor, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_mem_monitor_t_locals_dict_table[] = {
@@ -45465,7 +45474,7 @@ static mp_obj_t mp_lv_layout_create(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_layout_create_mpobj, 2, mp_lv_layout_create, lv_layout_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_layout_create_mpobj, 2, mp_lv_layout_create, lv_layout_create, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_layout_callbacks_t_locals_dict_table[] = {
@@ -45491,7 +45500,7 @@ static mp_obj_t mp_lv_draw_fill_dsc_init(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_fill_dsc_init_mpobj, 1, mp_lv_draw_fill_dsc_init, lv_draw_fill_dsc_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_fill_dsc_init_mpobj, 1, mp_lv_draw_fill_dsc_init, lv_draw_fill_dsc_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_fill_dsc_t_locals_dict_table[] = {
@@ -45517,7 +45526,7 @@ static mp_obj_t mp_lv_draw_border_dsc_init(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_border_dsc_init_mpobj, 1, mp_lv_draw_border_dsc_init, lv_draw_border_dsc_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_border_dsc_init_mpobj, 1, mp_lv_draw_border_dsc_init, lv_draw_border_dsc_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_border_dsc_t_locals_dict_table[] = {
@@ -45543,7 +45552,7 @@ static mp_obj_t mp_lv_draw_box_shadow_dsc_init(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_box_shadow_dsc_init_mpobj, 1, mp_lv_draw_box_shadow_dsc_init, lv_draw_box_shadow_dsc_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_box_shadow_dsc_init_mpobj, 1, mp_lv_draw_box_shadow_dsc_init, lv_draw_box_shadow_dsc_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_box_shadow_dsc_t_locals_dict_table[] = {
@@ -45569,7 +45578,7 @@ static mp_obj_t mp_lv_draw_letter_dsc_init(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_letter_dsc_init_mpobj, 1, mp_lv_draw_letter_dsc_init, lv_draw_letter_dsc_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_letter_dsc_init_mpobj, 1, mp_lv_draw_letter_dsc_init, lv_draw_letter_dsc_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_letter_dsc_t_locals_dict_table[] = {
@@ -45595,7 +45604,7 @@ static mp_obj_t mp_lv_draw_glyph_dsc_init(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_glyph_dsc_init_mpobj, 1, mp_lv_draw_glyph_dsc_init, lv_draw_glyph_dsc_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_glyph_dsc_init_mpobj, 1, mp_lv_draw_glyph_dsc_init, lv_draw_glyph_dsc_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_glyph_dsc_t_locals_dict_table[] = {
@@ -45625,7 +45634,7 @@ static mp_obj_t mp_lv_fs_make_path_from_buffer(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_make_path_from_buffer_mpobj, 5, mp_lv_fs_make_path_from_buffer, lv_fs_make_path_from_buffer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_make_path_from_buffer_mpobj, 5, mp_lv_fs_make_path_from_buffer, lv_fs_make_path_from_buffer, 1);
     
 
 /*
@@ -45644,7 +45653,7 @@ static mp_obj_t mp_lv_fs_get_buffer_from_path(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_get_buffer_from_path_mpobj, 3, mp_lv_fs_get_buffer_from_path, lv_fs_get_buffer_from_path);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_get_buffer_from_path_mpobj, 3, mp_lv_fs_get_buffer_from_path, lv_fs_get_buffer_from_path, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_fs_path_ex_t_locals_dict_table[] = {
@@ -45672,7 +45681,7 @@ static mp_obj_t mp_lv_fs_dir_open(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_dir_open_mpobj, 2, mp_lv_fs_dir_open, lv_fs_dir_open);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_dir_open_mpobj, 2, mp_lv_fs_dir_open, lv_fs_dir_open, 1);
     
 
 /*
@@ -45691,7 +45700,7 @@ static mp_obj_t mp_lv_fs_dir_read(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_dir_read_mpobj, 3, mp_lv_fs_dir_read, lv_fs_dir_read);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_dir_read_mpobj, 3, mp_lv_fs_dir_read, lv_fs_dir_read, 1);
     
 
 /*
@@ -45708,7 +45717,7 @@ static mp_obj_t mp_lv_fs_dir_close(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_dir_close_mpobj, 1, mp_lv_fs_dir_close, lv_fs_dir_close);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_fs_dir_close_mpobj, 1, mp_lv_fs_dir_close, lv_fs_dir_close, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_fs_dir_t_locals_dict_table[] = {
@@ -45736,7 +45745,7 @@ static mp_obj_t mp_lv_draw_triangle_dsc_init(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_triangle_dsc_init_mpobj, 1, mp_lv_draw_triangle_dsc_init, lv_draw_triangle_dsc_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_triangle_dsc_init_mpobj, 1, mp_lv_draw_triangle_dsc_init, lv_draw_triangle_dsc_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_triangle_dsc_t_locals_dict_table[] = {
@@ -45762,7 +45771,7 @@ static mp_obj_t mp_lv_indev_delete(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_delete_mpobj, 1, mp_lv_indev_delete, lv_indev_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_delete_mpobj, 1, mp_lv_indev_delete, lv_indev_delete, 1);
     
 
 /*
@@ -45779,11 +45788,11 @@ static mp_obj_t mp_lv_indev_get_next(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_next_mpobj, 1, mp_lv_indev_get_next, lv_indev_get_next);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_next_mpobj, 1, mp_lv_indev_get_next, lv_indev_get_next, 1);
     
 /* Reusing lv_indev_delete for lv_indev_read */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_read_mpobj, 1, mp_lv_indev_delete, lv_indev_read);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_read_mpobj, 1, mp_lv_indev_delete, lv_indev_read, 1);
     
 
 /*
@@ -45801,7 +45810,7 @@ static mp_obj_t mp_lv_indev_enable(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_enable_mpobj, 2, mp_lv_indev_enable, lv_indev_enable);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_enable_mpobj, 2, mp_lv_indev_enable, lv_indev_enable, 1);
     
 
 /*
@@ -45819,7 +45828,7 @@ static mp_obj_t mp_lv_indev_set_type(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_type_mpobj, 2, mp_lv_indev_set_type, lv_indev_set_type);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_type_mpobj, 2, mp_lv_indev_set_type, lv_indev_set_type, 1);
     
 
 /*
@@ -45853,7 +45862,7 @@ static mp_obj_t mp_lv_indev_set_read_cb(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_read_cb_mpobj, 2, mp_lv_indev_set_read_cb, lv_indev_set_read_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_read_cb_mpobj, 2, mp_lv_indev_set_read_cb, lv_indev_set_read_cb, 1);
     
 
 /*
@@ -45871,11 +45880,11 @@ static mp_obj_t mp_lv_indev_set_user_data(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_user_data_mpobj, 2, mp_lv_indev_set_user_data, lv_indev_set_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_user_data_mpobj, 2, mp_lv_indev_set_user_data, lv_indev_set_user_data, 1);
     
 /* Reusing lv_indev_set_user_data for lv_indev_set_driver_data */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_driver_data_mpobj, 2, mp_lv_indev_set_user_data, lv_indev_set_driver_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_driver_data_mpobj, 2, mp_lv_indev_set_user_data, lv_indev_set_driver_data, 1);
     
 
 /*
@@ -45893,7 +45902,7 @@ static mp_obj_t mp_lv_indev_set_display(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_display_mpobj, 2, mp_lv_indev_set_display, lv_indev_set_display);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_display_mpobj, 2, mp_lv_indev_set_display, lv_indev_set_display, 1);
     
 
 /*
@@ -45911,15 +45920,15 @@ static mp_obj_t mp_lv_indev_set_long_press_time(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_long_press_time_mpobj, 2, mp_lv_indev_set_long_press_time, lv_indev_set_long_press_time);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_long_press_time_mpobj, 2, mp_lv_indev_set_long_press_time, lv_indev_set_long_press_time, 1);
     
 /* Reusing lv_indev_set_long_press_time for lv_indev_set_long_press_repeat_time */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_long_press_repeat_time_mpobj, 2, mp_lv_indev_set_long_press_time, lv_indev_set_long_press_repeat_time);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_long_press_repeat_time_mpobj, 2, mp_lv_indev_set_long_press_time, lv_indev_set_long_press_repeat_time, 1);
     
 /* Reusing lv_indev_set_long_press_time for lv_indev_set_double_click_time */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_double_click_time_mpobj, 2, mp_lv_indev_set_long_press_time, lv_indev_set_double_click_time);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_double_click_time_mpobj, 2, mp_lv_indev_set_long_press_time, lv_indev_set_double_click_time, 1);
     
 
 /*
@@ -45937,19 +45946,19 @@ static mp_obj_t mp_lv_indev_set_scroll_limit(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_scroll_limit_mpobj, 2, mp_lv_indev_set_scroll_limit, lv_indev_set_scroll_limit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_scroll_limit_mpobj, 2, mp_lv_indev_set_scroll_limit, lv_indev_set_scroll_limit, 1);
     
 /* Reusing lv_indev_set_scroll_limit for lv_indev_set_scroll_throw */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_scroll_throw_mpobj, 2, mp_lv_indev_set_scroll_limit, lv_indev_set_scroll_throw);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_scroll_throw_mpobj, 2, mp_lv_indev_set_scroll_limit, lv_indev_set_scroll_throw, 1);
     
 /* Reusing lv_indev_set_scroll_limit for lv_indev_set_gesture_min_velocity */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_gesture_min_velocity_mpobj, 2, mp_lv_indev_set_scroll_limit, lv_indev_set_gesture_min_velocity);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_gesture_min_velocity_mpobj, 2, mp_lv_indev_set_scroll_limit, lv_indev_set_gesture_min_velocity, 1);
     
 /* Reusing lv_indev_set_scroll_limit for lv_indev_set_gesture_min_distance */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_gesture_min_distance_mpobj, 2, mp_lv_indev_set_scroll_limit, lv_indev_set_gesture_min_distance);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_gesture_min_distance_mpobj, 2, mp_lv_indev_set_scroll_limit, lv_indev_set_gesture_min_distance, 1);
     
 
 /*
@@ -45966,7 +45975,7 @@ static mp_obj_t mp_lv_indev_get_type(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_type_mpobj, 1, mp_lv_indev_get_type, lv_indev_get_type);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_type_mpobj, 1, mp_lv_indev_get_type, lv_indev_get_type, 1);
     
 
 /*
@@ -45983,7 +45992,7 @@ static mp_obj_t mp_lv_indev_get_read_cb(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_read_cb_mpobj, 1, mp_lv_indev_get_read_cb, lv_indev_get_read_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_read_cb_mpobj, 1, mp_lv_indev_get_read_cb, lv_indev_get_read_cb, 1);
     
 
 /*
@@ -46000,7 +46009,7 @@ static mp_obj_t mp_lv_indev_get_state(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_state_mpobj, 1, mp_lv_indev_get_state, lv_indev_get_state);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_state_mpobj, 1, mp_lv_indev_get_state, lv_indev_get_state, 1);
     
 
 /*
@@ -46017,7 +46026,7 @@ static mp_obj_t mp_lv_indev_get_group(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_group_mpobj, 1, mp_lv_indev_get_group, lv_indev_get_group);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_group_mpobj, 1, mp_lv_indev_get_group, lv_indev_get_group, 1);
     
 
 /*
@@ -46034,7 +46043,7 @@ static mp_obj_t mp_lv_indev_get_display(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_display_mpobj, 1, mp_lv_indev_get_display, lv_indev_get_display);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_display_mpobj, 1, mp_lv_indev_get_display, lv_indev_get_display, 1);
     
 
 /*
@@ -46051,11 +46060,11 @@ static mp_obj_t mp_lv_indev_get_user_data(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_user_data_mpobj, 1, mp_lv_indev_get_user_data, lv_indev_get_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_user_data_mpobj, 1, mp_lv_indev_get_user_data, lv_indev_get_user_data, 1);
     
 /* Reusing lv_indev_get_user_data for lv_indev_get_driver_data */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_driver_data_mpobj, 1, mp_lv_indev_get_user_data, lv_indev_get_driver_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_driver_data_mpobj, 1, mp_lv_indev_get_user_data, lv_indev_get_driver_data, 1);
     
 
 /*
@@ -46072,7 +46081,7 @@ static mp_obj_t mp_lv_indev_get_press_moved(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_press_moved_mpobj, 1, mp_lv_indev_get_press_moved, lv_indev_get_press_moved);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_press_moved_mpobj, 1, mp_lv_indev_get_press_moved, lv_indev_get_press_moved, 1);
     
 
 /*
@@ -46090,19 +46099,19 @@ static mp_obj_t mp_lv_indev_reset(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_reset_mpobj, 2, mp_lv_indev_reset, lv_indev_reset);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_reset_mpobj, 2, mp_lv_indev_reset, lv_indev_reset, 1);
     
 /* Reusing lv_indev_delete for lv_indev_stop_processing */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_stop_processing_mpobj, 1, mp_lv_indev_delete, lv_indev_stop_processing);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_stop_processing_mpobj, 1, mp_lv_indev_delete, lv_indev_stop_processing, 1);
     
 /* Reusing lv_indev_delete for lv_indev_reset_long_press */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_reset_long_press_mpobj, 1, mp_lv_indev_delete, lv_indev_reset_long_press);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_reset_long_press_mpobj, 1, mp_lv_indev_delete, lv_indev_reset_long_press, 1);
     
 /* Reusing lv_indev_reset for lv_indev_set_cursor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_cursor_mpobj, 2, mp_lv_indev_reset, lv_indev_set_cursor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_cursor_mpobj, 2, mp_lv_indev_reset, lv_indev_set_cursor, 1);
     
 
 /*
@@ -46120,7 +46129,7 @@ static mp_obj_t mp_lv_indev_set_group(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_group_mpobj, 2, mp_lv_indev_set_group, lv_indev_set_group);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_group_mpobj, 2, mp_lv_indev_set_group, lv_indev_set_group, 1);
     
 
 /*
@@ -46138,7 +46147,7 @@ static mp_obj_t mp_lv_indev_set_button_points(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_button_points_mpobj, 2, mp_lv_indev_set_button_points, lv_indev_set_button_points);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_button_points_mpobj, 2, mp_lv_indev_set_button_points, lv_indev_set_button_points, 1);
     
 
 /*
@@ -46156,7 +46165,7 @@ static mp_obj_t mp_lv_indev_get_point(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_point_mpobj, 2, mp_lv_indev_get_point, lv_indev_get_point);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_point_mpobj, 2, mp_lv_indev_get_point, lv_indev_get_point, 1);
     
 
 /*
@@ -46173,7 +46182,7 @@ static mp_obj_t mp_lv_indev_get_gesture_dir(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_gesture_dir_mpobj, 1, mp_lv_indev_get_gesture_dir, lv_indev_get_gesture_dir);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_gesture_dir_mpobj, 1, mp_lv_indev_get_gesture_dir, lv_indev_get_gesture_dir, 1);
     
 
 /*
@@ -46190,7 +46199,7 @@ static mp_obj_t mp_lv_indev_get_key(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_key_mpobj, 1, mp_lv_indev_get_key, lv_indev_get_key);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_key_mpobj, 1, mp_lv_indev_get_key, lv_indev_get_key, 1);
     
 
 /*
@@ -46207,11 +46216,11 @@ static mp_obj_t mp_lv_indev_get_short_click_streak(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_short_click_streak_mpobj, 1, mp_lv_indev_get_short_click_streak, lv_indev_get_short_click_streak);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_short_click_streak_mpobj, 1, mp_lv_indev_get_short_click_streak, lv_indev_get_short_click_streak, 1);
     
 /* Reusing lv_indev_get_gesture_dir for lv_indev_get_scroll_dir */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_scroll_dir_mpobj, 1, mp_lv_indev_get_gesture_dir, lv_indev_get_scroll_dir);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_scroll_dir_mpobj, 1, mp_lv_indev_get_gesture_dir, lv_indev_get_scroll_dir, 1);
     
 
 /*
@@ -46228,11 +46237,11 @@ static mp_obj_t mp_lv_indev_get_scroll_obj(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_scroll_obj_mpobj, 1, mp_lv_indev_get_scroll_obj, lv_indev_get_scroll_obj);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_scroll_obj_mpobj, 1, mp_lv_indev_get_scroll_obj, lv_indev_get_scroll_obj, 1);
     
 /* Reusing lv_indev_get_point for lv_indev_get_vect */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_vect_mpobj, 2, mp_lv_indev_get_point, lv_indev_get_vect);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_vect_mpobj, 2, mp_lv_indev_get_point, lv_indev_get_vect, 1);
     
 
 /*
@@ -46249,11 +46258,11 @@ static mp_obj_t mp_lv_indev_get_cursor(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_cursor_mpobj, 1, mp_lv_indev_get_cursor, lv_indev_get_cursor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_cursor_mpobj, 1, mp_lv_indev_get_cursor, lv_indev_get_cursor, 1);
     
 /* Reusing lv_indev_delete for lv_indev_wait_release */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_wait_release_mpobj, 1, mp_lv_indev_delete, lv_indev_wait_release);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_wait_release_mpobj, 1, mp_lv_indev_delete, lv_indev_wait_release, 1);
     
 
 /*
@@ -46270,7 +46279,7 @@ static mp_obj_t mp_lv_indev_get_read_timer(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_read_timer_mpobj, 1, mp_lv_indev_get_read_timer, lv_indev_get_read_timer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_read_timer_mpobj, 1, mp_lv_indev_get_read_timer, lv_indev_get_read_timer, 1);
     
 
 /*
@@ -46288,7 +46297,7 @@ static mp_obj_t mp_lv_indev_set_mode(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_mode_mpobj, 2, mp_lv_indev_set_mode, lv_indev_set_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_mode_mpobj, 2, mp_lv_indev_set_mode, lv_indev_set_mode, 1);
     
 
 /*
@@ -46305,7 +46314,7 @@ static mp_obj_t mp_lv_indev_get_mode(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_mode_mpobj, 1, mp_lv_indev_get_mode, lv_indev_get_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_mode_mpobj, 1, mp_lv_indev_get_mode, lv_indev_get_mode, 1);
     
 
 /*
@@ -46340,7 +46349,7 @@ static mp_obj_t mp_lv_indev_add_event_cb(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_add_event_cb_mpobj, 4, mp_lv_indev_add_event_cb, lv_indev_add_event_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_add_event_cb_mpobj, 4, mp_lv_indev_add_event_cb, lv_indev_add_event_cb, 1);
     
 
 /*
@@ -46357,7 +46366,7 @@ static mp_obj_t mp_lv_indev_get_event_count(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_event_count_mpobj, 1, mp_lv_indev_get_event_count, lv_indev_get_event_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_event_count_mpobj, 1, mp_lv_indev_get_event_count, lv_indev_get_event_count, 1);
     
 
 /*
@@ -46375,7 +46384,7 @@ static mp_obj_t mp_lv_indev_get_event_dsc(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_event_dsc_mpobj, 2, mp_lv_indev_get_event_dsc, lv_indev_get_event_dsc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_event_dsc_mpobj, 2, mp_lv_indev_get_event_dsc, lv_indev_get_event_dsc, 1);
     
 
 /*
@@ -46393,7 +46402,7 @@ static mp_obj_t mp_lv_indev_remove_event(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_remove_event_mpobj, 2, mp_lv_indev_remove_event, lv_indev_remove_event);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_remove_event_mpobj, 2, mp_lv_indev_remove_event, lv_indev_remove_event, 1);
     
 
 /*
@@ -46427,7 +46436,7 @@ static mp_obj_t mp_lv_indev_remove_event_cb_with_user_data(size_t mp_n_args, con
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_remove_event_cb_with_user_data_mpobj, 3, mp_lv_indev_remove_event_cb_with_user_data, lv_indev_remove_event_cb_with_user_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_remove_event_cb_with_user_data_mpobj, 3, mp_lv_indev_remove_event_cb_with_user_data, lv_indev_remove_event_cb_with_user_data, 1);
     
 
 /*
@@ -46446,7 +46455,7 @@ static mp_obj_t mp_lv_indev_send_event(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_send_event_mpobj, 3, mp_lv_indev_send_event, lv_indev_send_event);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_send_event_mpobj, 3, mp_lv_indev_send_event, lv_indev_send_event, 1);
     
 
 /*
@@ -46480,23 +46489,23 @@ static mp_obj_t mp_lv_indev_set_key_remap_cb(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_key_remap_cb_mpobj, 2, mp_lv_indev_set_key_remap_cb, lv_indev_set_key_remap_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_key_remap_cb_mpobj, 2, mp_lv_indev_set_key_remap_cb, lv_indev_set_key_remap_cb, 1);
     
 /* Reusing lv_indev_delete for lv_indev_set_ccw */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_ccw_mpobj, 1, mp_lv_indev_delete, lv_indev_set_ccw);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_ccw_mpobj, 1, mp_lv_indev_delete, lv_indev_set_ccw, 1);
     
 /* Reusing lv_indev_delete for lv_indev_clear_ccw */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_clear_ccw_mpobj, 1, mp_lv_indev_delete, lv_indev_clear_ccw);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_clear_ccw_mpobj, 1, mp_lv_indev_delete, lv_indev_clear_ccw, 1);
     
 /* Reusing lv_indev_get_press_moved for lv_indev_get_ccw */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_ccw_mpobj, 1, mp_lv_indev_get_press_moved, lv_indev_get_ccw);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_ccw_mpobj, 1, mp_lv_indev_get_press_moved, lv_indev_get_ccw, 1);
     
 /* Reusing lv_indev_delete for lv_indev_gesture_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_gesture_init_mpobj, 1, mp_lv_indev_delete, lv_indev_gesture_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_gesture_init_mpobj, 1, mp_lv_indev_delete, lv_indev_gesture_init, 1);
     
 
 /*
@@ -46514,15 +46523,15 @@ static mp_obj_t mp_lv_indev_set_pinch_up_threshold(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_pinch_up_threshold_mpobj, 2, mp_lv_indev_set_pinch_up_threshold, lv_indev_set_pinch_up_threshold);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_pinch_up_threshold_mpobj, 2, mp_lv_indev_set_pinch_up_threshold, lv_indev_set_pinch_up_threshold, 1);
     
 /* Reusing lv_indev_set_pinch_up_threshold for lv_indev_set_pinch_down_threshold */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_pinch_down_threshold_mpobj, 2, mp_lv_indev_set_pinch_up_threshold, lv_indev_set_pinch_down_threshold);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_pinch_down_threshold_mpobj, 2, mp_lv_indev_set_pinch_up_threshold, lv_indev_set_pinch_down_threshold, 1);
     
 /* Reusing lv_indev_set_pinch_up_threshold for lv_indev_set_rotation_rad_threshold */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_rotation_rad_threshold_mpobj, 2, mp_lv_indev_set_pinch_up_threshold, lv_indev_set_rotation_rad_threshold);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_rotation_rad_threshold_mpobj, 2, mp_lv_indev_set_pinch_up_threshold, lv_indev_set_rotation_rad_threshold, 1);
     
 
 /*
@@ -46541,19 +46550,19 @@ static mp_obj_t mp_lv_indev_gesture_recognizers_update(size_t mp_n_args, const m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_gesture_recognizers_update_mpobj, 3, mp_lv_indev_gesture_recognizers_update, lv_indev_gesture_recognizers_update);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_gesture_recognizers_update_mpobj, 3, mp_lv_indev_gesture_recognizers_update, lv_indev_gesture_recognizers_update, 1);
     
 /* Reusing funcptr_lv_indev_read_cb_t for lv_indev_gesture_recognizers_set_data */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_gesture_recognizers_set_data_mpobj, 2, mp_funcptr_lv_indev_read_cb_t, lv_indev_gesture_recognizers_set_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_gesture_recognizers_set_data_mpobj, 2, mp_funcptr_lv_indev_read_cb_t, lv_indev_gesture_recognizers_set_data, 1);
     
 /* Reusing lv_indev_delete for lv_indev_scroll_handler */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_scroll_handler_mpobj, 1, mp_lv_indev_delete, lv_indev_scroll_handler);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_scroll_handler_mpobj, 1, mp_lv_indev_delete, lv_indev_scroll_handler, 1);
     
 /* Reusing lv_indev_delete for lv_indev_scroll_throw_handler */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_scroll_throw_handler_mpobj, 1, mp_lv_indev_delete, lv_indev_scroll_throw_handler);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_scroll_throw_handler_mpobj, 1, mp_lv_indev_delete, lv_indev_scroll_throw_handler, 1);
     
 
 /*
@@ -46571,11 +46580,11 @@ static mp_obj_t mp_lv_indev_scroll_throw_predict(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_scroll_throw_predict_mpobj, 2, mp_lv_indev_scroll_throw_predict, lv_indev_scroll_throw_predict);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_scroll_throw_predict_mpobj, 2, mp_lv_indev_scroll_throw_predict, lv_indev_scroll_throw_predict, 1);
     
 /* Reusing lv_indev_get_cursor for lv_indev_find_scroll_obj */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_find_scroll_obj_mpobj, 1, mp_lv_indev_get_cursor, lv_indev_find_scroll_obj);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_find_scroll_obj_mpobj, 1, mp_lv_indev_get_cursor, lv_indev_find_scroll_obj, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_indev_t_locals_dict_table[] = {
@@ -46664,7 +46673,7 @@ static mp_obj_t mp_lv_indev_set_gesture_data(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_gesture_data_mpobj, 3, mp_lv_indev_set_gesture_data, lv_indev_set_gesture_data);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_set_gesture_data_mpobj, 3, mp_lv_indev_set_gesture_data, lv_indev_set_gesture_data, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_indev_data_t_locals_dict_table[] = {
@@ -46693,15 +46702,15 @@ static MP_DEFINE_CONST_DICT(mp_lv_indev_keypad_t_locals_dict, mp_lv_indev_keypad
         
 /* Reusing funcptr_lv_recognizer_func_t for lv_indev_gesture_detect_pinch */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_gesture_detect_pinch_mpobj, 3, mp_funcptr_lv_recognizer_func_t, lv_indev_gesture_detect_pinch);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_gesture_detect_pinch_mpobj, 3, mp_funcptr_lv_recognizer_func_t, lv_indev_gesture_detect_pinch, 1);
     
 /* Reusing funcptr_lv_recognizer_func_t for lv_indev_gesture_detect_rotation */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_gesture_detect_rotation_mpobj, 3, mp_funcptr_lv_recognizer_func_t, lv_indev_gesture_detect_rotation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_gesture_detect_rotation_mpobj, 3, mp_funcptr_lv_recognizer_func_t, lv_indev_gesture_detect_rotation, 1);
     
 /* Reusing funcptr_lv_recognizer_func_t for lv_indev_gesture_detect_two_fingers_swipe */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_gesture_detect_two_fingers_swipe_mpobj, 3, mp_funcptr_lv_recognizer_func_t, lv_indev_gesture_detect_two_fingers_swipe);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_gesture_detect_two_fingers_swipe_mpobj, 3, mp_funcptr_lv_recognizer_func_t, lv_indev_gesture_detect_two_fingers_swipe, 1);
     
 
 /*
@@ -46719,11 +46728,11 @@ static mp_obj_t mp_lv_indev_get_gesture_center_point(size_t mp_n_args, const mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_gesture_center_point_mpobj, 2, mp_lv_indev_get_gesture_center_point, lv_indev_get_gesture_center_point);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_gesture_center_point_mpobj, 2, mp_lv_indev_get_gesture_center_point, lv_indev_get_gesture_center_point, 1);
     
 /* Reusing lv_indev_get_gesture_center_point for lv_indev_get_gesture_primary_point */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_gesture_primary_point_mpobj, 2, mp_lv_indev_get_gesture_center_point, lv_indev_get_gesture_primary_point);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_get_gesture_primary_point_mpobj, 2, mp_lv_indev_get_gesture_center_point, lv_indev_get_gesture_primary_point, 1);
     
 
 /*
@@ -46740,7 +46749,7 @@ static mp_obj_t mp_lv_indev_recognizer_is_active(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_recognizer_is_active_mpobj, 1, mp_lv_indev_recognizer_is_active, lv_indev_recognizer_is_active);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_recognizer_is_active_mpobj, 1, mp_lv_indev_recognizer_is_active, lv_indev_recognizer_is_active, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_indev_gesture_recognizer_t_locals_dict_table[] = {
@@ -46803,7 +46812,7 @@ static mp_obj_t mp_lv_draw_mask_rect_dsc_init(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_mask_rect_dsc_init_mpobj, 1, mp_lv_draw_mask_rect_dsc_init, lv_draw_mask_rect_dsc_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_mask_rect_dsc_init_mpobj, 1, mp_lv_draw_mask_rect_dsc_init, lv_draw_mask_rect_dsc_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_mask_rect_dsc_t_locals_dict_table[] = {
@@ -46829,7 +46838,7 @@ static mp_obj_t mp_lv_binfont_create_ex(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_binfont_create_ex_mpobj, 1, mp_lv_binfont_create_ex, lv_binfont_create_ex);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_binfont_create_ex_mpobj, 1, mp_lv_binfont_create_ex, lv_binfont_create_ex, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_binfont_dsc_t_locals_dict_table[] = {
@@ -46855,7 +46864,7 @@ static mp_obj_t mp_lv_draw_sw_register_blend_handler(size_t mp_n_args, const mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_register_blend_handler_mpobj, 1, mp_lv_draw_sw_register_blend_handler, lv_draw_sw_register_blend_handler);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_register_blend_handler_mpobj, 1, mp_lv_draw_sw_register_blend_handler, lv_draw_sw_register_blend_handler, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_sw_custom_blend_handler_t_locals_dict_table[] = {
@@ -46894,7 +46903,7 @@ static mp_obj_t mp_lv_draw_sw_mask_line_points_init(size_t mp_n_args, const mp_o
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_mask_line_points_init_mpobj, 6, mp_lv_draw_sw_mask_line_points_init, lv_draw_sw_mask_line_points_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_mask_line_points_init_mpobj, 6, mp_lv_draw_sw_mask_line_points_init, lv_draw_sw_mask_line_points_init, 1);
     
 
 /*
@@ -46915,7 +46924,7 @@ static mp_obj_t mp_lv_draw_sw_mask_line_angle_init(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_mask_line_angle_init_mpobj, 5, mp_lv_draw_sw_mask_line_angle_init, lv_draw_sw_mask_line_angle_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_mask_line_angle_init_mpobj, 5, mp_lv_draw_sw_mask_line_angle_init, lv_draw_sw_mask_line_angle_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_sw_mask_line_param_t_locals_dict_table[] = {
@@ -46962,7 +46971,7 @@ static mp_obj_t mp_lv_draw_sw_mask_angle_init(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_mask_angle_init_mpobj, 5, mp_lv_draw_sw_mask_angle_init, lv_draw_sw_mask_angle_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_mask_angle_init_mpobj, 5, mp_lv_draw_sw_mask_angle_init, lv_draw_sw_mask_angle_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_sw_mask_angle_param_t_locals_dict_table[] = {
@@ -46999,7 +47008,7 @@ static mp_obj_t mp_lv_draw_sw_mask_radius_init(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_mask_radius_init_mpobj, 4, mp_lv_draw_sw_mask_radius_init, lv_draw_sw_mask_radius_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_mask_radius_init_mpobj, 4, mp_lv_draw_sw_mask_radius_init, lv_draw_sw_mask_radius_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_sw_mask_radius_param_t_locals_dict_table[] = {
@@ -47046,7 +47055,7 @@ static mp_obj_t mp_lv_draw_sw_mask_fade_init(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_mask_fade_init_mpobj, 6, mp_lv_draw_sw_mask_fade_init, lv_draw_sw_mask_fade_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_mask_fade_init_mpobj, 6, mp_lv_draw_sw_mask_fade_init, lv_draw_sw_mask_fade_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_sw_mask_fade_param_t_locals_dict_table[] = {
@@ -47082,7 +47091,7 @@ static mp_obj_t mp_lv_draw_sw_mask_map_init(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_mask_map_init_mpobj, 3, mp_lv_draw_sw_mask_map_init, lv_draw_sw_mask_map_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_mask_map_init_mpobj, 3, mp_lv_draw_sw_mask_map_init, lv_draw_sw_mask_map_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_sw_mask_map_param_t_locals_dict_table[] = {
@@ -47116,35 +47125,35 @@ static mp_obj_t mp_lv_draw_sw_blend_color_to_a8(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_color_to_a8_mpobj, 1, mp_lv_draw_sw_blend_color_to_a8, lv_draw_sw_blend_color_to_a8);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_color_to_a8_mpobj, 1, mp_lv_draw_sw_blend_color_to_a8, lv_draw_sw_blend_color_to_a8, 1);
     
 /* Reusing lv_draw_sw_blend_color_to_a8 for lv_draw_sw_blend_color_to_al88 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_color_to_al88_mpobj, 1, mp_lv_draw_sw_blend_color_to_a8, lv_draw_sw_blend_color_to_al88);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_color_to_al88_mpobj, 1, mp_lv_draw_sw_blend_color_to_a8, lv_draw_sw_blend_color_to_al88, 1);
     
 /* Reusing lv_draw_sw_blend_color_to_a8 for lv_draw_sw_blend_color_to_argb8888 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_color_to_argb8888_mpobj, 1, mp_lv_draw_sw_blend_color_to_a8, lv_draw_sw_blend_color_to_argb8888);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_color_to_argb8888_mpobj, 1, mp_lv_draw_sw_blend_color_to_a8, lv_draw_sw_blend_color_to_argb8888, 1);
     
 /* Reusing lv_draw_sw_blend_color_to_a8 for lv_draw_sw_blend_color_to_argb8888_premultiplied */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_color_to_argb8888_premultiplied_mpobj, 1, mp_lv_draw_sw_blend_color_to_a8, lv_draw_sw_blend_color_to_argb8888_premultiplied);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_color_to_argb8888_premultiplied_mpobj, 1, mp_lv_draw_sw_blend_color_to_a8, lv_draw_sw_blend_color_to_argb8888_premultiplied, 1);
     
 /* Reusing lv_draw_sw_blend_color_to_a8 for lv_draw_sw_blend_color_to_i1 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_color_to_i1_mpobj, 1, mp_lv_draw_sw_blend_color_to_a8, lv_draw_sw_blend_color_to_i1);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_color_to_i1_mpobj, 1, mp_lv_draw_sw_blend_color_to_a8, lv_draw_sw_blend_color_to_i1, 1);
     
 /* Reusing lv_draw_sw_blend_color_to_a8 for lv_draw_sw_blend_color_to_l8 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_color_to_l8_mpobj, 1, mp_lv_draw_sw_blend_color_to_a8, lv_draw_sw_blend_color_to_l8);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_color_to_l8_mpobj, 1, mp_lv_draw_sw_blend_color_to_a8, lv_draw_sw_blend_color_to_l8, 1);
     
 /* Reusing lv_draw_sw_blend_color_to_a8 for lv_draw_sw_blend_color_to_rgb565 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_color_to_rgb565_mpobj, 1, mp_lv_draw_sw_blend_color_to_a8, lv_draw_sw_blend_color_to_rgb565);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_color_to_rgb565_mpobj, 1, mp_lv_draw_sw_blend_color_to_a8, lv_draw_sw_blend_color_to_rgb565, 1);
     
 /* Reusing lv_draw_sw_blend_color_to_a8 for lv_draw_sw_blend_color_to_rgb565_swapped */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_color_to_rgb565_swapped_mpobj, 1, mp_lv_draw_sw_blend_color_to_a8, lv_draw_sw_blend_color_to_rgb565_swapped);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_color_to_rgb565_swapped_mpobj, 1, mp_lv_draw_sw_blend_color_to_a8, lv_draw_sw_blend_color_to_rgb565_swapped, 1);
     
 
 /*
@@ -47162,7 +47171,7 @@ static mp_obj_t mp_lv_draw_sw_blend_color_to_rgb888(size_t mp_n_args, const mp_o
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_color_to_rgb888_mpobj, 2, mp_lv_draw_sw_blend_color_to_rgb888, lv_draw_sw_blend_color_to_rgb888);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_color_to_rgb888_mpobj, 2, mp_lv_draw_sw_blend_color_to_rgb888, lv_draw_sw_blend_color_to_rgb888, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_sw_blend_fill_dsc_t_locals_dict_table[] = {
@@ -47196,35 +47205,35 @@ static mp_obj_t mp_lv_draw_sw_blend_image_to_a8(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_image_to_a8_mpobj, 1, mp_lv_draw_sw_blend_image_to_a8, lv_draw_sw_blend_image_to_a8);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_image_to_a8_mpobj, 1, mp_lv_draw_sw_blend_image_to_a8, lv_draw_sw_blend_image_to_a8, 1);
     
 /* Reusing lv_draw_sw_blend_image_to_a8 for lv_draw_sw_blend_image_to_al88 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_image_to_al88_mpobj, 1, mp_lv_draw_sw_blend_image_to_a8, lv_draw_sw_blend_image_to_al88);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_image_to_al88_mpobj, 1, mp_lv_draw_sw_blend_image_to_a8, lv_draw_sw_blend_image_to_al88, 1);
     
 /* Reusing lv_draw_sw_blend_image_to_a8 for lv_draw_sw_blend_image_to_argb8888 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_image_to_argb8888_mpobj, 1, mp_lv_draw_sw_blend_image_to_a8, lv_draw_sw_blend_image_to_argb8888);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_image_to_argb8888_mpobj, 1, mp_lv_draw_sw_blend_image_to_a8, lv_draw_sw_blend_image_to_argb8888, 1);
     
 /* Reusing lv_draw_sw_blend_image_to_a8 for lv_draw_sw_blend_image_to_argb8888_premultiplied */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_image_to_argb8888_premultiplied_mpobj, 1, mp_lv_draw_sw_blend_image_to_a8, lv_draw_sw_blend_image_to_argb8888_premultiplied);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_image_to_argb8888_premultiplied_mpobj, 1, mp_lv_draw_sw_blend_image_to_a8, lv_draw_sw_blend_image_to_argb8888_premultiplied, 1);
     
 /* Reusing lv_draw_sw_blend_image_to_a8 for lv_draw_sw_blend_image_to_i1 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_image_to_i1_mpobj, 1, mp_lv_draw_sw_blend_image_to_a8, lv_draw_sw_blend_image_to_i1);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_image_to_i1_mpobj, 1, mp_lv_draw_sw_blend_image_to_a8, lv_draw_sw_blend_image_to_i1, 1);
     
 /* Reusing lv_draw_sw_blend_image_to_a8 for lv_draw_sw_blend_image_to_l8 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_image_to_l8_mpobj, 1, mp_lv_draw_sw_blend_image_to_a8, lv_draw_sw_blend_image_to_l8);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_image_to_l8_mpobj, 1, mp_lv_draw_sw_blend_image_to_a8, lv_draw_sw_blend_image_to_l8, 1);
     
 /* Reusing lv_draw_sw_blend_image_to_a8 for lv_draw_sw_blend_image_to_rgb565 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_image_to_rgb565_mpobj, 1, mp_lv_draw_sw_blend_image_to_a8, lv_draw_sw_blend_image_to_rgb565);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_image_to_rgb565_mpobj, 1, mp_lv_draw_sw_blend_image_to_a8, lv_draw_sw_blend_image_to_rgb565, 1);
     
 /* Reusing lv_draw_sw_blend_image_to_a8 for lv_draw_sw_blend_image_to_rgb565_swapped */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_image_to_rgb565_swapped_mpobj, 1, mp_lv_draw_sw_blend_image_to_a8, lv_draw_sw_blend_image_to_rgb565_swapped);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_image_to_rgb565_swapped_mpobj, 1, mp_lv_draw_sw_blend_image_to_a8, lv_draw_sw_blend_image_to_rgb565_swapped, 1);
     
 
 /*
@@ -47242,7 +47251,7 @@ static mp_obj_t mp_lv_draw_sw_blend_image_to_rgb888(size_t mp_n_args, const mp_o
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_image_to_rgb888_mpobj, 2, mp_lv_draw_sw_blend_image_to_rgb888, lv_draw_sw_blend_image_to_rgb888);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_blend_image_to_rgb888_mpobj, 2, mp_lv_draw_sw_blend_image_to_rgb888, lv_draw_sw_blend_image_to_rgb888, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_sw_blend_image_dsc_t_locals_dict_table[] = {
@@ -47276,7 +47285,7 @@ static mp_obj_t mp_lv_draw_sw_grad_cleanup(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_grad_cleanup_mpobj, 1, mp_lv_draw_sw_grad_cleanup, lv_draw_sw_grad_cleanup);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_draw_sw_grad_cleanup_mpobj, 1, mp_lv_draw_sw_grad_cleanup, lv_draw_sw_grad_cleanup, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_draw_sw_grad_calc_t_locals_dict_table[] = {
@@ -47303,7 +47312,7 @@ static mp_obj_t mp_lv_circle_buf_resize(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_resize_mpobj, 2, mp_lv_circle_buf_resize, lv_circle_buf_resize);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_resize_mpobj, 2, mp_lv_circle_buf_resize, lv_circle_buf_resize, 1);
     
 
 /*
@@ -47320,7 +47329,7 @@ static mp_obj_t mp_lv_circle_buf_destroy(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_destroy_mpobj, 1, mp_lv_circle_buf_destroy, lv_circle_buf_destroy);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_destroy_mpobj, 1, mp_lv_circle_buf_destroy, lv_circle_buf_destroy, 1);
     
 
 /*
@@ -47337,15 +47346,15 @@ static mp_obj_t mp_lv_circle_buf_size(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_size_mpobj, 1, mp_lv_circle_buf_size, lv_circle_buf_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_size_mpobj, 1, mp_lv_circle_buf_size, lv_circle_buf_size, 1);
     
 /* Reusing lv_circle_buf_size for lv_circle_buf_capacity */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_capacity_mpobj, 1, mp_lv_circle_buf_size, lv_circle_buf_capacity);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_capacity_mpobj, 1, mp_lv_circle_buf_size, lv_circle_buf_capacity, 1);
     
 /* Reusing lv_circle_buf_size for lv_circle_buf_remain */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_remain_mpobj, 1, mp_lv_circle_buf_size, lv_circle_buf_remain);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_remain_mpobj, 1, mp_lv_circle_buf_size, lv_circle_buf_remain, 1);
     
 
 /*
@@ -47362,15 +47371,15 @@ static mp_obj_t mp_lv_circle_buf_is_empty(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_is_empty_mpobj, 1, mp_lv_circle_buf_is_empty, lv_circle_buf_is_empty);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_is_empty_mpobj, 1, mp_lv_circle_buf_is_empty, lv_circle_buf_is_empty, 1);
     
 /* Reusing lv_circle_buf_is_empty for lv_circle_buf_is_full */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_is_full_mpobj, 1, mp_lv_circle_buf_is_empty, lv_circle_buf_is_full);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_is_full_mpobj, 1, mp_lv_circle_buf_is_empty, lv_circle_buf_is_full, 1);
     
 /* Reusing lv_circle_buf_destroy for lv_circle_buf_reset */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_reset_mpobj, 1, mp_lv_circle_buf_destroy, lv_circle_buf_reset);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_reset_mpobj, 1, mp_lv_circle_buf_destroy, lv_circle_buf_reset, 1);
     
 
 /*
@@ -47387,11 +47396,11 @@ static mp_obj_t mp_lv_circle_buf_head(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_head_mpobj, 1, mp_lv_circle_buf_head, lv_circle_buf_head);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_head_mpobj, 1, mp_lv_circle_buf_head, lv_circle_buf_head, 1);
     
 /* Reusing lv_circle_buf_head for lv_circle_buf_tail */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_tail_mpobj, 1, mp_lv_circle_buf_head, lv_circle_buf_tail);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_tail_mpobj, 1, mp_lv_circle_buf_head, lv_circle_buf_tail, 1);
     
 
 /*
@@ -47409,7 +47418,7 @@ static mp_obj_t mp_lv_circle_buf_read(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_read_mpobj, 2, mp_lv_circle_buf_read, lv_circle_buf_read);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_read_mpobj, 2, mp_lv_circle_buf_read, lv_circle_buf_read, 1);
     
 
 /*
@@ -47427,7 +47436,7 @@ static mp_obj_t mp_lv_circle_buf_write(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_write_mpobj, 2, mp_lv_circle_buf_write, lv_circle_buf_write);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_write_mpobj, 2, mp_lv_circle_buf_write, lv_circle_buf_write, 1);
     
 
 /*
@@ -47465,7 +47474,7 @@ static mp_obj_t mp_lv_circle_buf_fill(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_fill_mpobj, 4, mp_lv_circle_buf_fill, lv_circle_buf_fill);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_fill_mpobj, 4, mp_lv_circle_buf_fill, lv_circle_buf_fill, 1);
     
 
 /*
@@ -47482,7 +47491,7 @@ static mp_obj_t mp_lv_circle_buf_skip(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_skip_mpobj, 1, mp_lv_circle_buf_skip, lv_circle_buf_skip);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_skip_mpobj, 1, mp_lv_circle_buf_skip, lv_circle_buf_skip, 1);
     
 
 /*
@@ -47500,7 +47509,7 @@ static mp_obj_t mp_lv_circle_buf_peek(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_peek_mpobj, 2, mp_lv_circle_buf_peek, lv_circle_buf_peek);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_peek_mpobj, 2, mp_lv_circle_buf_peek, lv_circle_buf_peek, 1);
     
 
 /*
@@ -47519,7 +47528,7 @@ static mp_obj_t mp_lv_circle_buf_peek_at(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_peek_at_mpobj, 3, mp_lv_circle_buf_peek_at, lv_circle_buf_peek_at);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_circle_buf_peek_at_mpobj, 3, mp_lv_circle_buf_peek_at, lv_circle_buf_peek_at, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_circle_buf_t_locals_dict_table[] = {
@@ -47560,7 +47569,7 @@ static mp_obj_t mp_lv_lru_delete(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_lru_delete_mpobj, 1, mp_lv_lru_delete, lv_lru_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_lru_delete_mpobj, 1, mp_lv_lru_delete, lv_lru_delete, 1);
     
 
 /*
@@ -47581,7 +47590,7 @@ static mp_obj_t mp_lv_lru_set(size_t mp_n_args, const mp_obj_t *mp_args, void *l
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_lru_set_mpobj, 5, mp_lv_lru_set, lv_lru_set);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_lru_set_mpobj, 5, mp_lv_lru_set, lv_lru_set, 1);
     
 
 /*
@@ -47601,7 +47610,7 @@ static mp_obj_t mp_lv_lru_get(size_t mp_n_args, const mp_obj_t *mp_args, void *l
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_lru_get_mpobj, 4, mp_lv_lru_get, lv_lru_get);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_lru_get_mpobj, 4, mp_lv_lru_get, lv_lru_get, 1);
     
 
 /*
@@ -47620,11 +47629,11 @@ static mp_obj_t mp_lv_lru_remove(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_lru_remove_mpobj, 3, mp_lv_lru_remove, lv_lru_remove);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_lru_remove_mpobj, 3, mp_lv_lru_remove, lv_lru_remove, 1);
     
 /* Reusing lv_lru_delete for lv_lru_remove_lru_item */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_lru_remove_lru_item_mpobj, 1, mp_lv_lru_delete, lv_lru_remove_lru_item);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_lru_remove_lru_item_mpobj, 1, mp_lv_lru_delete, lv_lru_remove_lru_item, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_lru_t_locals_dict_table[] = {
@@ -47662,7 +47671,7 @@ static mp_obj_t mp_lv_pending_destroy(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_pending_destroy_mpobj, 1, mp_lv_pending_destroy, lv_pending_destroy);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_pending_destroy_mpobj, 1, mp_lv_pending_destroy, lv_pending_destroy, 1);
     
 
 /*
@@ -47697,7 +47706,7 @@ static mp_obj_t mp_lv_pending_set_free_cb(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_pending_set_free_cb_mpobj, 3, mp_lv_pending_set_free_cb, lv_pending_set_free_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_pending_set_free_cb_mpobj, 3, mp_lv_pending_set_free_cb, lv_pending_set_free_cb, 1);
     
 
 /*
@@ -47715,15 +47724,15 @@ static mp_obj_t mp_lv_pending_add(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_pending_add_mpobj, 2, mp_lv_pending_add, lv_pending_add);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_pending_add_mpobj, 2, mp_lv_pending_add, lv_pending_add, 1);
     
 /* Reusing lv_pending_destroy for lv_pending_remove_all */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_pending_remove_all_mpobj, 1, mp_lv_pending_destroy, lv_pending_remove_all);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_pending_remove_all_mpobj, 1, mp_lv_pending_destroy, lv_pending_remove_all, 1);
     
 /* Reusing lv_pending_destroy for lv_pending_swap */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_pending_swap_mpobj, 1, mp_lv_pending_destroy, lv_pending_swap);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_pending_swap_mpobj, 1, mp_lv_pending_destroy, lv_pending_swap, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_pending_t_locals_dict_table[] = {
@@ -47762,7 +47771,7 @@ static mp_obj_t mp_lv_rb_init(size_t mp_n_args, const mp_obj_t *mp_args, void *l
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_init_mpobj, 3, mp_lv_rb_init, lv_rb_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_init_mpobj, 3, mp_lv_rb_init, lv_rb_init, 1);
     
 
 /*
@@ -47780,7 +47789,7 @@ static mp_obj_t mp_lv_rb_insert(size_t mp_n_args, const mp_obj_t *mp_args, void 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_insert_mpobj, 2, mp_lv_rb_insert, lv_rb_insert);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_insert_mpobj, 2, mp_lv_rb_insert, lv_rb_insert, 1);
     
 
 /*
@@ -47798,7 +47807,7 @@ static mp_obj_t mp_lv_rb_find(size_t mp_n_args, const mp_obj_t *mp_args, void *l
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_find_mpobj, 2, mp_lv_rb_find, lv_rb_find);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_find_mpobj, 2, mp_lv_rb_find, lv_rb_find, 1);
     
 
 /*
@@ -47816,7 +47825,7 @@ static mp_obj_t mp_lv_rb_remove_node(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_remove_node_mpobj, 2, mp_lv_rb_remove_node, lv_rb_remove_node);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_remove_node_mpobj, 2, mp_lv_rb_remove_node, lv_rb_remove_node, 1);
     
 
 /*
@@ -47834,7 +47843,7 @@ static mp_obj_t mp_lv_rb_remove(size_t mp_n_args, const mp_obj_t *mp_args, void 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_remove_mpobj, 2, mp_lv_rb_remove, lv_rb_remove);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_remove_mpobj, 2, mp_lv_rb_remove, lv_rb_remove, 1);
     
 
 /*
@@ -47852,7 +47861,7 @@ static mp_obj_t mp_lv_rb_drop_node(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_drop_node_mpobj, 2, mp_lv_rb_drop_node, lv_rb_drop_node);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_drop_node_mpobj, 2, mp_lv_rb_drop_node, lv_rb_drop_node, 1);
     
 
 /*
@@ -47870,7 +47879,7 @@ static mp_obj_t mp_lv_rb_drop(size_t mp_n_args, const mp_obj_t *mp_args, void *l
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_drop_mpobj, 2, mp_lv_rb_drop, lv_rb_drop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_drop_mpobj, 2, mp_lv_rb_drop, lv_rb_drop, 1);
     
 
 /*
@@ -47887,11 +47896,11 @@ static mp_obj_t mp_lv_rb_minimum(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_minimum_mpobj, 1, mp_lv_rb_minimum, lv_rb_minimum);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_minimum_mpobj, 1, mp_lv_rb_minimum, lv_rb_minimum, 1);
     
 /* Reusing lv_rb_minimum for lv_rb_maximum */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_maximum_mpobj, 1, mp_lv_rb_minimum, lv_rb_maximum);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_maximum_mpobj, 1, mp_lv_rb_minimum, lv_rb_maximum, 1);
     
 
 /*
@@ -47908,7 +47917,7 @@ static mp_obj_t mp_lv_rb_destroy(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_destroy_mpobj, 1, mp_lv_rb_destroy, lv_rb_destroy);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_destroy_mpobj, 1, mp_lv_rb_destroy, lv_rb_destroy, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_rb_t_locals_dict_table[] = {
@@ -47943,11 +47952,11 @@ static mp_obj_t mp_lv_rb_minimum_from(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_minimum_from_mpobj, 1, mp_lv_rb_minimum_from, lv_rb_minimum_from);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_minimum_from_mpobj, 1, mp_lv_rb_minimum_from, lv_rb_minimum_from, 1);
     
 /* Reusing lv_rb_minimum_from for lv_rb_maximum_from */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_maximum_from_mpobj, 1, mp_lv_rb_minimum_from, lv_rb_maximum_from);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_rb_maximum_from_mpobj, 1, mp_lv_rb_minimum_from, lv_rb_maximum_from, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_rb_node_t_locals_dict_table[] = {
@@ -47974,7 +47983,7 @@ static mp_obj_t mp_lv_text_attributes_init(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_text_attributes_init_mpobj, 1, mp_lv_text_attributes_init, lv_text_attributes_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_text_attributes_init_mpobj, 1, mp_lv_text_attributes_init, lv_text_attributes_init, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_text_attributes_t_locals_dict_table[] = {
@@ -48007,7 +48016,7 @@ static mp_obj_t mp_lv_sqr(size_t mp_n_args, const mp_obj_t *mp_args, void *lv_fu
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_sqr_mpobj, 1, mp_lv_sqr, lv_sqr);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_sqr_mpobj, 1, mp_lv_sqr, lv_sqr, 1);
     
 
 static const mp_rom_map_elem_t mp_lv_hit_test_info_t_locals_dict_table[] = {
@@ -48040,7 +48049,7 @@ static mp_obj_t mp_lv_color_swap_16(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_swap_16_mpobj, 1, mp_lv_color_swap_16, lv_color_swap_16);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_swap_16_mpobj, 1, mp_lv_color_swap_16, lv_color_swap_16, 0);
     
 
 /*
@@ -48058,7 +48067,7 @@ static mp_obj_t mp_lv_memzero(size_t mp_n_args, const mp_obj_t *mp_args, void *l
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_memzero_mpobj, 2, mp_lv_memzero, lv_memzero);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_memzero_mpobj, 2, mp_lv_memzero, lv_memzero, 1);
     
 
 /*
@@ -48076,7 +48085,7 @@ static mp_obj_t mp_lv_streq(size_t mp_n_args, const mp_obj_t *mp_args, void *lv_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_streq_mpobj, 2, mp_lv_streq, lv_streq);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_streq_mpobj, 2, mp_lv_streq, lv_streq, 1);
     
 
 /*
@@ -48093,7 +48102,7 @@ static mp_obj_t mp_lv_style_get_prop_group(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_style_get_prop_group_mpobj, 1, mp_lv_style_get_prop_group, lv_style_get_prop_group);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_style_get_prop_group_mpobj, 1, mp_lv_style_get_prop_group, lv_style_get_prop_group, 1);
     
 
 /*
@@ -48111,11 +48120,11 @@ static mp_obj_t mp_lv_style_prop_has_flag(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_style_prop_has_flag_mpobj, 2, mp_lv_style_prop_has_flag, lv_style_prop_has_flag);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_style_prop_has_flag_mpobj, 2, mp_lv_style_prop_has_flag, lv_style_prop_has_flag, 1);
     
 /* Reusing funcptr_lv_tick_get_cb_t for lv_task_handler */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_task_handler_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, lv_task_handler);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_task_handler_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, lv_task_handler, 1);
     
 
 /*
@@ -48132,15 +48141,15 @@ static mp_obj_t mp_lv_version_major(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_version_major_mpobj, 0, mp_lv_version_major, lv_version_major);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_version_major_mpobj, 0, mp_lv_version_major, lv_version_major, 0);
     
 /* Reusing lv_version_major for lv_version_minor */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_version_minor_mpobj, 0, mp_lv_version_major, lv_version_minor);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_version_minor_mpobj, 0, mp_lv_version_major, lv_version_minor, 0);
     
 /* Reusing lv_version_major for lv_version_patch */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_version_patch_mpobj, 0, mp_lv_version_major, lv_version_patch);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_version_patch_mpobj, 0, mp_lv_version_major, lv_version_patch, 0);
     
 
 /*
@@ -48157,7 +48166,7 @@ static mp_obj_t mp_lv_version_info(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_version_info_mpobj, 0, mp_lv_version_info, lv_version_info);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_version_info_mpobj, 0, mp_lv_version_info, lv_version_info, 0);
     
 
 /*
@@ -48194,7 +48203,7 @@ static mp_obj_t mp_lv_thread_init(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_thread_init_mpobj, 6, mp_lv_thread_init, lv_thread_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_thread_init_mpobj, 6, mp_lv_thread_init, lv_thread_init, 1);
     
 
 /*
@@ -48211,7 +48220,7 @@ static mp_obj_t mp_lv_thread_delete(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_thread_delete_mpobj, 1, mp_lv_thread_delete, lv_thread_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_thread_delete_mpobj, 1, mp_lv_thread_delete, lv_thread_delete, 1);
     
 
 /*
@@ -48228,23 +48237,23 @@ static mp_obj_t mp_lv_mutex_init(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mutex_init_mpobj, 1, mp_lv_mutex_init, lv_mutex_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mutex_init_mpobj, 1, mp_lv_mutex_init, lv_mutex_init, 1);
     
 /* Reusing lv_mutex_init for lv_mutex_lock */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mutex_lock_mpobj, 1, mp_lv_mutex_init, lv_mutex_lock);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mutex_lock_mpobj, 1, mp_lv_mutex_init, lv_mutex_lock, 1);
     
 /* Reusing lv_mutex_init for lv_mutex_lock_isr */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mutex_lock_isr_mpobj, 1, mp_lv_mutex_init, lv_mutex_lock_isr);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mutex_lock_isr_mpobj, 1, mp_lv_mutex_init, lv_mutex_lock_isr, 1);
     
 /* Reusing lv_mutex_init for lv_mutex_unlock */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mutex_unlock_mpobj, 1, mp_lv_mutex_init, lv_mutex_unlock);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mutex_unlock_mpobj, 1, mp_lv_mutex_init, lv_mutex_unlock, 1);
     
 /* Reusing lv_mutex_init for lv_mutex_delete */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mutex_delete_mpobj, 1, mp_lv_mutex_init, lv_mutex_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mutex_delete_mpobj, 1, mp_lv_mutex_init, lv_mutex_delete, 1);
     
 
 /*
@@ -48261,23 +48270,23 @@ static mp_obj_t mp_lv_thread_sync_init(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_thread_sync_init_mpobj, 1, mp_lv_thread_sync_init, lv_thread_sync_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_thread_sync_init_mpobj, 1, mp_lv_thread_sync_init, lv_thread_sync_init, 1);
     
 /* Reusing lv_thread_sync_init for lv_thread_sync_wait */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_thread_sync_wait_mpobj, 1, mp_lv_thread_sync_init, lv_thread_sync_wait);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_thread_sync_wait_mpobj, 1, mp_lv_thread_sync_init, lv_thread_sync_wait, 1);
     
 /* Reusing lv_thread_sync_init for lv_thread_sync_signal */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_thread_sync_signal_mpobj, 1, mp_lv_thread_sync_init, lv_thread_sync_signal);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_thread_sync_signal_mpobj, 1, mp_lv_thread_sync_init, lv_thread_sync_signal, 1);
     
 /* Reusing lv_thread_sync_init for lv_thread_sync_signal_isr */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_thread_sync_signal_isr_mpobj, 1, mp_lv_thread_sync_init, lv_thread_sync_signal_isr);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_thread_sync_signal_isr_mpobj, 1, mp_lv_thread_sync_init, lv_thread_sync_signal_isr, 1);
     
 /* Reusing lv_thread_sync_init for lv_thread_sync_delete */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_thread_sync_delete_mpobj, 1, mp_lv_thread_sync_init, lv_thread_sync_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_thread_sync_delete_mpobj, 1, mp_lv_thread_sync_init, lv_thread_sync_delete, 1);
     
 
 /*
@@ -48296,7 +48305,7 @@ static mp_obj_t mp_lv_color_16_16_mix_inlined(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_16_16_mix_inlined_mpobj, 3, mp_lv_color_16_16_mix_inlined, lv_color_16_16_mix_inlined);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_16_16_mix_inlined_mpobj, 3, mp_lv_color_16_16_mix_inlined, lv_color_16_16_mix_inlined, 0);
     
 
 /*
@@ -48313,19 +48322,19 @@ static mp_obj_t mp_lv_text_is_break_char(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_is_break_char_mpobj, 1, mp_lv_text_is_break_char, lv_text_is_break_char);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_is_break_char_mpobj, 1, mp_lv_text_is_break_char, lv_text_is_break_char, 1);
     
 /* Reusing lv_text_is_break_char for lv_text_is_hanging_space */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_is_hanging_space_mpobj, 1, mp_lv_text_is_break_char, lv_text_is_hanging_space);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_is_hanging_space_mpobj, 1, mp_lv_text_is_break_char, lv_text_is_hanging_space, 1);
     
 /* Reusing lv_text_is_break_char for lv_text_is_a_word */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_is_a_word_mpobj, 1, mp_lv_text_is_break_char, lv_text_is_a_word);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_is_a_word_mpobj, 1, mp_lv_text_is_break_char, lv_text_is_a_word, 1);
     
 /* Reusing lv_text_is_break_char for lv_text_is_marker */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_is_marker_mpobj, 1, mp_lv_text_is_break_char, lv_text_is_marker);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_is_marker_mpobj, 1, mp_lv_text_is_break_char, lv_text_is_marker, 1);
     
 
 /*
@@ -48342,11 +48351,11 @@ static mp_obj_t mp_lv_swap_bytes_32(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_swap_bytes_32_mpobj, 1, mp_lv_swap_bytes_32, lv_swap_bytes_32);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_swap_bytes_32_mpobj, 1, mp_lv_swap_bytes_32, lv_swap_bytes_32, 1);
     
 /* Reusing lv_color_swap_16 for lv_swap_bytes_16 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_swap_bytes_16_mpobj, 1, mp_lv_color_swap_16, lv_swap_bytes_16);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_swap_bytes_16_mpobj, 1, mp_lv_color_swap_16, lv_swap_bytes_16, 1);
     
 
 /*
@@ -48363,11 +48372,11 @@ static mp_obj_t mp_lv_trigo_sin(size_t mp_n_args, const mp_obj_t *mp_args, void 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_trigo_sin_mpobj, 1, mp_lv_trigo_sin, lv_trigo_sin);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_trigo_sin_mpobj, 1, mp_lv_trigo_sin, lv_trigo_sin, 0);
     
 /* Reusing lv_trigo_sin for lv_trigo_cos */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_trigo_cos_mpobj, 1, mp_lv_trigo_sin, lv_trigo_cos);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_trigo_cos_mpobj, 1, mp_lv_trigo_sin, lv_trigo_cos, 0);
     
 
 /*
@@ -48388,7 +48397,7 @@ static mp_obj_t mp_lv_cubic_bezier(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_cubic_bezier_mpobj, 5, mp_lv_cubic_bezier, lv_cubic_bezier);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_cubic_bezier_mpobj, 5, mp_lv_cubic_bezier, lv_cubic_bezier, 1);
     
 
 /*
@@ -48409,7 +48418,7 @@ static mp_obj_t mp_lv_bezier3(size_t mp_n_args, const mp_obj_t *mp_args, void *l
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_bezier3_mpobj, 5, mp_lv_bezier3, lv_bezier3);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_bezier3_mpobj, 5, mp_lv_bezier3, lv_bezier3, 1);
     
 
 /*
@@ -48427,7 +48436,7 @@ static mp_obj_t mp_lv_atan2(size_t mp_n_args, const mp_obj_t *mp_args, void *lv_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_atan2_mpobj, 2, mp_lv_atan2, lv_atan2);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_atan2_mpobj, 2, mp_lv_atan2, lv_atan2, 0);
     
 
 /*
@@ -48526,7 +48535,7 @@ static mp_obj_t mp_lv_sqrt(size_t mp_n_args, const mp_obj_t *mp_args, void *lv_f
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_sqrt_mpobj, 3, mp_lv_sqrt, lv_sqrt);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_sqrt_mpobj, 3, mp_lv_sqrt, lv_sqrt, 0);
     
 
 static const mp_rom_map_elem_t mp_lv_sqrt_res_t_locals_dict_table[] = {
@@ -48551,7 +48560,7 @@ static mp_obj_t mp_lv_sqrt32(size_t mp_n_args, const mp_obj_t *mp_args, void *lv
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_sqrt32_mpobj, 1, mp_lv_sqrt32, lv_sqrt32);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_sqrt32_mpobj, 1, mp_lv_sqrt32, lv_sqrt32, 0);
     
 
 /*
@@ -48569,15 +48578,15 @@ static mp_obj_t mp_lv_pow(size_t mp_n_args, const mp_obj_t *mp_args, void *lv_fu
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_pow_mpobj, 2, mp_lv_pow, lv_pow);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_pow_mpobj, 2, mp_lv_pow, lv_pow, 1);
     
 /* Reusing lv_cubic_bezier for lv_map */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_map_mpobj, 5, mp_lv_cubic_bezier, lv_map);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_map_mpobj, 5, mp_lv_cubic_bezier, lv_map, 1);
     
 /* Reusing funcptr_lv_delay_cb_t for lv_rand_set_seed */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_rand_set_seed_mpobj, 1, mp_funcptr_lv_delay_cb_t, lv_rand_set_seed);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_rand_set_seed_mpobj, 1, mp_funcptr_lv_delay_cb_t, lv_rand_set_seed, 1);
     
 
 /*
@@ -48595,7 +48604,7 @@ static mp_obj_t mp_lv_rand(size_t mp_n_args, const mp_obj_t *mp_args, void *lv_f
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_rand_mpobj, 2, mp_lv_rand, lv_rand);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_rand_mpobj, 2, mp_lv_rand, lv_rand, 1);
     
 
 /*
@@ -48620,11 +48629,11 @@ static mp_obj_t mp_lv_anim_delete(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_delete_mpobj, 2, mp_lv_anim_delete, lv_anim_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_delete_mpobj, 2, mp_lv_anim_delete, lv_anim_delete, 1);
     
 /* Reusing funcptr_user_cb for lv_anim_delete_all */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_delete_all_mpobj, 0, mp_funcptr_user_cb, lv_anim_delete_all);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_delete_all_mpobj, 0, mp_funcptr_user_cb, lv_anim_delete_all, 1);
     
 
 /*
@@ -48649,7 +48658,7 @@ static mp_obj_t mp_lv_anim_get(size_t mp_n_args, const mp_obj_t *mp_args, void *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_get_mpobj, 2, mp_lv_anim_get, lv_anim_get);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_get_mpobj, 2, mp_lv_anim_get, lv_anim_get, 1);
     
 
 /*
@@ -48666,7 +48675,7 @@ static mp_obj_t mp_lv_anim_get_timer(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_get_timer_mpobj, 0, mp_lv_anim_get_timer, lv_anim_get_timer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_get_timer_mpobj, 0, mp_lv_anim_get_timer, lv_anim_get_timer, 1);
     
 
 /*
@@ -48683,11 +48692,11 @@ static mp_obj_t mp_lv_anim_count_running(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_count_running_mpobj, 0, mp_lv_anim_count_running, lv_anim_count_running);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_count_running_mpobj, 0, mp_lv_anim_count_running, lv_anim_count_running, 1);
     
 /* Reusing lv_swap_bytes_32 for lv_anim_speed */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_speed_mpobj, 1, mp_lv_swap_bytes_32, lv_anim_speed);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_speed_mpobj, 1, mp_lv_swap_bytes_32, lv_anim_speed, 1);
     
 
 /*
@@ -48706,7 +48715,7 @@ static mp_obj_t mp_lv_anim_speed_clamped(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_speed_clamped_mpobj, 3, mp_lv_anim_speed_clamped, lv_anim_speed_clamped);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_speed_clamped_mpobj, 3, mp_lv_anim_speed_clamped, lv_anim_speed_clamped, 1);
     
 
 /*
@@ -48725,15 +48734,15 @@ static mp_obj_t mp_lv_anim_resolve_speed(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_resolve_speed_mpobj, 3, mp_lv_anim_resolve_speed, lv_anim_resolve_speed);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_resolve_speed_mpobj, 3, mp_lv_anim_resolve_speed, lv_anim_resolve_speed, 1);
     
 /* Reusing lv_anim_resolve_speed for lv_anim_speed_to_time */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_speed_to_time_mpobj, 3, mp_lv_anim_resolve_speed, lv_anim_speed_to_time);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_speed_to_time_mpobj, 3, mp_lv_anim_resolve_speed, lv_anim_speed_to_time, 1);
     
 /* Reusing funcptr_user_cb for lv_anim_refr_now */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_refr_now_mpobj, 0, mp_funcptr_user_cb, lv_anim_refr_now);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_refr_now_mpobj, 0, mp_funcptr_user_cb, lv_anim_refr_now, 1);
     
 
 /*
@@ -48750,11 +48759,11 @@ static mp_obj_t mp_lv_anim_timeline_create(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_timeline_create_mpobj, 0, mp_lv_anim_timeline_create, lv_anim_timeline_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_timeline_create_mpobj, 0, mp_lv_anim_timeline_create, lv_anim_timeline_create, 1);
     
 /* Reusing lv_sqr for lv_pct */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_pct_mpobj, 1, mp_lv_sqr, lv_pct);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_pct_mpobj, 1, mp_lv_sqr, lv_pct, 0);
     
 
 /*
@@ -48772,11 +48781,11 @@ static mp_obj_t mp_lv_pct_to_px(size_t mp_n_args, const mp_obj_t *mp_args, void 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_pct_to_px_mpobj, 2, mp_lv_pct_to_px, lv_pct_to_px);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_pct_to_px_mpobj, 2, mp_lv_pct_to_px, lv_pct_to_px, 0);
     
 /* Reusing funcptr_lv_tick_get_cb_t for lv_event_register_id */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_event_register_id_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, lv_event_register_id);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_event_register_id_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, lv_event_register_id, 1);
     
 
 /*
@@ -48793,7 +48802,7 @@ static mp_obj_t mp_lv_event_code_get_name(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_event_code_get_name_mpobj, 1, mp_lv_event_code_get_name, lv_event_code_get_name);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_event_code_get_name_mpobj, 1, mp_lv_event_code_get_name, lv_event_code_get_name, 1);
     
 
 /*
@@ -48810,27 +48819,27 @@ static mp_obj_t mp_lv_group_create(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_group_create_mpobj, 0, mp_lv_group_create, lv_group_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_group_create_mpobj, 0, mp_lv_group_create, lv_group_create, 1);
     
 /* Reusing lv_group_create for lv_group_get_default */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_group_get_default_mpobj, 0, mp_lv_group_create, lv_group_get_default);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_group_get_default_mpobj, 0, mp_lv_group_create, lv_group_get_default, 1);
     
 /* Reusing lv_obj_set_parent for lv_group_swap_obj */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_swap_obj_mpobj, 2, mp_lv_obj_set_parent, lv_group_swap_obj);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_swap_obj_mpobj, 2, mp_lv_obj_set_parent, lv_group_swap_obj, 1);
     
 /* Reusing lv_obj_move_foreground for lv_group_remove_obj */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_remove_obj_mpobj, 1, mp_lv_obj_move_foreground, lv_group_remove_obj);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_remove_obj_mpobj, 1, mp_lv_obj_move_foreground, lv_group_remove_obj, 1);
     
 /* Reusing lv_obj_move_foreground for lv_group_focus_obj */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_focus_obj_mpobj, 1, mp_lv_obj_move_foreground, lv_group_focus_obj);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_group_focus_obj_mpobj, 1, mp_lv_obj_move_foreground, lv_group_focus_obj, 1);
     
 /* Reusing funcptr_lv_tick_get_cb_t for lv_group_get_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_group_get_count_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, lv_group_get_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_group_get_count_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, lv_group_get_count, 1);
     
 
 /*
@@ -48847,19 +48856,19 @@ static mp_obj_t mp_lv_group_by_index(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_group_by_index_mpobj, 1, mp_lv_group_by_index, lv_group_by_index);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_group_by_index_mpobj, 1, mp_lv_group_by_index, lv_group_by_index, 1);
     
 /* Reusing lv_image_cache_is_enabled for lv_is_initialized */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_is_initialized_mpobj, 0, mp_lv_image_cache_is_enabled, lv_is_initialized);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_is_initialized_mpobj, 0, mp_lv_image_cache_is_enabled, lv_is_initialized, 0);
     
 /* Reusing funcptr_user_cb for lv_mem_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mem_init_mpobj, 0, mp_funcptr_user_cb, lv_mem_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mem_init_mpobj, 0, mp_funcptr_user_cb, lv_mem_init, 1);
     
 /* Reusing funcptr_user_cb for lv_mem_deinit */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mem_deinit_mpobj, 0, mp_funcptr_user_cb, lv_mem_deinit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mem_deinit_mpobj, 0, mp_funcptr_user_cb, lv_mem_deinit, 1);
     
 
 /*
@@ -48877,7 +48886,7 @@ static mp_obj_t mp_lv_mem_add_pool(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mem_add_pool_mpobj, 2, mp_lv_mem_add_pool, lv_mem_add_pool);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mem_add_pool_mpobj, 2, mp_lv_mem_add_pool, lv_mem_add_pool, 1);
     
 
 /*
@@ -48894,7 +48903,7 @@ static mp_obj_t mp_lv_mem_remove_pool(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mem_remove_pool_mpobj, 1, mp_lv_mem_remove_pool, lv_mem_remove_pool);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mem_remove_pool_mpobj, 1, mp_lv_mem_remove_pool, lv_mem_remove_pool, 1);
     
 
 /*
@@ -48911,7 +48920,7 @@ static mp_obj_t mp_lv_malloc(size_t mp_n_args, const mp_obj_t *mp_args, void *lv
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_malloc_mpobj, 1, mp_lv_malloc, lv_malloc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_malloc_mpobj, 1, mp_lv_malloc, lv_malloc, 1);
     
 
 /*
@@ -48929,19 +48938,19 @@ static mp_obj_t mp_lv_calloc(size_t mp_n_args, const mp_obj_t *mp_args, void *lv
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_calloc_mpobj, 2, mp_lv_calloc, lv_calloc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_calloc_mpobj, 2, mp_lv_calloc, lv_calloc, 1);
     
 /* Reusing lv_malloc for lv_zalloc */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_zalloc_mpobj, 1, mp_lv_malloc, lv_zalloc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_zalloc_mpobj, 1, mp_lv_malloc, lv_zalloc, 1);
     
 /* Reusing lv_malloc for lv_malloc_zeroed */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_malloc_zeroed_mpobj, 1, mp_lv_malloc, lv_malloc_zeroed);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_malloc_zeroed_mpobj, 1, mp_lv_malloc, lv_malloc_zeroed, 1);
     
 /* Reusing funcptr_lv_draw_buf_free_cb_t for lv_free */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_free_mpobj, 1, mp_funcptr_lv_draw_buf_free_cb_t, lv_free);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_free_mpobj, 1, mp_funcptr_lv_draw_buf_free_cb_t, lv_free, 1);
     
 
 /*
@@ -48959,23 +48968,23 @@ static mp_obj_t mp_lv_realloc(size_t mp_n_args, const mp_obj_t *mp_args, void *l
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_realloc_mpobj, 2, mp_lv_realloc, lv_realloc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_realloc_mpobj, 2, mp_lv_realloc, lv_realloc, 1);
     
 /* Reusing lv_realloc for lv_reallocf */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_reallocf_mpobj, 2, mp_lv_realloc, lv_reallocf);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_reallocf_mpobj, 2, mp_lv_realloc, lv_reallocf, 1);
     
 /* Reusing lv_malloc for lv_malloc_core */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_malloc_core_mpobj, 1, mp_lv_malloc, lv_malloc_core);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_malloc_core_mpobj, 1, mp_lv_malloc, lv_malloc_core, 1);
     
 /* Reusing funcptr_lv_draw_buf_free_cb_t for lv_free_core */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_free_core_mpobj, 1, mp_funcptr_lv_draw_buf_free_cb_t, lv_free_core);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_free_core_mpobj, 1, mp_funcptr_lv_draw_buf_free_cb_t, lv_free_core, 1);
     
 /* Reusing lv_realloc for lv_realloc_core */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_realloc_core_mpobj, 2, mp_lv_realloc, lv_realloc_core);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_realloc_core_mpobj, 2, mp_lv_realloc, lv_realloc_core, 1);
     
 
 /*
@@ -48992,11 +49001,11 @@ static mp_obj_t mp_lv_mem_test_core(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mem_test_core_mpobj, 0, mp_lv_mem_test_core, lv_mem_test_core);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mem_test_core_mpobj, 0, mp_lv_mem_test_core, lv_mem_test_core, 1);
     
 /* Reusing lv_mem_test_core for lv_mem_test */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mem_test_mpobj, 0, mp_lv_mem_test_core, lv_mem_test);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_mem_test_mpobj, 0, mp_lv_mem_test_core, lv_mem_test, 1);
     
 
 /*
@@ -49013,11 +49022,11 @@ static mp_obj_t mp_lv_color_format_get_bpp(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_format_get_bpp_mpobj, 1, mp_lv_color_format_get_bpp, lv_color_format_get_bpp);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_format_get_bpp_mpobj, 1, mp_lv_color_format_get_bpp, lv_color_format_get_bpp, 0);
     
 /* Reusing lv_color_format_get_bpp for lv_color_format_get_size */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_format_get_size_mpobj, 1, mp_lv_color_format_get_bpp, lv_color_format_get_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_format_get_size_mpobj, 1, mp_lv_color_format_get_bpp, lv_color_format_get_size, 0);
     
 
 /*
@@ -49034,7 +49043,7 @@ static mp_obj_t mp_lv_color_format_has_alpha(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_format_has_alpha_mpobj, 1, mp_lv_color_format_has_alpha, lv_color_format_has_alpha);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_format_has_alpha_mpobj, 1, mp_lv_color_format_has_alpha, lv_color_format_has_alpha, 0);
     
 
 /*
@@ -49051,7 +49060,7 @@ static mp_obj_t mp_lv_color_hex(size_t mp_n_args, const mp_obj_t *mp_args, void 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_hex_mpobj, 1, mp_lv_color_hex, lv_color_hex);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_hex_mpobj, 1, mp_lv_color_hex, lv_color_hex, 0);
     
 
 /*
@@ -49070,7 +49079,7 @@ static mp_obj_t mp_lv_color_make(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_make_mpobj, 3, mp_lv_color_make, lv_color_make);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_make_mpobj, 3, mp_lv_color_make, lv_color_make, 0);
     
 
 /*
@@ -49090,15 +49099,15 @@ static mp_obj_t mp_lv_color32_make(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color32_make_mpobj, 4, mp_lv_color32_make, lv_color32_make);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color32_make_mpobj, 4, mp_lv_color32_make, lv_color32_make, 0);
     
 /* Reusing lv_color_hex for lv_color_hex3 */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_hex3_mpobj, 1, mp_lv_color_hex, lv_color_hex3);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_hex3_mpobj, 1, mp_lv_color_hex, lv_color_hex3, 0);
     
 /* Reusing lv_color_16_16_mix_inlined for lv_color_16_16_mix */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_16_16_mix_mpobj, 3, mp_lv_color_16_16_mix_inlined, lv_color_16_16_mix);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_16_16_mix_mpobj, 3, mp_lv_color_16_16_mix_inlined, lv_color_16_16_mix, 0);
     
 
 /*
@@ -49117,7 +49126,7 @@ static mp_obj_t mp_lv_color_hsv_to_rgb(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_hsv_to_rgb_mpobj, 3, mp_lv_color_hsv_to_rgb, lv_color_hsv_to_rgb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_hsv_to_rgb_mpobj, 3, mp_lv_color_hsv_to_rgb, lv_color_hsv_to_rgb, 0);
     
 
 /*
@@ -49136,7 +49145,7 @@ static mp_obj_t mp_lv_color_rgb_to_hsv(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_rgb_to_hsv_mpobj, 3, mp_lv_color_rgb_to_hsv, lv_color_rgb_to_hsv);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_rgb_to_hsv_mpobj, 3, mp_lv_color_rgb_to_hsv, lv_color_rgb_to_hsv, 0);
     
 
 /*
@@ -49153,11 +49162,11 @@ static mp_obj_t mp_lv_color_white(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_white_mpobj, 0, mp_lv_color_white, lv_color_white);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_white_mpobj, 0, mp_lv_color_white, lv_color_white, 0);
     
 /* Reusing lv_color_white for lv_color_black */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_black_mpobj, 0, mp_lv_color_white, lv_color_black);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color_black_mpobj, 0, mp_lv_color_white, lv_color_black, 0);
     
 
 /*
@@ -49174,7 +49183,7 @@ static mp_obj_t mp_lv_color24_luminance(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color24_luminance_mpobj, 1, mp_lv_color24_luminance, lv_color24_luminance);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_color24_luminance_mpobj, 1, mp_lv_color24_luminance, lv_color24_luminance, 0);
     
 
 /*
@@ -49191,7 +49200,7 @@ static mp_obj_t mp_lv_palette_main(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_palette_main_mpobj, 1, mp_lv_palette_main, lv_palette_main);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_palette_main_mpobj, 1, mp_lv_palette_main, lv_palette_main, 0);
     
 
 /*
@@ -49209,11 +49218,11 @@ static mp_obj_t mp_lv_palette_lighten(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_palette_lighten_mpobj, 2, mp_lv_palette_lighten, lv_palette_lighten);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_palette_lighten_mpobj, 2, mp_lv_palette_lighten, lv_palette_lighten, 0);
     
 /* Reusing lv_palette_lighten for lv_palette_darken */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_palette_darken_mpobj, 2, mp_lv_palette_lighten, lv_palette_darken);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_palette_darken_mpobj, 2, mp_lv_palette_lighten, lv_palette_darken, 0);
     
 
 /*
@@ -49232,7 +49241,7 @@ static mp_obj_t mp_lv_memcpy(size_t mp_n_args, const mp_obj_t *mp_args, void *lv
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_memcpy_mpobj, 3, mp_lv_memcpy, lv_memcpy);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_memcpy_mpobj, 3, mp_lv_memcpy, lv_memcpy, 1);
     
 
 /*
@@ -49251,11 +49260,11 @@ static mp_obj_t mp_lv_memset(size_t mp_n_args, const mp_obj_t *mp_args, void *lv
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_memset_mpobj, 3, mp_lv_memset, lv_memset);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_memset_mpobj, 3, mp_lv_memset, lv_memset, 1);
     
 /* Reusing lv_memcpy for lv_memmove */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_memmove_mpobj, 3, mp_lv_memcpy, lv_memmove);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_memmove_mpobj, 3, mp_lv_memcpy, lv_memmove, 1);
     
 
 /*
@@ -49274,7 +49283,7 @@ static mp_obj_t mp_lv_memcmp(size_t mp_n_args, const mp_obj_t *mp_args, void *lv
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_memcmp_mpobj, 3, mp_lv_memcmp, lv_memcmp);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_memcmp_mpobj, 3, mp_lv_memcmp, lv_memcmp, 1);
     
 
 /*
@@ -49291,7 +49300,7 @@ static mp_obj_t mp_lv_strlen(size_t mp_n_args, const mp_obj_t *mp_args, void *lv
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strlen_mpobj, 1, mp_lv_strlen, lv_strlen);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strlen_mpobj, 1, mp_lv_strlen, lv_strlen, 1);
     
 
 /*
@@ -49309,7 +49318,7 @@ static mp_obj_t mp_lv_strnlen(size_t mp_n_args, const mp_obj_t *mp_args, void *l
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strnlen_mpobj, 2, mp_lv_strnlen, lv_strnlen);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strnlen_mpobj, 2, mp_lv_strnlen, lv_strnlen, 1);
     
 
 /*
@@ -49328,7 +49337,7 @@ static mp_obj_t mp_lv_strlcpy(size_t mp_n_args, const mp_obj_t *mp_args, void *l
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strlcpy_mpobj, 3, mp_lv_strlcpy, lv_strlcpy);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strlcpy_mpobj, 3, mp_lv_strlcpy, lv_strlcpy, 1);
     
 
 /*
@@ -49347,7 +49356,7 @@ static mp_obj_t mp_lv_strncpy(size_t mp_n_args, const mp_obj_t *mp_args, void *l
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strncpy_mpobj, 3, mp_lv_strncpy, lv_strncpy);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strncpy_mpobj, 3, mp_lv_strncpy, lv_strncpy, 1);
     
 
 /*
@@ -49365,7 +49374,7 @@ static mp_obj_t mp_lv_strcpy(size_t mp_n_args, const mp_obj_t *mp_args, void *lv
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strcpy_mpobj, 2, mp_lv_strcpy, lv_strcpy);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strcpy_mpobj, 2, mp_lv_strcpy, lv_strcpy, 1);
     
 
 /*
@@ -49383,7 +49392,7 @@ static mp_obj_t mp_lv_strcmp(size_t mp_n_args, const mp_obj_t *mp_args, void *lv
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strcmp_mpobj, 2, mp_lv_strcmp, lv_strcmp);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strcmp_mpobj, 2, mp_lv_strcmp, lv_strcmp, 1);
     
 
 /*
@@ -49402,7 +49411,7 @@ static mp_obj_t mp_lv_strncmp(size_t mp_n_args, const mp_obj_t *mp_args, void *l
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strncmp_mpobj, 3, mp_lv_strncmp, lv_strncmp);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strncmp_mpobj, 3, mp_lv_strncmp, lv_strncmp, 1);
     
 
 /*
@@ -49419,7 +49428,7 @@ static mp_obj_t mp_lv_strdup(size_t mp_n_args, const mp_obj_t *mp_args, void *lv
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strdup_mpobj, 1, mp_lv_strdup, lv_strdup);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strdup_mpobj, 1, mp_lv_strdup, lv_strdup, 1);
     
 
 /*
@@ -49437,15 +49446,15 @@ static mp_obj_t mp_lv_strndup(size_t mp_n_args, const mp_obj_t *mp_args, void *l
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strndup_mpobj, 2, mp_lv_strndup, lv_strndup);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strndup_mpobj, 2, mp_lv_strndup, lv_strndup, 1);
     
 /* Reusing lv_strcpy for lv_strcat */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strcat_mpobj, 2, mp_lv_strcpy, lv_strcat);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strcat_mpobj, 2, mp_lv_strcpy, lv_strcat, 1);
     
 /* Reusing lv_strncpy for lv_strncat */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strncat_mpobj, 3, mp_lv_strncpy, lv_strncat);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strncat_mpobj, 3, mp_lv_strncpy, lv_strncat, 1);
     
 
 /*
@@ -49463,7 +49472,7 @@ static mp_obj_t mp_lv_strchr(size_t mp_n_args, const mp_obj_t *mp_args, void *lv
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strchr_mpobj, 2, mp_lv_strchr, lv_strchr);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_strchr_mpobj, 2, mp_lv_strchr, lv_strchr, 1);
     
 
 /*
@@ -49480,23 +49489,23 @@ static mp_obj_t mp_lv_draw_buf_get_handlers(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_buf_get_handlers_mpobj, 0, mp_lv_draw_buf_get_handlers, lv_draw_buf_get_handlers);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_buf_get_handlers_mpobj, 0, mp_lv_draw_buf_get_handlers, lv_draw_buf_get_handlers, 1);
     
 /* Reusing lv_draw_buf_get_handlers for lv_draw_buf_get_font_handlers */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_buf_get_font_handlers_mpobj, 0, mp_lv_draw_buf_get_handlers, lv_draw_buf_get_font_handlers);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_buf_get_font_handlers_mpobj, 0, mp_lv_draw_buf_get_handlers, lv_draw_buf_get_font_handlers, 1);
     
 /* Reusing lv_draw_buf_get_handlers for lv_draw_buf_get_image_handlers */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_buf_get_image_handlers_mpobj, 0, mp_lv_draw_buf_get_handlers, lv_draw_buf_get_image_handlers);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_buf_get_image_handlers_mpobj, 0, mp_lv_draw_buf_get_handlers, lv_draw_buf_get_image_handlers, 1);
     
 /* Reusing funcptr_lv_draw_buf_align_cb_t for lv_draw_buf_align */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_buf_align_mpobj, 2, mp_funcptr_lv_draw_buf_align_cb_t, lv_draw_buf_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_buf_align_mpobj, 2, mp_funcptr_lv_draw_buf_align_cb_t, lv_draw_buf_align, 1);
     
 /* Reusing funcptr_lv_draw_buf_width_to_stride_cb_t for lv_draw_buf_width_to_stride */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_buf_width_to_stride_mpobj, 2, mp_funcptr_lv_draw_buf_width_to_stride_cb_t, lv_draw_buf_width_to_stride);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_buf_width_to_stride_mpobj, 2, mp_funcptr_lv_draw_buf_width_to_stride_cb_t, lv_draw_buf_width_to_stride, 1);
     
 
 /*
@@ -49516,7 +49525,7 @@ static mp_obj_t mp_lv_draw_buf_create(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_buf_create_mpobj, 4, mp_lv_draw_buf_create, lv_draw_buf_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_buf_create_mpobj, 4, mp_lv_draw_buf_create, lv_draw_buf_create, 1);
     
 
 /*
@@ -49533,7 +49542,7 @@ static mp_obj_t mp_lv_font_get_default(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_font_get_default_mpobj, 0, mp_lv_font_get_default, lv_font_get_default);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_font_get_default_mpobj, 0, mp_lv_font_get_default, lv_font_get_default, 1);
     
 
 /*
@@ -49556,7 +49565,7 @@ static mp_obj_t mp_lv_text_get_size(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_get_size_mpobj, 7, mp_lv_text_get_size, lv_text_get_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_get_size_mpobj, 7, mp_lv_text_get_size, lv_text_get_size, 1);
     
 
 /*
@@ -49575,7 +49584,7 @@ static mp_obj_t mp_lv_bidi_calculate_align(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_bidi_calculate_align_mpobj, 3, mp_lv_bidi_calculate_align, lv_bidi_calculate_align);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_bidi_calculate_align_mpobj, 3, mp_lv_bidi_calculate_align, lv_bidi_calculate_align, 1);
     
 
 /*
@@ -49609,15 +49618,15 @@ static mp_obj_t mp_lv_layout_register(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_layout_register_mpobj, 2, mp_lv_layout_register, lv_layout_register);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_layout_register_mpobj, 2, mp_lv_layout_register, lv_layout_register, 1);
     
 /* Reusing funcptr_user_cb for lv_flex_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_flex_init_mpobj, 0, mp_funcptr_user_cb, lv_flex_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_flex_init_mpobj, 0, mp_funcptr_user_cb, lv_flex_init, 1);
     
 /* Reusing funcptr_user_cb for lv_grid_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_grid_init_mpobj, 0, mp_funcptr_user_cb, lv_grid_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_grid_init_mpobj, 0, mp_funcptr_user_cb, lv_grid_init, 1);
     
 
 /*
@@ -49634,7 +49643,7 @@ static mp_obj_t mp_lv_grid_fr(size_t mp_n_args, const mp_obj_t *mp_args, void *l
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_grid_fr_mpobj, 1, mp_lv_grid_fr, lv_grid_fr);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_grid_fr_mpobj, 1, mp_lv_grid_fr, lv_grid_fr, 1);
     
 
 /*
@@ -49651,7 +49660,7 @@ static mp_obj_t mp_lv_style_register_prop(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_style_register_prop_mpobj, 1, mp_lv_style_register_prop, lv_style_register_prop);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_style_register_prop_mpobj, 1, mp_lv_style_register_prop, lv_style_register_prop, 1);
     
 
 /*
@@ -49668,7 +49677,7 @@ static mp_obj_t mp_lv_style_get_num_custom_props(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_style_get_num_custom_props_mpobj, 0, mp_lv_style_get_num_custom_props, lv_style_get_num_custom_props);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_style_get_num_custom_props_mpobj, 0, mp_lv_style_get_num_custom_props, lv_style_get_num_custom_props, 1);
     
 
 /*
@@ -49685,7 +49694,7 @@ static mp_obj_t mp_lv_style_prop_get_default(size_t mp_n_args, const mp_obj_t *m
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_style_prop_get_default_mpobj, 1, mp_lv_style_prop_get_default, lv_style_prop_get_default);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_style_prop_get_default_mpobj, 1, mp_lv_style_prop_get_default, lv_style_prop_get_default, 1);
     
 
 /*
@@ -49702,23 +49711,23 @@ static mp_obj_t mp_lv_style_prop_lookup_flags(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_style_prop_lookup_flags_mpobj, 1, mp_lv_style_prop_lookup_flags, lv_style_prop_lookup_flags);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_style_prop_lookup_flags_mpobj, 1, mp_lv_style_prop_lookup_flags, lv_style_prop_lookup_flags, 1);
     
 /* Reusing funcptr_lv_tick_get_cb_t for lv_timer_handler */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_handler_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, lv_timer_handler);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_handler_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, lv_timer_handler, 1);
     
 /* Reusing lv_swap_bytes_32 for lv_timer_handler_run_in_period */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_handler_run_in_period_mpobj, 1, mp_lv_swap_bytes_32, lv_timer_handler_run_in_period);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_handler_run_in_period_mpobj, 1, mp_lv_swap_bytes_32, lv_timer_handler_run_in_period, 1);
     
 /* Reusing funcptr_lv_tick_get_cb_t for lv_timer_get_time_to_next */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_get_time_to_next_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, lv_timer_get_time_to_next);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_get_time_to_next_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, lv_timer_get_time_to_next, 1);
     
 /* Reusing funcptr_user_cb for lv_timer_periodic_handler */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_periodic_handler_mpobj, 0, mp_funcptr_user_cb, lv_timer_periodic_handler);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_periodic_handler_mpobj, 0, mp_funcptr_user_cb, lv_timer_periodic_handler, 1);
     
 
 /*
@@ -49743,11 +49752,11 @@ static mp_obj_t mp_lv_timer_handler_set_resume_cb(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_handler_set_resume_cb_mpobj, 2, mp_lv_timer_handler_set_resume_cb, lv_timer_handler_set_resume_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_handler_set_resume_cb_mpobj, 2, mp_lv_timer_handler_set_resume_cb, lv_timer_handler_set_resume_cb, 1);
     
 /* Reusing lv_anim_get_timer for lv_timer_create_basic */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_create_basic_mpobj, 0, mp_lv_anim_get_timer, lv_timer_create_basic);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_create_basic_mpobj, 0, mp_lv_anim_get_timer, lv_timer_create_basic, 1);
     
 
 /*
@@ -49781,19 +49790,19 @@ static mp_obj_t mp_lv_timer_create(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_create_mpobj, 3, mp_lv_timer_create, lv_timer_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_create_mpobj, 3, mp_lv_timer_create, lv_timer_create, 1);
     
 /* Reusing lv_obj_enable_style_refresh for lv_timer_enable */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_enable_mpobj, 1, mp_lv_obj_enable_style_refresh, lv_timer_enable);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_enable_mpobj, 1, mp_lv_obj_enable_style_refresh, lv_timer_enable, 1);
     
 /* Reusing funcptr_lv_tick_get_cb_t for lv_timer_get_idle */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_get_idle_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, lv_timer_get_idle);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_get_idle_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, lv_timer_get_idle, 1);
     
 /* Reusing funcptr_lv_tick_get_cb_t for lv_timer_get_time_until_next */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_get_time_until_next_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, lv_timer_get_time_until_next);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_get_time_until_next_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, lv_timer_get_time_until_next, 1);
     
 
 /*
@@ -49811,7 +49820,7 @@ static mp_obj_t mp_lv_display_create(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_display_create_mpobj, 2, mp_lv_display_create, lv_display_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_display_create_mpobj, 2, mp_lv_display_create, lv_display_create, 1);
     
 
 /*
@@ -49828,11 +49837,11 @@ static mp_obj_t mp_lv_display_get_default(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_display_get_default_mpobj, 0, mp_lv_display_get_default, lv_display_get_default);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_display_get_default_mpobj, 0, mp_lv_display_get_default, lv_display_get_default, 1);
     
 /* Reusing lv_obj_move_foreground for lv_screen_load */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_screen_load_mpobj, 1, mp_lv_obj_move_foreground, lv_screen_load);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_screen_load_mpobj, 1, mp_lv_obj_move_foreground, lv_screen_load, 1);
     
 
 /*
@@ -49853,27 +49862,27 @@ static mp_obj_t mp_lv_screen_load_anim(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_screen_load_anim_mpobj, 5, mp_lv_screen_load_anim, lv_screen_load_anim);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_screen_load_anim_mpobj, 5, mp_lv_screen_load_anim, lv_screen_load_anim, 1);
     
 /* Reusing funcptr_lv_screen_create_cb_t for lv_screen_active */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_screen_active_mpobj, 0, mp_funcptr_lv_screen_create_cb_t, lv_screen_active);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_screen_active_mpobj, 0, mp_funcptr_lv_screen_create_cb_t, lv_screen_active, 1);
     
 /* Reusing funcptr_lv_screen_create_cb_t for lv_layer_top */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_layer_top_mpobj, 0, mp_funcptr_lv_screen_create_cb_t, lv_layer_top);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_layer_top_mpobj, 0, mp_funcptr_lv_screen_create_cb_t, lv_layer_top, 1);
     
 /* Reusing funcptr_lv_screen_create_cb_t for lv_layer_sys */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_layer_sys_mpobj, 0, mp_funcptr_lv_screen_create_cb_t, lv_layer_sys);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_layer_sys_mpobj, 0, mp_funcptr_lv_screen_create_cb_t, lv_layer_sys, 1);
     
 /* Reusing funcptr_lv_screen_create_cb_t for lv_layer_bottom */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_layer_bottom_mpobj, 0, mp_funcptr_lv_screen_create_cb_t, lv_layer_bottom);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_layer_bottom_mpobj, 0, mp_funcptr_lv_screen_create_cb_t, lv_layer_bottom, 1);
     
 /* Reusing lv_sqr for lv_dpx */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_dpx_mpobj, 1, mp_lv_sqr, lv_dpx);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_dpx_mpobj, 1, mp_lv_sqr, lv_dpx, 1);
     
 
 /*
@@ -49893,23 +49902,23 @@ static mp_obj_t mp_lv_clamp_width(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_clamp_width_mpobj, 4, mp_lv_clamp_width, lv_clamp_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_clamp_width_mpobj, 4, mp_lv_clamp_width, lv_clamp_width, 1);
     
 /* Reusing lv_clamp_width for lv_clamp_height */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_clamp_height_mpobj, 4, mp_lv_clamp_width, lv_clamp_height);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_clamp_height_mpobj, 4, mp_lv_clamp_width, lv_clamp_height, 1);
     
 /* Reusing funcptr_user_cb for lv_draw_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_init_mpobj, 0, mp_funcptr_user_cb, lv_draw_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_init_mpobj, 0, mp_funcptr_user_cb, lv_draw_init, 1);
     
 /* Reusing funcptr_user_cb for lv_draw_deinit */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_deinit_mpobj, 0, mp_funcptr_user_cb, lv_draw_deinit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_deinit_mpobj, 0, mp_funcptr_user_cb, lv_draw_deinit, 1);
     
 /* Reusing lv_malloc for lv_draw_create_unit */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_create_unit_mpobj, 1, mp_lv_malloc, lv_draw_create_unit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_create_unit_mpobj, 1, mp_lv_malloc, lv_draw_create_unit, 1);
     
 
 /*
@@ -49928,7 +49937,7 @@ static mp_obj_t mp_lv_draw_add_task(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_add_task_mpobj, 3, mp_lv_draw_add_task, lv_draw_add_task);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_add_task_mpobj, 3, mp_lv_draw_add_task, lv_draw_add_task, 1);
     
 
 /*
@@ -49946,27 +49955,27 @@ static mp_obj_t mp_lv_draw_finalize_task_creation(size_t mp_n_args, const mp_obj
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_finalize_task_creation_mpobj, 2, mp_lv_draw_finalize_task_creation, lv_draw_finalize_task_creation);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_finalize_task_creation_mpobj, 2, mp_lv_draw_finalize_task_creation, lv_draw_finalize_task_creation, 1);
     
 /* Reusing funcptr_user_cb for lv_draw_dispatch */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_dispatch_mpobj, 0, mp_funcptr_user_cb, lv_draw_dispatch);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_dispatch_mpobj, 0, mp_funcptr_user_cb, lv_draw_dispatch, 1);
     
 /* Reusing funcptr_user_cb for lv_draw_dispatch_wait_for_request */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_dispatch_wait_for_request_mpobj, 0, mp_funcptr_user_cb, lv_draw_dispatch_wait_for_request);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_dispatch_wait_for_request_mpobj, 0, mp_funcptr_user_cb, lv_draw_dispatch_wait_for_request, 1);
     
 /* Reusing funcptr_user_cb for lv_draw_wait_for_finish */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_wait_for_finish_mpobj, 0, mp_funcptr_user_cb, lv_draw_wait_for_finish);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_wait_for_finish_mpobj, 0, mp_funcptr_user_cb, lv_draw_wait_for_finish, 1);
     
 /* Reusing funcptr_user_cb for lv_draw_dispatch_request */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_dispatch_request_mpobj, 0, mp_funcptr_user_cb, lv_draw_dispatch_request);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_dispatch_request_mpobj, 0, mp_funcptr_user_cb, lv_draw_dispatch_request, 1);
     
 /* Reusing funcptr_lv_tick_get_cb_t for lv_draw_get_unit_count */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_get_unit_count_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, lv_draw_get_unit_count);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_get_unit_count_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, lv_draw_get_unit_count, 1);
     
 
 /*
@@ -49985,11 +49994,11 @@ static mp_obj_t mp_lv_draw_get_available_task(size_t mp_n_args, const mp_obj_t *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_get_available_task_mpobj, 3, mp_lv_draw_get_available_task, lv_draw_get_available_task);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_get_available_task_mpobj, 3, mp_lv_draw_get_available_task, lv_draw_get_available_task, 1);
     
 /* Reusing lv_draw_get_available_task for lv_draw_get_next_available_task */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_get_next_available_task_mpobj, 3, mp_lv_draw_get_available_task, lv_draw_get_next_available_task);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_get_next_available_task_mpobj, 3, mp_lv_draw_get_available_task, lv_draw_get_next_available_task, 1);
     
 
 /*
@@ -50008,7 +50017,7 @@ static mp_obj_t mp_lv_draw_unit_send_event(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_unit_send_event_mpobj, 3, mp_lv_draw_unit_send_event, lv_draw_unit_send_event);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_unit_send_event_mpobj, 3, mp_lv_draw_unit_send_event, lv_draw_unit_send_event, 1);
     
 
 /*
@@ -50027,7 +50036,7 @@ static mp_obj_t mp_lv_draw_layer_create(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_layer_create_mpobj, 3, mp_lv_draw_layer_create, lv_draw_layer_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_layer_create_mpobj, 3, mp_lv_draw_layer_create, lv_draw_layer_create, 1);
     
 
 /*
@@ -50047,7 +50056,7 @@ static mp_obj_t mp_lv_draw_layer_init(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_layer_init_mpobj, 4, mp_lv_draw_layer_init, lv_draw_layer_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_layer_init_mpobj, 4, mp_lv_draw_layer_init, lv_draw_layer_init, 1);
     
 
 /*
@@ -50064,7 +50073,7 @@ static mp_obj_t mp_lv_draw_layer_alloc_buf(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_layer_alloc_buf_mpobj, 1, mp_lv_draw_layer_alloc_buf, lv_draw_layer_alloc_buf);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_layer_alloc_buf_mpobj, 1, mp_lv_draw_layer_alloc_buf, lv_draw_layer_alloc_buf, 1);
     
 
 /*
@@ -50083,7 +50092,7 @@ static mp_obj_t mp_lv_draw_layer_go_to_xy(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_layer_go_to_xy_mpobj, 3, mp_lv_draw_layer_go_to_xy, lv_draw_layer_go_to_xy);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_layer_go_to_xy_mpobj, 3, mp_lv_draw_layer_go_to_xy, lv_draw_layer_go_to_xy, 1);
     
 
 /*
@@ -50102,7 +50111,7 @@ static mp_obj_t mp_lv_draw_layer_create_drop_shadow(size_t mp_n_args, const mp_o
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_layer_create_drop_shadow_mpobj, 3, mp_lv_draw_layer_create_drop_shadow, lv_draw_layer_create_drop_shadow);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_layer_create_drop_shadow_mpobj, 3, mp_lv_draw_layer_create_drop_shadow, lv_draw_layer_create_drop_shadow, 1);
     
 
 /*
@@ -50120,19 +50129,19 @@ static mp_obj_t mp_lv_draw_layer_finish_drop_shadow(size_t mp_n_args, const mp_o
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_layer_finish_drop_shadow_mpobj, 2, mp_lv_draw_layer_finish_drop_shadow, lv_draw_layer_finish_drop_shadow);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_layer_finish_drop_shadow_mpobj, 2, mp_lv_draw_layer_finish_drop_shadow, lv_draw_layer_finish_drop_shadow, 1);
     
 /* Reusing lv_layer_init for lv_draw_layer_dealloc_buf */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_layer_dealloc_buf_mpobj, 1, mp_lv_layer_init, lv_draw_layer_dealloc_buf);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_layer_dealloc_buf_mpobj, 1, mp_lv_layer_init, lv_draw_layer_dealloc_buf, 1);
     
 /* Reusing lv_layer_init for lv_draw_layer_deinit */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_layer_deinit_mpobj, 1, mp_lv_layer_init, lv_draw_layer_deinit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_layer_deinit_mpobj, 1, mp_lv_layer_init, lv_draw_layer_deinit, 1);
     
 /* Reusing lv_layer_init for lv_draw_layer_delete */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_layer_delete_mpobj, 1, mp_lv_layer_init, lv_draw_layer_delete);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_layer_delete_mpobj, 1, mp_lv_layer_init, lv_draw_layer_delete, 1);
     
 
 /*
@@ -50151,7 +50160,7 @@ static mp_obj_t mp_lv_draw_fill(size_t mp_n_args, const mp_obj_t *mp_args, void 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_fill_mpobj, 3, mp_lv_draw_fill, lv_draw_fill);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_fill_mpobj, 3, mp_lv_draw_fill, lv_draw_fill, 1);
     
 
 /*
@@ -50170,7 +50179,7 @@ static mp_obj_t mp_lv_draw_border(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_border_mpobj, 3, mp_lv_draw_border, lv_draw_border);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_border_mpobj, 3, mp_lv_draw_border, lv_draw_border, 1);
     
 
 /*
@@ -50189,7 +50198,7 @@ static mp_obj_t mp_lv_draw_box_shadow(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_box_shadow_mpobj, 3, mp_lv_draw_box_shadow, lv_draw_box_shadow);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_box_shadow_mpobj, 3, mp_lv_draw_box_shadow, lv_draw_box_shadow, 1);
     
 
 /*
@@ -50208,7 +50217,7 @@ static mp_obj_t mp_lv_draw_rect(size_t mp_n_args, const mp_obj_t *mp_args, void 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_rect_mpobj, 3, mp_lv_draw_rect, lv_draw_rect);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_rect_mpobj, 3, mp_lv_draw_rect, lv_draw_rect, 1);
     
 
 /*
@@ -50227,7 +50236,7 @@ static mp_obj_t mp_lv_draw_label(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_label_mpobj, 3, mp_lv_draw_label, lv_draw_label);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_label_mpobj, 3, mp_lv_draw_label, lv_draw_label, 1);
     
 
 /*
@@ -50247,7 +50256,7 @@ static mp_obj_t mp_lv_draw_character(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_character_mpobj, 4, mp_lv_draw_character, lv_draw_character);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_character_mpobj, 4, mp_lv_draw_character, lv_draw_character, 1);
     
 
 /*
@@ -50266,7 +50275,7 @@ static mp_obj_t mp_lv_draw_letter(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_letter_mpobj, 3, mp_lv_draw_letter, lv_draw_letter);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_letter_mpobj, 3, mp_lv_draw_letter, lv_draw_letter, 1);
     
 
 /*
@@ -50283,7 +50292,7 @@ static mp_obj_t mp_lv_fs_get_drv(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_get_drv_mpobj, 1, mp_lv_fs_get_drv, lv_fs_get_drv);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_get_drv_mpobj, 1, mp_lv_fs_get_drv, lv_fs_get_drv, 1);
     
 
 /*
@@ -50300,7 +50309,7 @@ static mp_obj_t mp_lv_fs_remove_drive(size_t mp_n_args, const mp_obj_t *mp_args,
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_remove_drive_mpobj, 1, mp_lv_fs_remove_drive, lv_fs_remove_drive);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_remove_drive_mpobj, 1, mp_lv_fs_remove_drive, lv_fs_remove_drive, 1);
     
 
 /*
@@ -50317,7 +50326,7 @@ static mp_obj_t mp_lv_fs_is_ready(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_is_ready_mpobj, 1, mp_lv_fs_is_ready, lv_fs_is_ready);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_is_ready_mpobj, 1, mp_lv_fs_is_ready, lv_fs_is_ready, 1);
     
 
 /*
@@ -50335,7 +50344,7 @@ static mp_obj_t mp_lv_fs_path_get_size(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_path_get_size_mpobj, 2, mp_lv_fs_path_get_size, lv_fs_path_get_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_path_get_size_mpobj, 2, mp_lv_fs_path_get_size, lv_fs_path_get_size, 1);
     
 
 /*
@@ -50354,7 +50363,7 @@ static mp_obj_t mp_lv_fs_load_to_buf(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_load_to_buf_mpobj, 3, mp_lv_fs_load_to_buf, lv_fs_load_to_buf);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_load_to_buf_mpobj, 3, mp_lv_fs_load_to_buf, lv_fs_load_to_buf, 1);
     
 
 /*
@@ -50372,7 +50381,7 @@ static mp_obj_t mp_lv_fs_load_with_alloc(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_load_with_alloc_mpobj, 2, mp_lv_fs_load_with_alloc, lv_fs_load_with_alloc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_load_with_alloc_mpobj, 2, mp_lv_fs_load_with_alloc, lv_fs_load_with_alloc, 1);
     
 
 /*
@@ -50389,7 +50398,7 @@ static mp_obj_t mp_lv_fs_get_letters(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_get_letters_mpobj, 1, mp_lv_fs_get_letters, lv_fs_get_letters);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_get_letters_mpobj, 1, mp_lv_fs_get_letters, lv_fs_get_letters, 1);
     
 
 /*
@@ -50406,15 +50415,15 @@ static mp_obj_t mp_lv_fs_get_ext(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_get_ext_mpobj, 1, mp_lv_fs_get_ext, lv_fs_get_ext);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_get_ext_mpobj, 1, mp_lv_fs_get_ext, lv_fs_get_ext, 1);
     
 /* Reusing lv_fs_get_letters for lv_fs_up */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_up_mpobj, 1, mp_lv_fs_get_letters, lv_fs_up);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_up_mpobj, 1, mp_lv_fs_get_letters, lv_fs_up, 1);
     
 /* Reusing lv_fs_get_ext for lv_fs_get_last */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_get_last_mpobj, 1, mp_lv_fs_get_ext, lv_fs_get_last);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_get_last_mpobj, 1, mp_lv_fs_get_ext, lv_fs_get_last, 1);
     
 
 /*
@@ -50434,7 +50443,7 @@ static mp_obj_t mp_lv_fs_path_join(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_path_join_mpobj, 4, mp_lv_fs_path_join, lv_fs_path_join);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_path_join_mpobj, 4, mp_lv_fs_path_join, lv_fs_path_join, 1);
     
 
 /*
@@ -50453,11 +50462,11 @@ static mp_obj_t mp_lv_draw_image(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_image_mpobj, 3, mp_lv_draw_image, lv_draw_image);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_image_mpobj, 3, mp_lv_draw_image, lv_draw_image, 1);
     
 /* Reusing lv_draw_image for lv_draw_layer */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_layer_mpobj, 3, mp_lv_draw_image, lv_draw_layer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_layer_mpobj, 3, mp_lv_draw_image, lv_draw_layer, 1);
     
 
 /*
@@ -50475,7 +50484,7 @@ static mp_obj_t mp_lv_draw_line(size_t mp_n_args, const mp_obj_t *mp_args, void 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_line_mpobj, 2, mp_lv_draw_line, lv_draw_line);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_line_mpobj, 2, mp_lv_draw_line, lv_draw_line, 1);
     
 
 /*
@@ -50493,7 +50502,7 @@ static mp_obj_t mp_lv_draw_arc(size_t mp_n_args, const mp_obj_t *mp_args, void *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_arc_mpobj, 2, mp_lv_draw_arc, lv_draw_arc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_arc_mpobj, 2, mp_lv_draw_arc, lv_draw_arc, 1);
     
 
 /*
@@ -50517,7 +50526,7 @@ static mp_obj_t mp_lv_draw_arc_get_area(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_arc_get_area_mpobj, 8, mp_lv_draw_arc_get_area, lv_draw_arc_get_area);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_arc_get_area_mpobj, 8, mp_lv_draw_arc_get_area, lv_draw_arc_get_area, 1);
     
 
 /*
@@ -50535,7 +50544,7 @@ static mp_obj_t mp_lv_draw_triangle(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_triangle_mpobj, 2, mp_lv_draw_triangle, lv_draw_triangle);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_triangle_mpobj, 2, mp_lv_draw_triangle, lv_draw_triangle, 1);
     
 
 /*
@@ -50554,7 +50563,7 @@ static mp_obj_t mp_lv_draw_blur(size_t mp_n_args, const mp_obj_t *mp_args, void 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_blur_mpobj, 3, mp_lv_draw_blur, lv_draw_blur);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_blur_mpobj, 3, mp_lv_draw_blur, lv_draw_blur, 1);
     
 
 /*
@@ -50571,19 +50580,19 @@ static mp_obj_t mp_lv_indev_create(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_indev_create_mpobj, 0, mp_lv_indev_create, lv_indev_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_indev_create_mpobj, 0, mp_lv_indev_create, lv_indev_create, 1);
     
 /* Reusing funcptr_lv_timer_cb_t for lv_indev_read_timer_cb */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_indev_read_timer_cb_mpobj, 1, mp_funcptr_lv_timer_cb_t, lv_indev_read_timer_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_indev_read_timer_cb_mpobj, 1, mp_funcptr_lv_timer_cb_t, lv_indev_read_timer_cb, 1);
     
 /* Reusing lv_indev_create for lv_indev_active */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_indev_active_mpobj, 0, mp_lv_indev_create, lv_indev_active);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_indev_active_mpobj, 0, mp_lv_indev_create, lv_indev_active, 1);
     
 /* Reusing funcptr_lv_screen_create_cb_t for lv_indev_get_active_obj */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_indev_get_active_obj_mpobj, 0, mp_funcptr_lv_screen_create_cb_t, lv_indev_get_active_obj);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_indev_get_active_obj_mpobj, 0, mp_funcptr_lv_screen_create_cb_t, lv_indev_get_active_obj, 1);
     
 
 /*
@@ -50601,7 +50610,7 @@ static mp_obj_t mp_lv_indev_search_obj(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_search_obj_mpobj, 2, mp_lv_indev_search_obj, lv_indev_search_obj);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_search_obj_mpobj, 2, mp_lv_indev_search_obj, lv_indev_search_obj, 1);
     
 
 /*
@@ -50618,15 +50627,15 @@ static mp_obj_t mp_lv_subject_create(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_subject_create_mpobj, 1, mp_lv_subject_create, lv_subject_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_subject_create_mpobj, 1, mp_lv_subject_create, lv_subject_create, 1);
     
 /* Reusing funcptr_lv_display_flush_wait_cb_t for lv_refr_now */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_refr_now_mpobj, 1, mp_funcptr_lv_display_flush_wait_cb_t, lv_refr_now);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_refr_now_mpobj, 1, mp_funcptr_lv_display_flush_wait_cb_t, lv_refr_now, 1);
     
 /* Reusing funcptr_lv_timer_cb_t for lv_display_refr_timer */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_display_refr_timer_mpobj, 1, mp_funcptr_lv_timer_cb_t, lv_display_refr_timer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_display_refr_timer_mpobj, 1, mp_funcptr_lv_timer_cb_t, lv_display_refr_timer, 1);
     
 
 /*
@@ -50644,7 +50653,7 @@ static mp_obj_t mp_lv_draw_mask_rect(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_mask_rect_mpobj, 2, mp_lv_draw_mask_rect, lv_draw_mask_rect);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_mask_rect_mpobj, 2, mp_lv_draw_mask_rect, lv_draw_mask_rect, 1);
     
 
 /*
@@ -50662,11 +50671,11 @@ static mp_obj_t mp_lv_snapshot_take(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_snapshot_take_mpobj, 2, mp_lv_snapshot_take, lv_snapshot_take);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_snapshot_take_mpobj, 2, mp_lv_snapshot_take, lv_snapshot_take, 1);
     
 /* Reusing lv_snapshot_take for lv_snapshot_create_draw_buf */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_snapshot_create_draw_buf_mpobj, 2, mp_lv_snapshot_take, lv_snapshot_create_draw_buf);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_snapshot_create_draw_buf_mpobj, 2, mp_lv_snapshot_take, lv_snapshot_create_draw_buf, 1);
     
 
 /*
@@ -50684,7 +50693,7 @@ static mp_obj_t mp_lv_snapshot_reshape_draw_buf(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_snapshot_reshape_draw_buf_mpobj, 2, mp_lv_snapshot_reshape_draw_buf, lv_snapshot_reshape_draw_buf);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_snapshot_reshape_draw_buf_mpobj, 2, mp_lv_snapshot_reshape_draw_buf, lv_snapshot_reshape_draw_buf, 1);
     
 
 /*
@@ -50703,11 +50712,11 @@ static mp_obj_t mp_lv_snapshot_take_to_draw_buf(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_snapshot_take_to_draw_buf_mpobj, 3, mp_lv_snapshot_take_to_draw_buf, lv_snapshot_take_to_draw_buf);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_snapshot_take_to_draw_buf_mpobj, 3, mp_lv_snapshot_take_to_draw_buf, lv_snapshot_take_to_draw_buf, 1);
     
 /* Reusing lv_image_buf_free for lv_snapshot_free */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_snapshot_free_mpobj, 1, mp_lv_image_buf_free, lv_snapshot_free);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_snapshot_free_mpobj, 1, mp_lv_image_buf_free, lv_snapshot_free, 1);
     
 
 /*
@@ -50728,7 +50737,7 @@ static mp_obj_t mp_lv_snapshot_take_to_buf(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_snapshot_take_to_buf_mpobj, 5, mp_lv_snapshot_take_to_buf, lv_snapshot_take_to_buf);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_snapshot_take_to_buf_mpobj, 5, mp_lv_snapshot_take_to_buf, lv_snapshot_take_to_buf, 1);
     
 
 /*
@@ -50752,7 +50761,7 @@ static mp_obj_t mp_lv_draw_i1_to_argb8888(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_i1_to_argb8888_mpobj, 8, mp_lv_draw_i1_to_argb8888, lv_draw_i1_to_argb8888);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_i1_to_argb8888_mpobj, 8, mp_lv_draw_i1_to_argb8888, lv_draw_i1_to_argb8888, 1);
     
 
 /*
@@ -50770,11 +50779,11 @@ static mp_obj_t mp_lv_draw_rgb565_swap(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_rgb565_swap_mpobj, 2, mp_lv_draw_rgb565_swap, lv_draw_rgb565_swap);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_rgb565_swap_mpobj, 2, mp_lv_draw_rgb565_swap, lv_draw_rgb565_swap, 1);
     
 /* Reusing lv_draw_rgb565_swap for lv_draw_i1_invert */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_i1_invert_mpobj, 2, mp_lv_draw_rgb565_swap, lv_draw_i1_invert);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_i1_invert_mpobj, 2, mp_lv_draw_rgb565_swap, lv_draw_i1_invert, 1);
     
 
 /*
@@ -50797,7 +50806,7 @@ static mp_obj_t mp_lv_draw_i1_convert_to_vtiled(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_i1_convert_to_vtiled_mpobj, 7, mp_lv_draw_i1_convert_to_vtiled, lv_draw_i1_convert_to_vtiled);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_i1_convert_to_vtiled_mpobj, 7, mp_lv_draw_i1_convert_to_vtiled, lv_draw_i1_convert_to_vtiled, 1);
     
 
 /*
@@ -50821,7 +50830,7 @@ static mp_obj_t mp_lv_draw_rotate(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_rotate_mpobj, 8, mp_lv_draw_rotate, lv_draw_rotate);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_rotate_mpobj, 8, mp_lv_draw_rotate, lv_draw_rotate, 1);
     
 
 /*
@@ -50838,7 +50847,7 @@ static mp_obj_t mp_lv_binfont_create(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_binfont_create_mpobj, 1, mp_lv_binfont_create, lv_binfont_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_binfont_create_mpobj, 1, mp_lv_binfont_create, lv_binfont_create, 1);
     
 
 /*
@@ -50856,11 +50865,11 @@ static mp_obj_t mp_lv_binfont_create_from_buffer(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_binfont_create_from_buffer_mpobj, 2, mp_lv_binfont_create_from_buffer, lv_binfont_create_from_buffer);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_binfont_create_from_buffer_mpobj, 2, mp_lv_binfont_create_from_buffer, lv_binfont_create_from_buffer, 1);
     
 /* Reusing funcptr_delete_cb for lv_binfont_destroy */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_binfont_destroy_mpobj, 1, mp_funcptr_delete_cb, lv_binfont_destroy);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_binfont_destroy_mpobj, 1, mp_funcptr_delete_cb, lv_binfont_destroy, 1);
     
 
 /*
@@ -50898,43 +50907,43 @@ static mp_obj_t mp_lv_imgfont_create(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_imgfont_create_mpobj, 3, mp_lv_imgfont_create, lv_imgfont_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_imgfont_create_mpobj, 3, mp_lv_imgfont_create, lv_imgfont_create, 1);
     
 /* Reusing funcptr_delete_cb for lv_imgfont_destroy */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_imgfont_destroy_mpobj, 1, mp_funcptr_delete_cb, lv_imgfont_destroy);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_imgfont_destroy_mpobj, 1, mp_funcptr_delete_cb, lv_imgfont_destroy, 1);
     
 /* Reusing funcptr_user_cb for lv_fs_memfs_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_memfs_init_mpobj, 0, mp_funcptr_user_cb, lv_fs_memfs_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_memfs_init_mpobj, 0, mp_funcptr_user_cb, lv_fs_memfs_init, 1);
     
 /* Reusing funcptr_user_cb for lv_bin_decoder_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_bin_decoder_init_mpobj, 0, mp_funcptr_user_cb, lv_bin_decoder_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_bin_decoder_init_mpobj, 0, mp_funcptr_user_cb, lv_bin_decoder_init, 1);
     
 /* Reusing funcptr_lv_image_decoder_info_f_t for lv_bin_decoder_info */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_bin_decoder_info_mpobj, 3, mp_funcptr_lv_image_decoder_info_f_t, lv_bin_decoder_info);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_bin_decoder_info_mpobj, 3, mp_funcptr_lv_image_decoder_info_f_t, lv_bin_decoder_info, 1);
     
 /* Reusing funcptr_lv_image_decoder_get_area_cb_t for lv_bin_decoder_get_area */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_bin_decoder_get_area_mpobj, 4, mp_funcptr_lv_image_decoder_get_area_cb_t, lv_bin_decoder_get_area);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_bin_decoder_get_area_mpobj, 4, mp_funcptr_lv_image_decoder_get_area_cb_t, lv_bin_decoder_get_area, 1);
     
 /* Reusing funcptr_lv_image_decoder_open_f_t for lv_bin_decoder_open */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_bin_decoder_open_mpobj, 2, mp_funcptr_lv_image_decoder_open_f_t, lv_bin_decoder_open);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_bin_decoder_open_mpobj, 2, mp_funcptr_lv_image_decoder_open_f_t, lv_bin_decoder_open, 1);
     
 /* Reusing funcptr_lv_image_decoder_close_f_t for lv_bin_decoder_close */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_bin_decoder_close_mpobj, 2, mp_funcptr_lv_image_decoder_close_f_t, lv_bin_decoder_close);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_bin_decoder_close_mpobj, 2, mp_funcptr_lv_image_decoder_close_f_t, lv_bin_decoder_close, 1);
     
 /* Reusing funcptr_user_cb for lv_lodepng_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_lodepng_init_mpobj, 0, mp_funcptr_user_cb, lv_lodepng_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_lodepng_init_mpobj, 0, mp_funcptr_user_cb, lv_lodepng_init, 1);
     
 /* Reusing funcptr_user_cb for lv_lodepng_deinit */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_lodepng_deinit_mpobj, 0, mp_funcptr_user_cb, lv_lodepng_deinit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_lodepng_deinit_mpobj, 0, mp_funcptr_user_cb, lv_lodepng_deinit, 1);
     
 
 /*
@@ -50967,27 +50976,27 @@ static mp_obj_t mp_lv_async_call(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_async_call_mpobj, 2, mp_lv_async_call, lv_async_call);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_async_call_mpobj, 2, mp_lv_async_call, lv_async_call, 1);
     
 /* Reusing lv_async_call for lv_async_call_cancel */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_async_call_cancel_mpobj, 2, mp_lv_async_call, lv_async_call_cancel);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_async_call_cancel_mpobj, 2, mp_lv_async_call, lv_async_call_cancel, 1);
     
 /* Reusing funcptr_user_cb for lv_lock */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_lock_mpobj, 0, mp_funcptr_user_cb, lv_lock);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_lock_mpobj, 0, mp_funcptr_user_cb, lv_lock, 1);
     
 /* Reusing lv_mem_test_core for lv_lock_isr */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_lock_isr_mpobj, 0, mp_lv_mem_test_core, lv_lock_isr);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_lock_isr_mpobj, 0, mp_lv_mem_test_core, lv_lock_isr, 1);
     
 /* Reusing funcptr_user_cb for lv_unlock */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_unlock_mpobj, 0, mp_funcptr_user_cb, lv_unlock);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_unlock_mpobj, 0, mp_funcptr_user_cb, lv_unlock, 1);
     
 /* Reusing funcptr_lv_delay_cb_t for lv_sleep_ms */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_sleep_ms_mpobj, 1, mp_funcptr_lv_delay_cb_t, lv_sleep_ms);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_sleep_ms_mpobj, 1, mp_funcptr_lv_delay_cb_t, lv_sleep_ms, 1);
     
 
 /*
@@ -51004,7 +51013,7 @@ static mp_obj_t mp_lv_theme_create(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_theme_create_mpobj, 0, mp_lv_theme_create, lv_theme_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_theme_create_mpobj, 0, mp_lv_theme_create, lv_theme_create, 1);
     
 
 /*
@@ -51021,11 +51030,11 @@ static mp_obj_t mp_lv_theme_get_from_obj(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_get_from_obj_mpobj, 1, mp_lv_theme_get_from_obj, lv_theme_get_from_obj);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_get_from_obj_mpobj, 1, mp_lv_theme_get_from_obj, lv_theme_get_from_obj, 1);
     
 /* Reusing lv_obj_move_foreground for lv_theme_apply */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_apply_mpobj, 1, mp_lv_obj_move_foreground, lv_theme_apply);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_apply_mpobj, 1, mp_lv_obj_move_foreground, lv_theme_apply, 1);
     
 
 /*
@@ -51042,23 +51051,23 @@ static mp_obj_t mp_lv_theme_get_font_small(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_get_font_small_mpobj, 1, mp_lv_theme_get_font_small, lv_theme_get_font_small);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_get_font_small_mpobj, 1, mp_lv_theme_get_font_small, lv_theme_get_font_small, 1);
     
 /* Reusing lv_theme_get_font_small for lv_theme_get_font_normal */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_get_font_normal_mpobj, 1, mp_lv_theme_get_font_small, lv_theme_get_font_normal);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_get_font_normal_mpobj, 1, mp_lv_theme_get_font_small, lv_theme_get_font_normal, 1);
     
 /* Reusing lv_theme_get_font_small for lv_theme_get_font_large */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_get_font_large_mpobj, 1, mp_lv_theme_get_font_small, lv_theme_get_font_large);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_get_font_large_mpobj, 1, mp_lv_theme_get_font_small, lv_theme_get_font_large, 1);
     
 /* Reusing lv_barcode_get_dark_color for lv_theme_get_color_primary */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_get_color_primary_mpobj, 1, mp_lv_barcode_get_dark_color, lv_theme_get_color_primary);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_get_color_primary_mpobj, 1, mp_lv_barcode_get_dark_color, lv_theme_get_color_primary, 1);
     
 /* Reusing lv_barcode_get_dark_color for lv_theme_get_color_secondary */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_get_color_secondary_mpobj, 1, mp_lv_barcode_get_dark_color, lv_theme_get_color_secondary);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_theme_get_color_secondary_mpobj, 1, mp_lv_barcode_get_dark_color, lv_theme_get_color_secondary, 1);
     
 
 /*
@@ -51079,39 +51088,39 @@ static mp_obj_t mp_lv_theme_default_init(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_theme_default_init_mpobj, 5, mp_lv_theme_default_init, lv_theme_default_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_theme_default_init_mpobj, 5, mp_lv_theme_default_init, lv_theme_default_init, 1);
     
 /* Reusing lv_image_cache_is_enabled for lv_theme_default_is_inited */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_theme_default_is_inited_mpobj, 0, mp_lv_image_cache_is_enabled, lv_theme_default_is_inited);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_theme_default_is_inited_mpobj, 0, mp_lv_image_cache_is_enabled, lv_theme_default_is_inited, 1);
     
 /* Reusing lv_theme_create for lv_theme_default_get */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_theme_default_get_mpobj, 0, mp_lv_theme_create, lv_theme_default_get);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_theme_default_get_mpobj, 0, mp_lv_theme_create, lv_theme_default_get, 1);
     
 /* Reusing funcptr_user_cb for lv_theme_default_deinit */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_theme_default_deinit_mpobj, 0, mp_funcptr_user_cb, lv_theme_default_deinit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_theme_default_deinit_mpobj, 0, mp_funcptr_user_cb, lv_theme_default_deinit, 1);
     
 /* Reusing funcptr_lv_delay_cb_t for lv_tick_inc */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_tick_inc_mpobj, 1, mp_funcptr_lv_delay_cb_t, lv_tick_inc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_tick_inc_mpobj, 1, mp_funcptr_lv_delay_cb_t, lv_tick_inc, 1);
     
 /* Reusing funcptr_lv_tick_get_cb_t for lv_tick_get */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_tick_get_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, lv_tick_get);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_tick_get_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, lv_tick_get, 1);
     
 /* Reusing lv_swap_bytes_32 for lv_tick_elaps */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_tick_elaps_mpobj, 1, mp_lv_swap_bytes_32, lv_tick_elaps);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_tick_elaps_mpobj, 1, mp_lv_swap_bytes_32, lv_tick_elaps, 1);
     
 /* Reusing lv_rand for lv_tick_diff */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_tick_diff_mpobj, 2, mp_lv_rand, lv_tick_diff);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_tick_diff_mpobj, 2, mp_lv_rand, lv_tick_diff, 1);
     
 /* Reusing funcptr_lv_delay_cb_t for lv_delay_ms */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_delay_ms_mpobj, 1, mp_funcptr_lv_delay_cb_t, lv_delay_ms);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_delay_ms_mpobj, 1, mp_funcptr_lv_delay_cb_t, lv_delay_ms, 1);
     
 
 /*
@@ -51135,7 +51144,7 @@ static mp_obj_t mp_lv_delay_set_cb(size_t mp_n_args, const mp_obj_t *mp_args, vo
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_delay_set_cb_mpobj, 1, mp_lv_delay_set_cb, lv_delay_set_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_delay_set_cb_mpobj, 1, mp_lv_delay_set_cb, lv_delay_set_cb, 1);
     
 
 /*
@@ -51159,7 +51168,7 @@ static mp_obj_t mp_lv_tick_set_cb(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_tick_set_cb_mpobj, 1, mp_lv_tick_set_cb, lv_tick_set_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_tick_set_cb_mpobj, 1, mp_lv_tick_set_cb, lv_tick_set_cb, 1);
     
 
 /*
@@ -51176,23 +51185,23 @@ static mp_obj_t mp_lv_tick_get_cb(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_tick_get_cb_mpobj, 0, mp_lv_tick_get_cb, lv_tick_get_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_tick_get_cb_mpobj, 0, mp_lv_tick_get_cb, lv_tick_get_cb, 1);
     
 /* Reusing funcptr_user_cb for lv_span_stack_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_span_stack_init_mpobj, 0, mp_funcptr_user_cb, lv_span_stack_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_span_stack_init_mpobj, 0, mp_funcptr_user_cb, lv_span_stack_init, 1);
     
 /* Reusing funcptr_user_cb for lv_span_stack_deinit */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_span_stack_deinit_mpobj, 0, mp_funcptr_user_cb, lv_span_stack_deinit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_span_stack_deinit_mpobj, 0, mp_funcptr_user_cb, lv_span_stack_deinit, 1);
     
 /* Reusing funcptr_user_cb for lv_os_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_os_init_mpobj, 0, mp_funcptr_user_cb, lv_os_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_os_init_mpobj, 0, mp_funcptr_user_cb, lv_os_init, 1);
     
 /* Reusing funcptr_lv_tick_get_cb_t for lv_os_get_idle_percent */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_os_get_idle_percent_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, lv_os_get_idle_percent);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_os_get_idle_percent_mpobj, 0, mp_funcptr_lv_tick_get_cb_t, lv_os_get_idle_percent, 1);
     
 
 /*
@@ -51220,7 +51229,7 @@ static mp_obj_t mp_funcptr_lv_iter_next_cb(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_iter_next_cb_mpobj, 3, mp_funcptr_lv_iter_next_cb, funcptr_lv_iter_next_cb);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_lv_iter_next_cb_mpobj, 3, mp_funcptr_lv_iter_next_cb, funcptr_lv_iter_next_cb, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_lv_iter_next_cb(void *func){ return mp_lv_funcptr(&mp_funcptr_lv_iter_next_cb_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -51242,7 +51251,7 @@ static mp_obj_t mp_lv_iter_create(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_iter_create_mpobj, 4, mp_lv_iter_create, lv_iter_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_iter_create_mpobj, 4, mp_lv_iter_create, lv_iter_create, 1);
     
 
 /*
@@ -51260,7 +51269,7 @@ static mp_obj_t mp_lv_cache_entry_alloc(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_cache_entry_alloc_mpobj, 2, mp_lv_cache_entry_alloc, lv_cache_entry_alloc);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_cache_entry_alloc_mpobj, 2, mp_lv_cache_entry_alloc, lv_cache_entry_alloc, 1);
     
 
 /*
@@ -51277,7 +51286,7 @@ static mp_obj_t mp_lv_cache_entry_get_size(size_t mp_n_args, const mp_obj_t *mp_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_cache_entry_get_size_mpobj, 1, mp_lv_cache_entry_get_size, lv_cache_entry_get_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_cache_entry_get_size_mpobj, 1, mp_lv_cache_entry_get_size, lv_cache_entry_get_size, 1);
     
 
 /*
@@ -51295,15 +51304,15 @@ static mp_obj_t mp_lv_cache_entry_get_entry(size_t mp_n_args, const mp_obj_t *mp
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_cache_entry_get_entry_mpobj, 2, mp_lv_cache_entry_get_entry, lv_cache_entry_get_entry);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_cache_entry_get_entry_mpobj, 2, mp_lv_cache_entry_get_entry, lv_cache_entry_get_entry, 1);
     
 /* Reusing funcptr_user_cb for lv_draw_sw_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_init_mpobj, 0, mp_funcptr_user_cb, lv_draw_sw_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_init_mpobj, 0, mp_funcptr_user_cb, lv_draw_sw_init, 1);
     
 /* Reusing funcptr_user_cb for lv_draw_sw_deinit */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_deinit_mpobj, 0, mp_funcptr_user_cb, lv_draw_sw_deinit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_deinit_mpobj, 0, mp_funcptr_user_cb, lv_draw_sw_deinit, 1);
     
 
 /*
@@ -51328,11 +51337,11 @@ static mp_obj_t mp_lv_draw_sw_transform(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_transform_mpobj, 9, mp_lv_draw_sw_transform, lv_draw_sw_transform);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_transform_mpobj, 9, mp_lv_draw_sw_transform, lv_draw_sw_transform, 1);
     
 /* Reusing lv_color_format_has_alpha for lv_draw_sw_unregister_blend_handler */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_unregister_blend_handler_mpobj, 1, mp_lv_color_format_has_alpha, lv_draw_sw_unregister_blend_handler);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_unregister_blend_handler_mpobj, 1, mp_lv_color_format_has_alpha, lv_draw_sw_unregister_blend_handler, 1);
     
 
 /*
@@ -51349,39 +51358,39 @@ static mp_obj_t mp_lv_draw_sw_get_blend_handler(size_t mp_n_args, const mp_obj_t
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_get_blend_handler_mpobj, 1, mp_lv_draw_sw_get_blend_handler, lv_draw_sw_get_blend_handler);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_get_blend_handler_mpobj, 1, mp_lv_draw_sw_get_blend_handler, lv_draw_sw_get_blend_handler, 1);
     
 /* Reusing funcptr_user_cb for lv_timer_core_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_core_init_mpobj, 0, mp_funcptr_user_cb, lv_timer_core_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_core_init_mpobj, 0, mp_funcptr_user_cb, lv_timer_core_init, 1);
     
 /* Reusing funcptr_user_cb for lv_timer_core_deinit */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_core_deinit_mpobj, 0, mp_funcptr_user_cb, lv_timer_core_deinit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_timer_core_deinit_mpobj, 0, mp_funcptr_user_cb, lv_timer_core_deinit, 1);
     
 /* Reusing funcptr_user_cb for lv_anim_core_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_core_init_mpobj, 0, mp_funcptr_user_cb, lv_anim_core_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_core_init_mpobj, 0, mp_funcptr_user_cb, lv_anim_core_init, 1);
     
 /* Reusing funcptr_user_cb for lv_anim_core_deinit */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_core_deinit_mpobj, 0, mp_funcptr_user_cb, lv_anim_core_deinit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_core_deinit_mpobj, 0, mp_funcptr_user_cb, lv_anim_core_deinit, 1);
     
 /* Reusing lv_obj_enable_style_refresh for lv_anim_enable_vsync_mode */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_enable_vsync_mode_mpobj, 1, mp_lv_obj_enable_style_refresh, lv_anim_enable_vsync_mode);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_anim_enable_vsync_mode_mpobj, 1, mp_lv_obj_enable_style_refresh, lv_anim_enable_vsync_mode, 1);
     
 /* Reusing funcptr_user_cb for lv_draw_buf_init_handlers */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_buf_init_handlers_mpobj, 0, mp_funcptr_user_cb, lv_draw_buf_init_handlers);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_buf_init_handlers_mpobj, 0, mp_funcptr_user_cb, lv_draw_buf_init_handlers, 1);
     
 /* Reusing funcptr_user_cb for lv_draw_sw_mask_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_mask_init_mpobj, 0, mp_funcptr_user_cb, lv_draw_sw_mask_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_mask_init_mpobj, 0, mp_funcptr_user_cb, lv_draw_sw_mask_init, 1);
     
 /* Reusing funcptr_user_cb for lv_draw_sw_mask_deinit */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_mask_deinit_mpobj, 0, mp_funcptr_user_cb, lv_draw_sw_mask_deinit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_mask_deinit_mpobj, 0, mp_funcptr_user_cb, lv_draw_sw_mask_deinit, 1);
     
 
 /*
@@ -51402,23 +51411,23 @@ static mp_obj_t mp_lv_draw_sw_mask_apply(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_mask_apply_mpobj, 5, mp_lv_draw_sw_mask_apply, lv_draw_sw_mask_apply);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_mask_apply_mpobj, 5, mp_lv_draw_sw_mask_apply, lv_draw_sw_mask_apply, 1);
     
 /* Reusing funcptr_lv_draw_buf_free_cb_t for lv_draw_sw_mask_free_param */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_mask_free_param_mpobj, 1, mp_funcptr_lv_draw_buf_free_cb_t, lv_draw_sw_mask_free_param);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_mask_free_param_mpobj, 1, mp_funcptr_lv_draw_buf_free_cb_t, lv_draw_sw_mask_free_param, 1);
     
 /* Reusing funcptr_user_cb for lv_draw_sw_mask_cleanup */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_mask_cleanup_mpobj, 0, mp_funcptr_user_cb, lv_draw_sw_mask_cleanup);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_mask_cleanup_mpobj, 0, mp_funcptr_user_cb, lv_draw_sw_mask_cleanup, 1);
     
 /* Reusing funcptr_user_cb for lv_layout_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_layout_init_mpobj, 0, mp_funcptr_user_cb, lv_layout_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_layout_init_mpobj, 0, mp_funcptr_user_cb, lv_layout_init, 1);
     
 /* Reusing funcptr_user_cb for lv_layout_deinit */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_layout_deinit_mpobj, 0, mp_funcptr_user_cb, lv_layout_deinit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_layout_deinit_mpobj, 0, mp_funcptr_user_cb, lv_layout_deinit, 1);
     
 
 /*
@@ -51437,39 +51446,39 @@ static mp_obj_t mp_lv_layout_get_min_size(size_t mp_n_args, const mp_obj_t *mp_a
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_layout_get_min_size_mpobj, 3, mp_lv_layout_get_min_size, lv_layout_get_min_size);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_layout_get_min_size_mpobj, 3, mp_lv_layout_get_min_size, lv_layout_get_min_size, 1);
     
 /* Reusing lv_obj_move_foreground for lv_layout_apply */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_layout_apply_mpobj, 1, mp_lv_obj_move_foreground, lv_layout_apply);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_layout_apply_mpobj, 1, mp_lv_obj_move_foreground, lv_layout_apply, 1);
     
 /* Reusing funcptr_user_cb for lv_group_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_group_init_mpobj, 0, mp_funcptr_user_cb, lv_group_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_group_init_mpobj, 0, mp_funcptr_user_cb, lv_group_init, 1);
     
 /* Reusing funcptr_user_cb for lv_group_deinit */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_group_deinit_mpobj, 0, mp_funcptr_user_cb, lv_group_deinit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_group_deinit_mpobj, 0, mp_funcptr_user_cb, lv_group_deinit, 1);
     
 /* Reusing funcptr_lv_draw_buf_free_cb_t for lv_event_mark_deleted */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_event_mark_deleted_mpobj, 1, mp_funcptr_lv_draw_buf_free_cb_t, lv_event_mark_deleted);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_event_mark_deleted_mpobj, 1, mp_funcptr_lv_draw_buf_free_cb_t, lv_event_mark_deleted, 1);
     
 /* Reusing funcptr_user_cb for lv_subject_global_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_subject_global_init_mpobj, 0, mp_funcptr_user_cb, lv_subject_global_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_subject_global_init_mpobj, 0, mp_funcptr_user_cb, lv_subject_global_init, 1);
     
 /* Reusing funcptr_user_cb for lv_subject_global_deinit */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_subject_global_deinit_mpobj, 0, mp_funcptr_user_cb, lv_subject_global_deinit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_subject_global_deinit_mpobj, 0, mp_funcptr_user_cb, lv_subject_global_deinit, 1);
     
 /* Reusing funcptr_user_cb for lv_refr_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_refr_init_mpobj, 0, mp_funcptr_user_cb, lv_refr_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_refr_init_mpobj, 0, mp_funcptr_user_cb, lv_refr_init, 1);
     
 /* Reusing funcptr_user_cb for lv_refr_deinit */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_refr_deinit_mpobj, 0, mp_funcptr_user_cb, lv_refr_deinit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_refr_deinit_mpobj, 0, mp_funcptr_user_cb, lv_refr_deinit, 1);
     
 
 /*
@@ -51487,15 +51496,15 @@ static mp_obj_t mp_lv_inv_area(size_t mp_n_args, const mp_obj_t *mp_args, void *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_inv_area_mpobj, 2, mp_lv_inv_area, lv_inv_area);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_inv_area_mpobj, 2, mp_lv_inv_area, lv_inv_area, 1);
     
 /* Reusing lv_display_get_default for lv_refr_get_disp_refreshing */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_refr_get_disp_refreshing_mpobj, 0, mp_lv_display_get_default, lv_refr_get_disp_refreshing);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_refr_get_disp_refreshing_mpobj, 0, mp_lv_display_get_default, lv_refr_get_disp_refreshing, 1);
     
 /* Reusing funcptr_lv_display_flush_wait_cb_t for lv_refr_set_disp_refreshing */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_refr_set_disp_refreshing_mpobj, 1, mp_funcptr_lv_display_flush_wait_cb_t, lv_refr_set_disp_refreshing);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_refr_set_disp_refreshing_mpobj, 1, mp_funcptr_lv_display_flush_wait_cb_t, lv_refr_set_disp_refreshing, 1);
     
 
 /*
@@ -51513,7 +51522,7 @@ static mp_obj_t mp_lv_refr_get_top_obj(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_refr_get_top_obj_mpobj, 2, mp_lv_refr_get_top_obj, lv_refr_get_top_obj);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_refr_get_top_obj_mpobj, 2, mp_lv_refr_get_top_obj, lv_refr_get_top_obj, 1);
     
 
 /*
@@ -51534,7 +51543,7 @@ static mp_obj_t mp_lv_draw_sw_grad_color_calculate(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_grad_color_calculate_mpobj, 5, mp_lv_draw_sw_grad_color_calculate, lv_draw_sw_grad_color_calculate);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_grad_color_calculate_mpobj, 5, mp_lv_draw_sw_grad_color_calculate, lv_draw_sw_grad_color_calculate, 1);
     
 
 /*
@@ -51553,19 +51562,19 @@ static mp_obj_t mp_lv_draw_sw_grad_get(size_t mp_n_args, const mp_obj_t *mp_args
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_grad_get_mpobj, 3, mp_lv_draw_sw_grad_get, lv_draw_sw_grad_get);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_draw_sw_grad_get_mpobj, 3, mp_lv_draw_sw_grad_get, lv_draw_sw_grad_get, 1);
     
 /* Reusing funcptr_user_cb for lv_fs_init */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_init_mpobj, 0, mp_funcptr_user_cb, lv_fs_init);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_init_mpobj, 0, mp_funcptr_user_cb, lv_fs_init, 1);
     
 /* Reusing funcptr_user_cb for lv_fs_deinit */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_deinit_mpobj, 0, mp_funcptr_user_cb, lv_fs_deinit);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_fs_deinit_mpobj, 0, mp_funcptr_user_cb, lv_fs_deinit, 1);
     
 /* Reusing lv_obj_get_scroll_end for lv_indev_scroll_get_snap_dist */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_scroll_get_snap_dist_mpobj, 2, mp_lv_obj_get_scroll_end, lv_indev_scroll_get_snap_dist);
+static MP_DEFINE_CONST_LV_FUN_OBJ_VAR(mp_lv_indev_scroll_get_snap_dist_mpobj, 2, mp_lv_obj_get_scroll_end, lv_indev_scroll_get_snap_dist, 1);
     
 
 /*
@@ -51583,7 +51592,7 @@ static mp_obj_t mp_lv_circle_buf_create(size_t mp_n_args, const mp_obj_t *mp_arg
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_circle_buf_create_mpobj, 2, mp_lv_circle_buf_create, lv_circle_buf_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_circle_buf_create_mpobj, 2, mp_lv_circle_buf_create, lv_circle_buf_create, 1);
     
 
 /*
@@ -51602,7 +51611,7 @@ static mp_obj_t mp_lv_circle_buf_create_from_buf(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_circle_buf_create_from_buf_mpobj, 3, mp_lv_circle_buf_create_from_buf, lv_circle_buf_create_from_buf);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_circle_buf_create_from_buf_mpobj, 3, mp_lv_circle_buf_create_from_buf, lv_circle_buf_create_from_buf, 1);
     
 
 /*
@@ -51619,7 +51628,7 @@ static mp_obj_t mp_lv_circle_buf_create_from_array(size_t mp_n_args, const mp_ob
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_circle_buf_create_from_array_mpobj, 1, mp_lv_circle_buf_create_from_array, lv_circle_buf_create_from_array);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_circle_buf_create_from_array_mpobj, 1, mp_lv_circle_buf_create_from_array, lv_circle_buf_create_from_array, 1);
     
 
 /*
@@ -51653,7 +51662,7 @@ static mp_obj_t mp_lv_lru_create(size_t mp_n_args, const mp_obj_t *mp_args, void
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_lru_create_mpobj, 4, mp_lv_lru_create, lv_lru_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_lru_create_mpobj, 4, mp_lv_lru_create, lv_lru_create, 1);
     
 
 /*
@@ -51671,7 +51680,7 @@ static mp_obj_t mp_lv_pending_create(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_pending_create_mpobj, 2, mp_lv_pending_create, lv_pending_create);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_pending_create_mpobj, 2, mp_lv_pending_create, lv_pending_create, 1);
     
 
 /*
@@ -51691,7 +51700,7 @@ static mp_obj_t mp_lv_text_get_size_attributes(size_t mp_n_args, const mp_obj_t 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_get_size_attributes_mpobj, 4, mp_lv_text_get_size_attributes, lv_text_get_size_attributes);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_get_size_attributes_mpobj, 4, mp_lv_text_get_size_attributes, lv_text_get_size_attributes, 1);
     
 
 /*
@@ -51711,11 +51720,11 @@ static mp_obj_t mp_lv_text_get_width(size_t mp_n_args, const mp_obj_t *mp_args, 
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_get_width_mpobj, 4, mp_lv_text_get_width, lv_text_get_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_get_width_mpobj, 4, mp_lv_text_get_width, lv_text_get_width, 1);
     
 /* Reusing lv_text_get_width for lv_text_get_line_width */
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_get_line_width_mpobj, 4, mp_lv_text_get_width, lv_text_get_line_width);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_get_line_width_mpobj, 4, mp_lv_text_get_width, lv_text_get_line_width, 1);
     
 
 /*
@@ -51733,7 +51742,7 @@ static mp_obj_t mp_lv_text_is_cmd(size_t mp_n_args, const mp_obj_t *mp_args, voi
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_is_cmd_mpobj, 2, mp_lv_text_is_cmd, lv_text_is_cmd);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_is_cmd_mpobj, 2, mp_lv_text_is_cmd, lv_text_is_cmd, 1);
     
 
 /*
@@ -51754,7 +51763,7 @@ static mp_obj_t mp_lv_text_get_next_line(size_t mp_n_args, const mp_obj_t *mp_ar
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_get_next_line_mpobj, 5, mp_lv_text_get_next_line, lv_text_get_next_line);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_get_next_line_mpobj, 5, mp_lv_text_get_next_line, lv_text_get_next_line, 1);
     
 
 /*
@@ -51773,7 +51782,7 @@ static mp_obj_t mp_lv_text_ins(size_t mp_n_args, const mp_obj_t *mp_args, void *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_ins_mpobj, 3, mp_lv_text_ins, lv_text_ins);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_ins_mpobj, 3, mp_lv_text_ins, lv_text_ins, 1);
     
 
 /*
@@ -51792,7 +51801,7 @@ static mp_obj_t mp_lv_text_cut(size_t mp_n_args, const mp_obj_t *mp_args, void *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_cut_mpobj, 3, mp_lv_text_cut, lv_text_cut);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_cut_mpobj, 3, mp_lv_text_cut, lv_text_cut, 1);
     
 
 /*
@@ -51812,7 +51821,7 @@ static mp_obj_t mp_lv_text_encoded_letter_next_2(size_t mp_n_args, const mp_obj_
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_encoded_letter_next_2_mpobj, 4, mp_lv_text_encoded_letter_next_2, lv_text_encoded_letter_next_2);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_text_encoded_letter_next_2_mpobj, 4, mp_lv_text_encoded_letter_next_2, lv_text_encoded_letter_next_2, 1);
     
 
 /*
@@ -51839,7 +51848,7 @@ static mp_obj_t mp_funcptr_cmp(size_t mp_n_args, const mp_obj_t *mp_args, void *
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_cmp_mpobj, 2, mp_funcptr_cmp, funcptr_cmp);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_funcptr_cmp_mpobj, 2, mp_funcptr_cmp, funcptr_cmp, 1);
     
 GENMPY_UNUSED static inline mp_obj_t mp_lv_funcptr_cmp(void *func){ return mp_lv_funcptr(&mp_funcptr_cmp_mpobj, func, NULL, MP_QSTR_, NULL); }
 
@@ -51862,7 +51871,7 @@ static mp_obj_t mp_lv_utils_bsearch(size_t mp_n_args, const mp_obj_t *mp_args, v
 
  
 
-static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_utils_bsearch_mpobj, 5, mp_lv_utils_bsearch, lv_utils_bsearch);
+static MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(mp_lv_utils_bsearch_mpobj, 5, mp_lv_utils_bsearch, lv_utils_bsearch, 1);
     
 
 /*
