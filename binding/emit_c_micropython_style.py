@@ -77,6 +77,22 @@ from .util import eprint, guarded, memoize
 from .context import EmitterResult
 
 
+# Functions that only compute on their arguments and never reach LVGL's state,
+# so they work before lv.init(). Everything else raises RuntimeError there.
+INIT_FREE_PREFIXES = (
+    "lv_is_initialized",
+    "lv_version",
+    "lv_color",
+    "lv_palette",
+    "lv_area",
+    "lv_point",
+    "lv_pct",
+    "lv_trigo",
+    "lv_sqrt",
+    "lv_atan2",
+)
+
+
 def emit_c(ctx):
     """Emit MP-style C from one context without module-level run state."""
     print = ctx.emit_print
@@ -245,7 +261,10 @@ typedef struct mp_lv_obj_fun_builtin_var_t {
     mp_uint_t n_args;
     mp_fun_ptr_var_t mp_fun;
     void *lv_fun;
+    bool needs_init;
 } mp_lv_obj_fun_builtin_var_t;
+
+void *mp_lv_get_roots(void);
 
 static mp_obj_t lv_fun_builtin_var_call(mp_obj_t self_in, size_t n_args, size_t n_kw, const mp_obj_t *args);
 static mp_int_t mp_func_get_buffer(mp_obj_t self_in, mp_buffer_info_t *bufinfo, mp_uint_t flags);
@@ -273,6 +292,12 @@ static mp_obj_t lv_fun_builtin_var_call(mp_obj_t self_in, size_t n_args, size_t 
            MP_OBJ_IS_TYPE(self_in, &mp_lv_type_fun_builtin_static_var));
     mp_lv_obj_fun_builtin_var_t *self = MP_OBJ_TO_PTR(self_in);
     mp_arg_check_num(n_args, n_kw, self->n_args, self->n_args, false);
+    // LVGL keeps its state behind lv.init(); before it, a call that reaches
+    // that state hard-faults. mp_lv_get_roots() is NULL until lv.init()
+    // allocates it, so this is one load and a compare.
+    if (self->needs_init && mp_lv_get_roots() == NULL) {
+        mp_raise_msg(&mp_type_RuntimeError, MP_ERROR_TEXT("LVGL is not initialised: call lv.init() first"));
+    }
     return self->mp_fun(n_args, args, self->lv_fun);
 }
 
@@ -288,13 +313,13 @@ static mp_int_t mp_func_get_buffer(mp_obj_t self_in, mp_buffer_info_t *bufinfo, 
     return 0;
 }
 
-#define MP_DEFINE_CONST_LV_FUN_OBJ_VAR(obj_name, n_args, mp_fun, lv_fun) \\
+#define MP_DEFINE_CONST_LV_FUN_OBJ_VAR(obj_name, n_args, mp_fun, lv_fun, needs_init) \\
     const mp_lv_obj_fun_builtin_var_t obj_name = \\
-        {{&mp_lv_type_fun_builtin_var}, n_args, mp_fun, lv_fun}
+        {{&mp_lv_type_fun_builtin_var}, n_args, mp_fun, lv_fun, needs_init}
 
-#define MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(obj_name, n_args, mp_fun, lv_fun) \\
+#define MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR(obj_name, n_args, mp_fun, lv_fun, needs_init) \\
     const mp_lv_obj_fun_builtin_var_t obj_name = \\
-        {{&mp_lv_type_fun_builtin_static_var}, n_args, mp_fun, lv_fun}
+        {{&mp_lv_type_fun_builtin_static_var}, n_args, mp_fun, lv_fun, needs_init}
 
 // Casting
 
@@ -2382,12 +2407,13 @@ GENMPY_UNUSED static {return_type} {func_name}_callback({func_args})
             def emit_func_obj(func_obj_name, func_name, param_count, func_ptr, is_static):
                 print(
                     """
-static {builtin_macro}(mp_{func_obj_name}_mpobj, {param_count}, mp_{func_name}, {func_ptr});
+static {builtin_macro}(mp_{func_obj_name}_mpobj, {param_count}, mp_{func_name}, {func_ptr}, {needs_init});
     """.format(
                         func_obj_name=func_obj_name,
                         func_name=func_name,
                         func_ptr=func_ptr,
                         param_count=param_count,
+                        needs_init="0" if func_ptr.startswith(INIT_FREE_PREFIXES) else "1",
                         builtin_macro="MP_DEFINE_CONST_LV_FUN_OBJ_STATIC_VAR"
                         if is_static
                         else "MP_DEFINE_CONST_LV_FUN_OBJ_VAR",
