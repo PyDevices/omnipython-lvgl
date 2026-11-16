@@ -179,7 +179,7 @@ def test_lifecycle_dunders_are_not_part_of_the_shared_public_namespace():
     # _nesting is a binding-internal callback re-entrancy counter, not an
     # LVGL declaration; it is deliberately private in the canonical API
     # model yet still emitted here for MicroPython/CircuitPython, because
-    # PyDevices' display_driver.py (pydevices lib/) depends on it at
+    # OmniPython's display_driver.py (omnipython lib/) depends on it at
     # runtime. See api_model.build_api_model and emit_backend's
     # module_registration_plan for the audited exception.
     for source in (micropython, circuitpython):

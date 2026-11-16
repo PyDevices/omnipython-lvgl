@@ -7,7 +7,7 @@
 ``_nesting`` is not an LVGL declaration: it is a binding-internal callback
 re-entrancy counter, synthesized in ``analyze.py`` and deliberately marked
 private in the canonical API model (see ``api_model.build_api_model``).
-PyDevices' LVGL coordinator, ``display_driver.py`` (PyDevices/pydevices
+OmniPython's LVGL coordinator, ``display_driver.py`` (PyDevices/omnipython
 ``lib/``), gates ``lv.timer_handler()`` on ``lv._nesting.value`` so a pass
 never starts from inside an LVGL callback. From inside the generated C the
 counter looks unused, since its only reader is that Python code.
@@ -22,7 +22,7 @@ fails here instead of on a device.
 
 The other half of the contract, that ``display_driver`` runs a pass with the
 counter at rest, stands down while it is raised and stands down quietly when
-it is absent (CPython), is tested in pydevices:
+it is absent (CPython), is tested in omnipython:
 ``tests/test_lvgl_display_driver.py``.
 """
 from __future__ import annotations

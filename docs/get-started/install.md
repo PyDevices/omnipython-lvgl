@@ -7,17 +7,17 @@ same API.
 
 | You use | You get it by |
 |---|---|
-| CPython on a desktop | `pip install pydevices-lvgl` |
+| CPython on a desktop | `pip install omnipython-lvgl` |
 | MicroPython-compatible firmware | building firmware with `ports/micropython` |
 | CircuitPython-compatible firmware | building firmware with `ports/circuitpython` |
 
 ## CPython
 
-The wheel is `pydevices-lvgl` on TestPyPI. `--extra-index-url` lets pip fetch
+The wheel is `omnipython-lvgl` on TestPyPI. `--extra-index-url` lets pip fetch
 setuptools and other dependencies from PyPI.
 
 ```bash
-python -m pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ pydevices-lvgl
+python -m pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ omnipython-lvgl
 ```
 
 Check it:
@@ -42,33 +42,33 @@ The binding has run on a Raspberry Pi 4 and a Pi 3 B+. A Pi 5 runs the same
 tried it yet. If you do, [open an issue](https://github.com/PyDevices/omnipython-lvgl/issues)
 and say what worked.
 
-Pin a version with `pydevices-lvgl==9.5.52`. For an Android build, ask pip for
+Pin a version with `omnipython-lvgl==9.5.52`. For an Android build, ask pip for
 the platform:
 
 ```bash
 pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ \
-  --only-binary=:all: --platform android_21_arm64_v8a pydevices-lvgl
+  --only-binary=:all: --platform android_21_arm64_v8a omnipython-lvgl
 ```
 
 In Pyodide, install with micropip:
 
 ```python
 import micropip
-await micropip.install("pydevices-lvgl", index_urls="https://test.pypi.org/simple/")
+await micropip.install("omnipython-lvgl", index_urls="https://test.pypi.org/simple/")
 ```
 
 On Windows Python from WSL, use `pip.exe` and `python.exe` the same way:
 
 ```bash
-pip.exe install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ pydevices-lvgl
+pip.exe install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ omnipython-lvgl
 python.exe -c "import lvgl as lv; lv.init(); lv.deinit(); print('ok')"
 ```
 
-An older `pydevices-lvgl` wheel carried `display_driver.py`, which ships in
-`pydevices`. Upgrade both in one command, `pip install -U pydevices pydevices-lvgl`.
-Upgraded on its own after a `pydevices` that already has the file, pip's
-uninstall of the old `pydevices-lvgl` deletes the `display_driver.py` both
-wheels wrote; `pip install --force-reinstall --no-deps pydevices` puts it back.
+An older `omnipython-lvgl` wheel carried `display_driver.py`, which ships in
+`omnipython`. Upgrade both in one command, `pip install -U omnipython omnipython-lvgl`.
+Upgraded on its own after an `omnipython` that already has the file, pip's
+uninstall of the old `omnipython-lvgl` deletes the `display_driver.py` both
+wheels wrote; `pip install --force-reinstall --no-deps omnipython` puts it back.
 
 No wheel for your platform? [Build it from source](../guides/build-the-cpython-extension-from-source.md).
 
@@ -119,6 +119,6 @@ has the details.
 The three builds share one binding, so everything after `import lvgl as lv`
 is the same. What differs is how the screen is driven. On a board, or on a
 desktop with PyDevices, the `display_driver` helper from
-[pydevices](https://github.com/PyDevices/pydevices) wires LVGL to the display
+[omnipython](https://github.com/PyDevices/omnipython) wires LVGL to the display
 and touch for you. Without it, you give LVGL a buffer and a flush callback, as
 [the first program](first-program.md) does.

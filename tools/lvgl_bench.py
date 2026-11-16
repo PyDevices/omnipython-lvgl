@@ -28,7 +28,7 @@ process's resident memory instead.
 Usage::
 
     python tools/lvgl_bench.py            # CPython: off-screen display only
-    mpftp run tools/lvgl_bench.py --follow   # a board, after mpftp soft-reset
+    mcuctl run tools/lvgl_bench.py --follow   # a board, after mcuctl soft-reset
 
 Pass ``render`` on the command line, or set ``LVGL_BENCH_RENDER_ONLY``, to
 skip the board's display.

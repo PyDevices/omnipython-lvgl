@@ -62,7 +62,7 @@ MicroPython 1.29 or later there.
 To build several modules together on any port, name them in one manifest: the
 port's `manifest.py` carries `c_module(".")`, and a manifest that `include()`s
 several such files builds them all.
-[micropython-pydevices](https://github.com/PyDevices/micropython-pydevices)'
+[omnipython-builds](https://github.com/PyDevices/omnipython-builds)'
 `build_mp.py` does that for you: name the modules and it builds them on a
 port, with upstream's own boards.
 
@@ -71,7 +71,7 @@ port, with upstream's own boards.
 ```
 
 `lvgl` is this port: `build_mp.py` fetches omnipython-lvgl at the commit
-micropython-pydevices pins, or uses an `omnipython-lvgl` checkout beside it. To build
+omnipython-builds pins, or uses an `omnipython-lvgl` checkout beside it. To build
 another checkout, name its port by path instead
 (`--modules /path/to/omnipython-lvgl/ports/micropython,pygraphics`).
 
@@ -96,7 +96,7 @@ omnipython-lvgl commit a firmware was built from.
 
 ## Driving the screen
 
-With [pydevices](https://github.com/PyDevices/pydevices) installed, its
+With [omnipython](https://github.com/PyDevices/omnipython) installed, its
 `display_driver` drives LVGL from `machine.Timer`. At an interactive prompt,
 create your widgets and drop to the prompt: the timer keeps animations, LVGL
 timers and touch input running while you inspect variables. A standalone script
@@ -113,5 +113,5 @@ label = lv.label(btn)
 label.set_text("Hello MicroPython LVGL!")
 ```
 
-Without pydevices, give LVGL a buffer and a flush callback as the
+Without omnipython, give LVGL a buffer and a flush callback as the
 [first program](../get-started/first-program.md) does.

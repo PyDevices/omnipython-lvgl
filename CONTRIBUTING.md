@@ -164,7 +164,7 @@ jpegio corpus and compares the result to jpegio's golden digests, with
 CircuitPython's own `jpegio` to `displayio.Bitmap` as a second witness. The
 witness skips the right-edge MCU block of odd widths, where CircuitPython's
 `bitmap_output()` mis-strides; that is a CircuitPython bug, not the decoder's.
-It needs a [micropython-pydevices](https://github.com/PyDevices/micropython-pydevices)
+It needs a [omnipython-builds](https://github.com/PyDevices/omnipython-builds)
 checkout beside this one for the frames, or `JPEGIO_FRAMES=` pointing at them.
 Without a CircuitPython build,
 [`ports/circuitpython/tools/host_jpegio_decoder_check.sh`](ports/circuitpython/tools/host_jpegio_decoder_check.sh) links LVGL,
@@ -176,7 +176,7 @@ the digests.
 The CPython extension draws JPEGs with jpegio's LVGL decoder, the one
 MicroPython builds use, so a JPEG draws the same on every interpreter. It is
 copied into `ports/cpython/src/jpegio/` from
-[micropython-pydevices](https://github.com/PyDevices/micropython-pydevices)'s
+[omnipython-builds](https://github.com/PyDevices/omnipython-builds)'s
 `modules/jpegio`, at the commit recorded in `ports/cpython/JPEGIO_COMMIT`. To
 move it, from an exact commit:
 
@@ -230,7 +230,7 @@ Native wheel smoke tests import `lvgl`, call `init()` and call `deinit()`.
 ```bash
 python -m pip install build
 python -m build --wheel
-python -m pip install --force-reinstall dist/pydevices_lvgl-*.whl
+python -m pip install --force-reinstall dist/omnipython_lvgl-*.whl
 python -m unittest discover -s ports/cpython/tests -v
 ```
 

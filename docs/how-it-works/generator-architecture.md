@@ -89,14 +89,14 @@ with `visibility="private"`. Despite being private, it is deliberately still
 emitted as a real MicroPython/CircuitPython module global (see
 `emit_backend.module_registration_plan` and the blob-table loop in
 `emit_c_micropython_style.py`) and stubbed as `_nesting: _Nesting` (see
-`CanonicalPyiEmitter`), because `display_driver.py` — PyDevices' LVGL
-coordinator, in PyDevices/pydevices `lib/` — reads
+`CanonicalPyiEmitter`), because `display_driver.py` — OmniPython's LVGL
+coordinator, in PyDevices/omnipython `lib/` — reads
 `lv._nesting.value` at runtime to detect reentrant `lv.task_handler()`
 calls from inside an LVGL callback. From inside this translation unit the
 counter looks unused (nothing here reads it back), but its only reader is
 Python code outside the generated C; do not remove it on that "dead code"
 appearance. [`tests/test_nesting_export.py`](../../tests/test_nesting_export.py) guards this by reading the names
-the freshly generated MicroPython/CircuitPython C exports; pydevices'
+the freshly generated MicroPython/CircuitPython C exports; omnipython'
 `tests/test_lvgl_display_driver.py` holds the reader's side.
 
 How to run the generator and its checks is in [CONTRIBUTING](https://github.com/PyDevices/omnipython-lvgl/blob/main/CONTRIBUTING.md). The ports are part of integration validation: the `linux-integration.yml` workflow builds the MicroPython and CircuitPython unix ports with `ports/micropython` and `ports/circuitpython` from the commit under test, builds the CPython extension, and runs [`tools/test_lvgl_smoke.py`](../../tools/test_lvgl_smoke.py) on all three.

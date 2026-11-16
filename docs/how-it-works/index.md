@@ -10,7 +10,7 @@ LVGL headers + lv_conf.h
         v
 binding/: generator, API model -> generated/ C sources and lvgl.pyi
         |
-        +--> setup.py, ports/cpython/   CPython extension, pydevices-lvgl wheels
+        +--> setup.py, ports/cpython/   CPython extension, omnipython-lvgl wheels
         +--> ports/micropython/         MicroPython user C module
         +--> ports/circuitpython/       CircuitPython user C module
 ```
@@ -21,7 +21,7 @@ binding/: generator, API model -> generated/ C sources and lvgl.pyi
   and the type stub (`lvgl.pyi`) for all three targets. They are committed, so
   a build compiles them and generates nothing.
 - **The CPython port** compiles the CPython binding with its runtime layer
-  into the `pydevices-lvgl` wheels, the one thing here that is published as a
+  into the `omnipython-lvgl` wheels, the one thing here that is published as a
   package.
 - **The MicroPython and CircuitPython ports** compile the generated bindings
   into firmware, as user C modules, and publish no package of their own.
@@ -51,9 +51,9 @@ the pipeline.
 ## Driving the display
 
 The binding does not choose a display, an event loop or a board. For that,
-pydevices has a `display_driver` module that wires LVGL to a `board_config`:
+omnipython has a `display_driver` module that wires LVGL to a `board_config`:
 display flush, input devices and the event loop. It ships with
-[pydevices](https://github.com/PyDevices/pydevices), because it needs that
+[omnipython](https://github.com/PyDevices/omnipython), because it needs that
 package's `appdev`, `events`, `keys` and `multimer`, and the bindings don't. You
 can also use the bindings with plumbing of your own, as
 [the first program](../get-started/first-program.md) does.

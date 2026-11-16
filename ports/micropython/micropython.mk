@@ -16,7 +16,7 @@ SOURCES = $(shell find $(LVGL_DIR)/src -type f -name "*.c")
 # jpegio Phase 2 moved the JPEG decoder out of LVGL: LV_USE_TJPGD is 0 in the
 # bindings (lvgl-bindings aa6c6bc), and the jpegio module registers its own
 # TJpgDec with LVGL instead, so a firmware carries one decoder rather than two.
-# Built without jpegio (micropython-pydevices' modules/jpegio since 2026-10-06;
+# Built without jpegio (omnipython-builds' modules/jpegio since 2026-10-06;
 # displayif's before), this module decodes PNG and LVGL's BIN and draws nothing
 # at all for a JPEG -- silently, at run time. Say so at build time instead (#11).
 ifeq ($(findstring jpegio,$(USER_C_MODULES)),)

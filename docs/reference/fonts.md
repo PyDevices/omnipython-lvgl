@@ -81,7 +81,7 @@ image sources like `lv.image.set_src("S:logo.png")` work through it too.
 
 It is [`python/fs_driver.py`](../../python/fs_driver.py), and every build ships it: frozen into
 MicroPython and CircuitPython firmware by the ports' manifests, and a
-`py_modules` entry in the `pydevices-lvgl` wheel, so `import fs_driver` just
+`py_modules` entry in the `omnipython-lvgl` wheel, so `import fs_driver` just
 works. For a stock MicroPython
 board it is also mip-installable:
 

@@ -57,7 +57,7 @@ def _deinit_at_exit():
     lv.deinit()
 
 
-# pydevices' display_driver registers its LVGL teardown the same way: an
+# omnipython's display_driver registers its LVGL teardown the same way: an
 # atexit hook that calls lv.deinit() during interpreter shutdown. lv_deinit()
 # fires LV_EVENT_DELETE per object, which used to crash inside
 # lvpy_release_callback_user_data (PyDict_Check / PyObject_TypeCheck on a

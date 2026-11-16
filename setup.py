@@ -194,7 +194,7 @@ class Win32LinkRspBuildExt(build_ext):
 
 
 setup(
-    name="pydevices-lvgl",
+    name="omnipython-lvgl",
     description="LVGL bindings for CPython (generated)",
     ext_modules=[ext],
     # fs_driver.py is kept once, in python/, for all three ports.

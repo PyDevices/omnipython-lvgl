@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Sync jpegio's LVGL JPEG decoder (lvgl_decoder.c/.h and its TJpgDec) from
-# PyDevices/micropython-pydevices on GitHub (not the local workspace) into
+# PyDevices/omnipython-builds on GitHub (not the local workspace) into
 # src/jpegio/, and record the commit in JPEGIO_COMMIT.
 #
 # The same decoder serves LVGL on MicroPython and CircuitPython, so a JPEG
@@ -13,7 +13,7 @@
 
 set -euo pipefail
 
-JPEGIO_REPO="${JPEGIO_REPO:-https://github.com/PyDevices/micropython-pydevices.git}"
+JPEGIO_REPO="${JPEGIO_REPO:-https://github.com/PyDevices/omnipython-builds.git}"
 JPEGIO_PATH="modules/jpegio/src"
 # TJpgDec sits in third_party/tjpgd/ (with its LICENSE and ORIGIN.txt) from
 # the commit that gave jpegio a third_party folder, and in src/tjpgd/ before it.
@@ -78,6 +78,6 @@ cp "${TMP}/src/${TJPGD_PATH}/"* "$DEST/tjpgd/"
 printf '%s\n' "$RESOLVED_REF" > "${SOURCE_REPO}/JPEGIO_COMMIT"
 
 echo
-echo "Synced jpegio's LVGL decoder from micropython-pydevices ${RESOLVED_REF}:"
+echo "Synced jpegio's LVGL decoder from omnipython-builds ${RESOLVED_REF}:"
 echo "  JPEGIO_COMMIT"
 echo "  src/jpegio/"
