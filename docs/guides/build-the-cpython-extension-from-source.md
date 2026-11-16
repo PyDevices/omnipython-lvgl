@@ -77,12 +77,12 @@ python.exe -c "import lvgl as lv; lv.init(); lv.deinit(); print('ok')"
 
 Prefer a prebuilt wheel tagged `android_21_*` for your ABI (`arm64_v8a` or
 `x86_64`). The
-[android-template `pydeviceslvgl` recipe](https://github.com/PyDevices/android-template/tree/main/p4a_recipes/pydeviceslvgl)
+[android-template `omnipythonlvgl` recipe](https://github.com/PyDevices/android-template/tree/main/p4a_recipes/omnipythonlvgl)
 installs a matching wheel when `--extra-index-url` points at TestPyPI, and
 cross-compiles from your checkout otherwise. To use your own tree:
 
 ```bash
-export P4A_pydeviceslvgl_DIR=/path/to/omnipython-lvgl
+export P4A_omnipythonlvgl_DIR=/path/to/omnipython-lvgl
 ```
 
 ## Pyodide

@@ -23,7 +23,7 @@ ports/circuitpython user C module glue
                   |    passes it via FROZEN_MANIFEST)
                   |
                   v
-CircuitPython firmware + pydevices: import display_driver, then import lvgl
+CircuitPython firmware + omnipython: import display_driver, then import lvgl
 ```
 
 ## Why the application pumps LVGL

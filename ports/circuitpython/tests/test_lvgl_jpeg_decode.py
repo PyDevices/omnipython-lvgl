@@ -15,7 +15,7 @@ Checks, all plain asserts:
   1. lv.tjpgd_init / lv.tjpgd_deinit are absent (LVGL's decoder is off here).
   2. lv.image on each corpus frame renders onto a native RGB565 display and the
      flushed pixels, cropped to the image, hash to jpegio's own golden digest
-     for that frame at scale 0 (micropython-pydevices modules/jpegio/tests/frames/golden_tjpgd.json,
+     for that frame at scale 0 (omnipython-builds modules/jpegio/tests/frames/golden_tjpgd.json,
      native-order RGB565, tight). No swap is applied to the expected bytes: the
      decoder hands LVGL RGB565_SWAPPED pixels and LVGL's software blend swaps
      them back onto the RGB565 display (lv_draw_sw_blend_to_rgb565.c,
@@ -54,8 +54,8 @@ user C module:
 
     circuitpython ports/circuitpython/tests/test_lvgl_jpeg_decode.py
 
-Needs the micropython-pydevices checkout as a sibling of this repository (frames
-at ../micropython-pydevices/modules/jpegio/tests/frames, resolved from this file's location) or
+Needs the omnipython-builds checkout as a sibling of this repository (frames
+at ../omnipython-builds/modules/jpegio/tests/frames, resolved from this file's location) or
 JPEGIO_FRAMES=/path/to/frames in the environment. Uses hashlib, binascii,
 json, os, jpegio and displayio from the CircuitPython build. Pure-CPython
 pytest collection skips this file: everything runs from main().
@@ -69,7 +69,7 @@ def _frames_dir():
     if env:
         return env
     here = __file__.rsplit("/", 1)[0] if "/" in __file__ else "."
-    return here + "/../../../../micropython-pydevices/modules/jpegio/tests/frames"
+    return here + "/../../../../omnipython-builds/modules/jpegio/tests/frames"
 
 
 def _now():

@@ -21,7 +21,7 @@ ports/micropython build glue + GC-aware allocator
 MicroPython firmware module: import lvgl
                          |
                          v
-pydevices' display_driver -> display, input, timers
+omnipython's display_driver -> display, input, timers
 ```
 
 The build glue is `micropython.mk` for Make ports and `micropython.cmake` for
@@ -41,7 +41,7 @@ build without it skips JPEGs at run time rather than failing at build time.
 
 ## Driving the display
 
-`display_driver` is pydevices', not this firmware's. It wires the display,
+`display_driver` is omnipython's, not this firmware's. It wires the display,
 input and timers, and wants a `board_config` unless your code has already
 created an `appdev.App`. At an interactive MicroPython prompt, hardware timer
 callbacks keep LVGL active after the script reaches the prompt.

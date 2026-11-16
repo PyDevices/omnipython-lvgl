@@ -19,24 +19,24 @@ for how `fs_driver` works.
 
 ## CPython
 
-Nothing to do. The `pydevices-lvgl` wheel compiles the JPEG decoder in and
+Nothing to do. The `omnipython-lvgl` wheel compiles the JPEG decoder in and
 registers it when you call `lv.init()`.
 
 ## MicroPython-compatible firmware
 
 LVGL's built-in JPEG decoder is off in the bindings (`LV_USE_TJPGD` is 0), so
 the decoder comes from the
-[jpegio](https://github.com/PyDevices/micropython-pydevices/tree/main/modules/jpegio)
+[jpegio](https://github.com/PyDevices/omnipython-builds/tree/main/modules/jpegio)
 module, which registers its own decoder with LVGL when the two are built into
 the same firmware. A firmware with LVGL alone has no JPEG decoder.
 The build prints a note when jpegio is missing, so you hear about it then and
 not from a blank image.
 
 Name jpegio when you build with
-[micropython-pydevices](https://github.com/PyDevices/micropython-pydevices):
+[omnipython-builds](https://github.com/PyDevices/omnipython-builds):
 
 ```bash
-./build_mp.py --port unix --variant pydevices --modules jpegio,lvgl
+./build_mp.py --port unix --variant omnipython --modules jpegio,lvgl
 ```
 
 On a build that has both, `jpegio.register_lvgl_decoder()` and

@@ -249,7 +249,7 @@ def test_module_types(lv):
             _fail("private implementation export leaked as lv.{}".format(name))
     # _nesting is a deliberate, audited exception to the private-export
     # policy above: it is the binding-internal callback re-entrancy
-    # counter that PyDevices' display_driver.py (pydevices lib/) reads at
+    # counter that OmniPython's display_driver.py (omnipython lib/) reads at
     # runtime as lv._nesting.value to guard
     # against reentrant lv.task_handler() calls. It is private in the
     # canonical API model (visibility="private" in api_model.py) but is
@@ -265,7 +265,7 @@ def test_module_types(lv):
     else:
         if not hasattr(lv, "_nesting"):
             _fail(
-                "lv._nesting missing; PyDevices' display_driver.py "
+                "lv._nesting missing; OmniPython's display_driver.py "
                 "task_handler()/async_refresh() read lv._nesting.value "
                 "and will raise AttributeError at runtime"
             )

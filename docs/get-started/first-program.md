@@ -71,10 +71,10 @@ Image.frombytes("RGB", (240, 120), bytes(buf), "raw", "BGR;16").save("hello.png"
 
 ## On a board
 
-On a board, [pydevices](https://github.com/PyDevices/pydevices) supplies a
+On a board, [omnipython](https://github.com/PyDevices/omnipython) supplies a
 `display_driver` module that creates the display from your board
 configuration, feeds LVGL its ticks and input, and keeps the screen updating.
 Import it before `lvgl`, then build widgets on `lv.screen_active()` as above.
-[Using LVGL with PyDevices](https://github.com/PyDevices/pydevices/blob/main/docs/guides/lvgl.md)
+[Using LVGL with OmniPython](https://github.com/PyDevices/omnipython/blob/main/docs/guides/lvgl.md)
 covers what it does and how its timers behave. Keep every `lvgl` call on one
 thread: [Use LVGL from threads](../guides/use-lvgl-from-threads.md).

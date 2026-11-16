@@ -9,7 +9,7 @@ MicroPython-compatible and CircuitPython-compatible programs the same
 On a desktop, install the wheel:
 
 ```bash
-python -m pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ pydevices-lvgl
+python -m pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ omnipython-lvgl
 ```
 
 On a board, LVGL comes with your firmware build. Clone this repository with

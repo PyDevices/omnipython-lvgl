@@ -68,7 +68,7 @@ them. For a worked example with a partition table, see
 
 ## Build with other PyDevices modules
 
-[micropython-pydevices](https://github.com/PyDevices/micropython-pydevices)'
+[omnipython-builds](https://github.com/PyDevices/omnipython-builds)'
 `build_mp.py` fetches CircuitPython, passes the modules you name to its make as
 `USER_C_MODULES`:
 
@@ -77,7 +77,7 @@ them. For a worked example with a partition table, see
 ```
 
 `lvgl` is this port: `build_mp.py` fetches omnipython-lvgl at the commit
-micropython-pydevices pins, or uses an `omnipython-lvgl` checkout beside it. To build
+omnipython-builds pins, or uses an `omnipython-lvgl` checkout beside it. To build
 another checkout, name its port by path instead
 (`--modules /path/to/omnipython-lvgl/ports/circuitpython,pygraphics`). The
 binary lands in `builds/circuitpython/unix/coverage/`.
@@ -106,8 +106,8 @@ All LVGL smoke tests passed.
 ## Driving the screen
 
 CircuitPython has no `machine.Timer`, so the application pumps LVGL: `app.run()`
-or your own `asyncio` loop. With [pydevices](https://github.com/PyDevices/pydevices),
-`display_driver` does the wiring. Put pydevices on the board as source
+or your own `asyncio` loop. With [omnipython](https://github.com/PyDevices/omnipython),
+`display_driver` does the wiring. Put omnipython on the board as source
 (`--no-mpy`), with your `board_config`:
 
 ```python
@@ -124,7 +124,7 @@ app.run()
 ```
 
 `display_driver` wants a `board_config` unless your code has already created an
-`appdev.App`. To skip pydevices, give LVGL a buffer and a flush callback as the
+`appdev.App`. To skip omnipython, give LVGL a buffer and a flush callback as the
 [first program](../get-started/first-program.md) does.
 
 JPEG images need `CIRCUITPY_JPEGIO` on: [Show JPEG images](show-jpeg-images.md).

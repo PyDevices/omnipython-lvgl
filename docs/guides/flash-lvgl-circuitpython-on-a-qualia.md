@@ -7,7 +7,7 @@ partition is too small for LVGL.
 
 ## Build
 
-[micropython-pydevices](https://github.com/PyDevices/micropython-pydevices)'
+[omnipython-builds](https://github.com/PyDevices/omnipython-builds)'
 `build_mp.py` fetches CircuitPython, hands omnipython-lvgl's CircuitPython port to its make as a
 user C module, and runs the build. Two things go on the end of the command for
 this board. `CIRCUITPY_GIFIO=0` stops CircuitPython's AnimatedGIF decoder
@@ -16,9 +16,9 @@ colliding with LVGL's. A partition table with a 4 MB app slot goes in through
 LVGL firmware is about 2.9 MB.
 
 ```bash
-git clone https://github.com/PyDevices/micropython-pydevices
+git clone https://github.com/PyDevices/omnipython-builds
 git clone --recurse-submodules --shallow-submodules https://github.com/PyDevices/omnipython-lvgl
-cd micropython-pydevices
+cd omnipython-builds
 LVCP="$(realpath ../omnipython-lvgl/ports/circuitpython)"
 PARTS="$(pwd)/qualia-lvgl-partitions.defaults"
 printf 'CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="%s"\nCONFIG_PARTITION_TABLE_FILENAME="%s"\n' \

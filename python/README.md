@@ -9,8 +9,8 @@ generator output: edit them here, and every build picks up the change.
 
 `display_driver.py`, the coordinator that wires LVGL to a PyDevices
 `board_config`, lives in
-[PyDevices/pydevices `lib/`](https://github.com/PyDevices/pydevices/blob/main/lib/display_driver.py)
-and ships with `pydevices`, beside the `appdev`, `events`, `keys` and `multimer`
+[PyDevices/omnipython `lib/`](https://github.com/PyDevices/omnipython/blob/main/lib/display_driver.py)
+and ships with `omnipython`, beside the `appdev`, `events`, `keys` and `multimer`
 it needs.
 
 ## How it ships
@@ -19,7 +19,7 @@ it needs.
 |------|--------------|
 | MicroPython | Frozen by [`ports/micropython/manifest.py`](../ports/micropython/manifest.py) |
 | CircuitPython | Frozen by [`ports/circuitpython/manifest.py`](../ports/circuitpython/manifest.py), when the build passes it as `FROZEN_MANIFEST` |
-| CPython | `py_modules` in the `pydevices-lvgl` wheel |
+| CPython | `py_modules` in the `omnipython-lvgl` wheel |
 
 ## MIP (optional)
 
@@ -27,4 +27,4 @@ it needs.
 mip.install("github:PyDevices/omnipython-lvgl/packages/fs_driver.json")
 ```
 
-`display_driver` comes with `omip.install("pydevices")`.
+`display_driver` comes with `omip.install("omnipython")`.

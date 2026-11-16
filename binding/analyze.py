@@ -401,7 +401,7 @@ def analyze(ctx=None):
     # emit_c_micropython_style.py). It is deliberately private in the
     # canonical API model (see api_model.build_api_model) yet still emitted
     # as a real MicroPython/CircuitPython module global, because PyDevices'
-    # LVGL coordinator (display_driver.py in PyDevices/pydevices lib/) reads
+    # LVGL coordinator (display_driver.py in PyDevices/omnipython lib/) reads
     # it to detect reentrant lv.task_handler() calls from inside an LVGL
     # callback. Do not
     # remove this on the assumption it is unused C state; its only reader

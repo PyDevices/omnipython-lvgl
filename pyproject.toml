@@ -3,7 +3,7 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pydevices-lvgl"
+name = "omnipython-lvgl"
 dynamic = ["version"]
 description = "LVGL bindings for CPython (generated); import as lvgl"
 readme = "README.md"

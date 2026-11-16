@@ -1,7 +1,7 @@
 # The CPython port
 
 The CPython port packages LVGL for CPython as the native `lvgl` extension,
-distributed under the `pydevices-lvgl` project name. It exposes the same
+distributed under the `omnipython-lvgl` project name. It exposes the same
 Python-shaped API as the MicroPython and CircuitPython targets, and it does not
 embed or run a MicroPython interpreter.
 
@@ -45,7 +45,7 @@ behind it is CPython runtime work, in `ports/cpython/src/lvpy_runtime.*`.
    and convert Python values, take the runtime's LVGL lock where needed, and
    call the matching LVGL C function.
 3. The extension does not choose a display, an event loop or a board. With
-   pydevices installed, its `display_driver` wires one up; without it you give
+   omnipython installed, its `display_driver` wires one up; without it you give
    LVGL a buffer and a flush callback.
 
 ## Rules the runtime keeps

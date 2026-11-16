@@ -7,7 +7,7 @@
 # roots, then renders every jpegio corpus frame through lv_image onto a
 # 320x240 native-RGB565 display (variable source with a zeroed header, and file
 # source through a stdio lv_fs driver) and compares the flushed pixels against
-# jpegio's golden digests (micropython-pydevices modules/jpegio/tests/frames/golden_tjpgd.json,
+# jpegio's golden digests (omnipython-builds modules/jpegio/tests/frames/golden_tjpgd.json,
 # scale 0). Frames the golden file knows must decode and match; the others
 # (progressive, DHT-less) must be refused; an extension-less copy of the C920e
 # frame must decode as a file source too (the sniff is SOI-only, never the
@@ -18,8 +18,8 @@
 #   ./tools/host_jpegio_decoder_check.sh
 #
 # Environment, with paths beside the repository by default: CP_DIR (default
-# ../circuitpython, else ../micropython-pydevices/deps/circuitpython), JPEGIO_FRAMES (default
-# ../micropython-pydevices/modules/jpegio/tests/frames). The CP tree is only read (headers and one
+# ../circuitpython, else ../omnipython-builds/deps/circuitpython), JPEGIO_FRAMES (default
+# ../omnipython-builds/modules/jpegio/tests/frames). The CP tree is only read (headers and one
 # .c compiled into tools/host_jpegio_decoder_check/build/). Needs gcc, python3.
 set -euo pipefail
 
@@ -29,11 +29,11 @@ B=$(cd "$ROOT/../.." && pwd)
 WS=$(cd "$B/.." && pwd)
 CP=${CP_DIR:-}
 if [[ -z "$CP" ]]; then
-    for c in "$WS/circuitpython" "$WS/micropython-pydevices/deps/circuitpython"; do
+    for c in "$WS/circuitpython" "$WS/omnipython-builds/deps/circuitpython"; do
         [[ -f "$c/lib/tjpgd/src/tjpgd.c" ]] && CP=$c && break
     done
 fi
-FRAMES=${JPEGIO_FRAMES:-$WS/micropython-pydevices/modules/jpegio/tests/frames}
+FRAMES=${JPEGIO_FRAMES:-$WS/omnipython-builds/modules/jpegio/tests/frames}
 SRC=$HERE/host_jpegio_decoder_check
 BUILD=$SRC/build
 SHIM=${SHIM:-$ROOT/src/lv_jpegio_decoder_circuitpython.c}
