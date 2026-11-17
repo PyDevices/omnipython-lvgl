@@ -24,7 +24,8 @@ echo "==> Binding contract checks"
 ./scripts/verify_bindings.sh
 
 echo "==> Expected release version"
-VERSION=$(./scripts/next_release_version.sh)
+# RELEASE_VERSION asks for a pre-release or a specific final; unset, it is the next final.
+VERSION=$(./scripts/next_release_version.sh ${RELEASE_VERSION:+--requested "$RELEASE_VERSION"})
 case "$VERSION" in
     9.6.*) ;;
     *) echo "Error: expected a 9.6.N version, got $VERSION" >&2; exit 1 ;;

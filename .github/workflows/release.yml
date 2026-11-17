@@ -1,15 +1,26 @@
 name: Release
 
 # One release covers the generator, the three ports and the wheel. Dry-run
-# runs every gate and changes nothing. Release also writes the next version
-# to VERSION on main and publishes a GitHub release for it, which starts
-# publish-release-packages.yml (the wheels).
+# runs every gate, prints the exact version it would publish and changes
+# nothing. Release also writes that version to VERSION on main and publishes a
+# GitHub release for it, which starts publish-release-packages.yml (the wheels).
+#
+# The version is the next final unless you ask for one. Ask for X.Y.Z.devN or
+# X.Y.ZrcN to cut a pre-release: it is marked pre-release on GitHub, goes to
+# TestPyPI only, and never to production PyPI (the shared pypi-gate in
+# reusable-publish-release-packages.yml requires prerelease == 'false', and
+# publish-release-packages.yml asks for no production upload at all).
 on:
   workflow_dispatch:
     inputs:
       ref:
         description: Exact commit SHA or vX.Y.Z tag to validate
         required: true
+        type: string
+      version:
+        description: Empty publishes the next final; or X.Y.Z.devN / X.Y.ZrcN for a pre-release (must be the next patch on the LVGL line)
+        required: false
+        default: ""
         type: string
       mode:
         description: dry-run validates only; release commits VERSION and publishes a GitHub release
@@ -34,6 +45,7 @@ jobs:
     outputs:
       sha: ${{ steps.ref.outputs.sha }}
       version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
     steps:
       - name: Require an immutable source reference
         env:
@@ -60,16 +72,45 @@ jobs:
         id: ref
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - name: Run non-mutating release gate
-        run: ./scripts/release_dry_run.sh
-
-      - name: Compute expected version
+      # Before the long gate, so a refused version fails in seconds.
+      - name: Choose and check the version
         id: version
-        run: echo "version=$(./scripts/next_release_version.sh)" >> "$GITHUB_OUTPUT"
+        env:
+          REQUESTED: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$REQUESTED" ]]; then
+            version=$(./scripts/next_release_version.sh --requested "$REQUESTED")
+          else
+            version=$(./scripts/next_release_version.sh)
+          fi
+          if [[ "$version" =~ (rc|\.dev)[0-9]+$ ]]; then
+            prerelease=true
+          else
+            prerelease=false
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
+          echo "This run would publish v$version (pre-release: $prerelease)."
+
+      - name: Run non-mutating release gate
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: ./scripts/release_dry_run.sh
 
       - name: Dry-run result
         if: inputs.mode == 'dry-run'
-        run: echo "Validation passed; no commit, tag, push, release, or publication was made."
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          PRERELEASE: ${{ steps.version.outputs.prerelease }}
+        run: |
+          if [[ "$PRERELEASE" == true ]]; then
+            where="a GitHub pre-release and TestPyPI only"
+          else
+            where="a final GitHub release"
+          fi
+          echo "Validation passed; release mode would publish v$VERSION as $where."
+          echo "No commit, tag, push, release, or publication was made."
 
   release:
     if: inputs.mode == 'release'
@@ -119,8 +160,13 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           VERSION: ${{ needs.validate.outputs.version }}
+          PRERELEASE: ${{ needs.validate.outputs.prerelease }}
         run: |
-          gh release create "v${VERSION}" \
+          flag=()
+          if [[ "$PRERELEASE" == true ]]; then
+            flag=(--prerelease)
+          fi
+          gh release create "v${VERSION}" "${flag[@]}" \
             --repo "${{ github.repository }}" \
             --target "$(git rev-parse HEAD)" \
             --title "v${VERSION}" \
