@@ -1,6 +1,6 @@
 # Changelog
 
-One release covers the generator, the three ports and the `pydevices-lvgl`
+One release covers the generator, the three ports and the `omnipython-lvgl`
 wheel, and its notes live with the release:
 [GitHub releases](https://github.com/PyDevices/omnipython-lvgl/releases). The
 version is the LVGL line plus a counter, such as `9.5.53`. The firmware ports
