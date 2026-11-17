@@ -234,8 +234,9 @@ python -m pip install --force-reinstall dist/omnipython_lvgl-*.whl
 python -m unittest discover -s ports/cpython/tests -v
 ```
 
-The wheel must contain `lvgl.pyi` beside the native extension; the tests verify
-the install. To reproduce the release platforms, use cibuildwheel: Linux
+The wheel must contain the stub as an `lvgl-stubs` package beside the native
+extension; the tests verify the install, and `python tools/check_stubs.py` checks
+the stub against it. To reproduce the release platforms, use cibuildwheel: Linux
 manylinux builds need Docker, Windows builds need native MSVC, and Android
 builds need the Android SDK and NDK that cibuildwheel uses.
 

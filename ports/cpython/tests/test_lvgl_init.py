@@ -73,11 +73,11 @@ class LvglInitTests(unittest.TestCase):
         self.assertIn('"generated/lvgl_python.c"', (root / "setup.py").read_text())
         self.assertFalse((root / "ports" / "cpython" / "LVGL_BINDINGS_COMMIT").exists())
 
-    def test_stub_is_installed_beside_extension(self):
+    def test_stub_package_is_installed_beside_extension(self):
         import lvgl
 
         extension = Path(lvgl.__file__).resolve()
-        self.assertTrue((extension.parent / "lvgl.pyi").is_file())
+        self.assertTrue((extension.parent / "lvgl-stubs" / "__init__.pyi").is_file())
 
     def test_import_and_init_deinit(self):
         import lvgl as lv
