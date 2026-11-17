@@ -19,12 +19,51 @@ permissions:
 
 jobs:
   publish:
-    uses: PyDevices/.github/.github/workflows/reusable-publish-release-packages.yml@publishing-v28
+    uses: PyDevices/.github/.github/workflows/reusable-publish-release-packages.yml@publishing-v30
     with:
       build-kind: native-and-wasm
       distribution-name: omnipython-lvgl
       wheel-filename-prefix: omnipython_lvgl
       linux-aarch64: true
       checkout-submodules: true
+      # Every version goes to production PyPI too; the pypi job below uploads.
+      pypi-publish: true
       release-ref: ${{ inputs.release-ref }}
+    secrets: inherit
+
+  pypi:
+    # The upload runs in this file because PyPI matches its Trusted Publisher
+    # against the workflow that runs the upload job. Every version goes, pre-releases
+    # included; the pypi environment allows v* tags only.
+    needs: publish
+    if: >-
+      !cancelled() && needs.publish.outputs.pypi-publish == 'true'
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - name: Download the validated distributions
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ needs.publish.outputs.dist-artifact }}
+          path: dist
+      - name: Publish to PyPI via Trusted Publishing
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+
+  report-pypi:
+    # The coordinator's Release Health report went out with pypi "pending";
+    # this fills in the outcome on the same row.
+    needs:
+      - publish
+      - pypi
+    if: >-
+      !cancelled() && needs.publish.outputs.pypi-publish == 'true'
+    uses: PyDevices/.github/.github/workflows/reusable-report-pypi-result.yml@publishing-v30
+    with:
+      distribution-name: omnipython-lvgl
+      version: ${{ needs.publish.outputs.version }}
+      pypi-result: ${{ needs.pypi.result }}
     secrets: inherit
