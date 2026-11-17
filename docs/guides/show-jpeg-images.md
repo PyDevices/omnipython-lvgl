@@ -36,7 +36,7 @@ Name jpegio when you build with
 [omnipython-builds](https://github.com/PyDevices/omnipython-builds):
 
 ```bash
-./build_mp.py --port unix --variant omnipython --modules jpegio,lvgl
+./build.py --port unix --variant omnipython --modules jpegio,lvgl
 ```
 
 On a build that has both, `jpegio.register_lvgl_decoder()` and

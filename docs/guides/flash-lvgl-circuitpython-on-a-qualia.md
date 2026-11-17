@@ -8,7 +8,7 @@ partition is too small for LVGL.
 ## Build
 
 [omnipython-builds](https://github.com/PyDevices/omnipython-builds)'
-`build_mp.py` fetches CircuitPython, hands omnipython-lvgl's CircuitPython port to its make as a
+`build.py` fetches CircuitPython, hands omnipython-lvgl's CircuitPython port to its make as a
 user C module, and runs the build. Two things go on the end of the command for
 this board. `CIRCUITPY_GIFIO=0` stops CircuitPython's AnimatedGIF decoder
 colliding with LVGL's. A partition table with a 4 MB app slot goes in through
@@ -24,7 +24,7 @@ PARTS="$(pwd)/qualia-lvgl-partitions.defaults"
 printf 'CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="%s"\nCONFIG_PARTITION_TABLE_FILENAME="%s"\n' \
     "$LVCP/scripts/partitions-16MB-lvgl.csv" "$LVCP/scripts/partitions-16MB-lvgl.csv" \
     > "$PARTS"
-./build_mp.py --interpreter circuitpython --port espressif \
+./build.py --interpreter circuitpython --port espressif \
     --board adafruit_qualia_s3_rgb666 --modules "$LVCP" CIRCUITPY_GIFIO=0 \
     "FLASH_SIZE_SDKCONFIG=esp-idf-config/sdkconfig-flash-16MB.defaults;$PARTS"
 ```
