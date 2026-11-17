@@ -69,14 +69,14 @@ them. For a worked example with a partition table, see
 ## Build with other PyDevices modules
 
 [omnipython-builds](https://github.com/PyDevices/omnipython-builds)'
-`build_mp.py` fetches CircuitPython, passes the modules you name to its make as
+`build.py` fetches CircuitPython, passes the modules you name to its make as
 `USER_C_MODULES`:
 
 ```bash
-./build_mp.py --interpreter circuitpython --port unix --modules lvgl,pygraphics
+./build.py --interpreter circuitpython --port unix --modules lvgl,pygraphics
 ```
 
-`lvgl` is this port: `build_mp.py` fetches omnipython-lvgl at the commit
+`lvgl` is this port: `build.py` fetches omnipython-lvgl at the commit
 omnipython-builds pins, or uses an `omnipython-lvgl` checkout beside it. To build
 another checkout, name its port by path instead
 (`--modules /path/to/omnipython-lvgl/ports/circuitpython,pygraphics`). The
@@ -86,7 +86,7 @@ For a board, name CircuitPython's port and board, and put `CIRCUITPY_GIFIO=0`
 at the end:
 
 ```bash
-./build_mp.py --interpreter circuitpython --port espressif \
+./build.py --interpreter circuitpython --port espressif \
     --board <board> --modules lvgl CIRCUITPY_GIFIO=0
 ```
 

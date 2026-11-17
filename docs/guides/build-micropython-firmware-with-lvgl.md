@@ -63,14 +63,14 @@ To build several modules together on any port, name them in one manifest: the
 port's `manifest.py` carries `c_module(".")`, and a manifest that `include()`s
 several such files builds them all.
 [omnipython-builds](https://github.com/PyDevices/omnipython-builds)'
-`build_mp.py` does that for you: name the modules and it builds them on a
+`build.py` does that for you: name the modules and it builds them on a
 port, with upstream's own boards.
 
 ```bash
-./build_mp.py --port unix --modules lvgl,pygraphics
+./build.py --port unix --modules lvgl,pygraphics
 ```
 
-`lvgl` is this port: `build_mp.py` fetches omnipython-lvgl at the commit
+`lvgl` is this port: `build.py` fetches omnipython-lvgl at the commit
 omnipython-builds pins, or uses an `omnipython-lvgl` checkout beside it. To build
 another checkout, name its port by path instead
 (`--modules /path/to/omnipython-lvgl/ports/micropython,pygraphics`).
