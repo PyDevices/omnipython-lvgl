@@ -41,7 +41,7 @@ The binding has run on a Raspberry Pi 4 and a Pi 3 B+. A Pi 5 runs the same
 tried it yet. If you do, [open an issue](https://github.com/PyDevices/omnipython-lvgl/issues)
 and say what worked.
 
-Pin a version with `omnipython-lvgl==9.6.1.dev1`. For an Android build, ask pip for
+Pin a version with `omnipython-lvgl==9.6.1`. For an Android build, ask pip for
 the platform:
 
 ```bash
