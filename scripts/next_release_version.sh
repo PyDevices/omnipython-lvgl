@@ -7,9 +7,14 @@
 # VERSION file, which holds the version last released.
 #   e.g. LVGL 9.5.x, last release 9.5.52 -> 9.5.53 ; a new LVGL 9.6.x line -> 9.6.0
 #
+# With --requested, check a version instead: X.Y.ZrcN or X.Y.Z.devN for the
+# next release, or X.Y.Z for the next final. It prints the version when it is
+# acceptable and exits 1 with the reason when it is not (scripts/release_version.py).
+#
 # Usage:
 #   ./scripts/next_release_version.sh
 #   ./scripts/next_release_version.sh --verbose
+#   ./scripts/next_release_version.sh --requested 9.6.1.dev0
 
 set -euo pipefail
 
@@ -18,14 +23,19 @@ SOURCE_REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
 LVGL_DIR="$SOURCE_REPO/lvgl"
 
 VERBOSE=0
+REQUESTED=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --verbose | -v)
             VERBOSE=1
             shift
             ;;
+        --requested)
+            REQUESTED="${2:?--requested needs a version}"
+            shift 2
+            ;;
         --help | -h)
-            sed -n '2,12p' "$0" | sed 's/^# \?//'
+            sed -n '2,18p' "$0" | sed 's/^# \?//'
             exit 0
             ;;
         *)
@@ -82,8 +92,30 @@ next_version() {
     fi
 }
 
+# Every published version tag, pre-releases included, plus VERSION when it
+# names a final: the floor a requested version has to clear.
+check_requested() {
+    local tags committed
+    cd "$SOURCE_REPO"
+    git fetch origin --tags 2>/dev/null || true
+    tags=$(
+        {
+            git ls-remote --tags origin 'v*' 2>/dev/null | awk '{print $2}' | sed 's|refs/tags/||' | grep -v '\^{}$' || true
+            git tag -l 'v*'
+        } | sort -u
+    )
+    committed=$(tr -d '[:space:]' < "$SOURCE_REPO/VERSION" 2>/dev/null || true)
+    [[ "$committed" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && tags="$tags"$'\n'"v$committed"
+    # shellcheck disable=SC2086  # one tag per word is the point
+    python3 "$SCRIPT_DIR/release_version.py" "${LVGL_MAJOR}.${LVGL_MINOR}" "$REQUESTED" $tags
+}
+
 read_lvgl_version
-VERSION="$(next_version)"
+if [[ -n "$REQUESTED" ]]; then
+    VERSION="$(check_requested)" || exit 1
+else
+    VERSION="$(next_version)"
+fi
 
 if [[ "$VERBOSE" -eq 1 ]]; then
     echo "LVGL API line: ${LVGL_MAJOR}.${LVGL_MINOR}.x"

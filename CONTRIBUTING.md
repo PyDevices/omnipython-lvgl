@@ -189,7 +189,7 @@ Commit `ports/cpython/JPEGIO_COMMIT` and `ports/cpython/src/jpegio/` together.
 ## Releasing
 
 Versions mirror LVGL's major and minor API line and use their own patch
-counter: the line is `9.5.N`, and `N` advances with each release regardless of
+counter: the line is `9.6.N`, and `N` advances with each release regardless of
 LVGL's own patch number. One release covers the generator, the three ports and
 the wheel. The firmware ports publish nothing of their own: a firmware build
 takes this repository at a commit.
@@ -202,17 +202,38 @@ the next version without changing anything:
 ./scripts/next_release_version.sh --verbose
 ```
 
-The next version is one past the newer of the highest `v9.5.*` tag and the
-`VERSION` file.
+The next version is one past the newer of the highest `v9.6.*` tag and the
+`VERSION` file. To check a pre-release instead, ask for it by name:
 
-The **Release** workflow (`release.yml`) is run by hand with two inputs: `ref`
-(an exact 40-character commit SHA or a `vX.Y.Z` tag) and `mode`. In the default
-`dry-run` mode it builds and smoke-tests every port, runs the release gate and
-reports the version, and changes nothing. In `release` mode, and only when
-`main` is at the validated commit, it also writes the version to `VERSION` on
-`main` and publishes a GitHub Release, which starts
-`publish-release-packages.yml` to build and upload the wheels. A push to `main`
-never starts a release.
+```bash
+./scripts/next_release_version.sh --requested 9.6.1.dev0
+```
+
+It prints the version when it is acceptable and refuses, with the reason,
+when the version is not on the LVGL line of the `lvgl` submodule, is not the
+next patch, or is not greater than every version already tagged.
+
+The **Release** workflow (`release.yml`) is run by hand with three inputs:
+`ref` (an exact 40-character commit SHA or a `vX.Y.Z` tag), `version` and
+`mode`. In the default `dry-run` mode it builds and smoke-tests every port,
+runs the release gate and reports the exact version it would publish, and
+changes nothing. In `release` mode, and only when `main` is at the validated
+commit, it also writes the version to `VERSION` on `main` and publishes a
+GitHub Release, which starts `publish-release-packages.yml` to build and
+upload the wheels. A push to `main` never starts a release.
+
+Leave `version` empty for the next final. Give `9.6.1.devN` or `9.6.1rcN` for
+a pre-release: it is the next patch, so a pre-release of `9.6.1` is allowed
+while `9.6.1` is unreleased. A pre-release is marked as such on GitHub and its
+wheels go to TestPyPI only, never to production PyPI. Each one must sort above
+the last: `dev0`, `dev1`, `rc1`, then the final.
+
+```bash
+# See what would be published; changes nothing (mode defaults to dry-run)
+gh workflow run release.yml -f ref=<40-character SHA> -f version=9.6.1.dev0
+# Publish it
+gh workflow run release.yml -f ref=<40-character SHA> -f version=9.6.1.dev0 -f mode=release
+```
 
 ### Package matrix
 
