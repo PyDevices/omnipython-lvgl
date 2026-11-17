@@ -6,10 +6,9 @@ name: Release
 # GitHub release for it, which starts publish-release-packages.yml (the wheels).
 #
 # The version is the next final unless you ask for one. Ask for X.Y.Z.devN or
-# X.Y.ZrcN to cut a pre-release: it is marked pre-release on GitHub, goes to
-# TestPyPI only, and never to production PyPI (the shared pypi-gate in
-# reusable-publish-release-packages.yml requires prerelease == 'false', and
-# publish-release-packages.yml asks for no production upload at all).
+# X.Y.ZrcN to cut a pre-release: it is marked pre-release on GitHub and, like
+# a final, goes to TestPyPI and production PyPI, where pip installs it only
+# when asked with --pre or the exact version.
 on:
   workflow_dispatch:
     inputs:
@@ -105,7 +104,7 @@ jobs:
           PRERELEASE: ${{ steps.version.outputs.prerelease }}
         run: |
           if [[ "$PRERELEASE" == true ]]; then
-            where="a GitHub pre-release and TestPyPI only"
+            where="a GitHub pre-release"
           else
             where="a final GitHub release"
           fi
