@@ -5,8 +5,9 @@ LVGL's own C API, so [LVGL's documentation](https://docs.lvgl.io/master/) is
 the reference for what each widget, style and function does. This page says
 how the C names map to Python, and what the binding leaves out.
 
-The exact names your build has are in the type stub, `lvgl.pyi`. Wheels install
-it beside the `lvgl` extension module, and [`generated/lvgl.pyi`](../../generated/lvgl.pyi) in
+The exact names your build has are in the type stub. Wheels install it as the
+`lvgl-stubs` package beside the `lvgl` extension module, where mypy, Pylance and
+pyright find it, and [`generated/lvgl.pyi`](../../generated/lvgl.pyi) in
 [omnipython-lvgl](https://github.com/PyDevices/omnipython-lvgl/blob/main/generated/lvgl.pyi)
 is the shared copy. If your checker doesn't pick it up, set
 `python.analysis.stubPath` (Pylance) or `stubPath` (pyright) to a directory

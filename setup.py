@@ -110,9 +110,10 @@ class Win32LinkRspBuildExt(build_ext):
             if ext.name != "lvgl":
                 continue
             ext_path = Path(self.get_ext_fullpath(self.get_ext_fullname(ext.name)))
-            # Type checkers look for lvgl.pyi, not the extension's full
-            # platform-tagged name.
-            dest = ext_path.parent / "lvgl.pyi"
+            # PEP 561 types a compiled module with a stub-only package, `lvgl-stubs`:
+            # a lone lvgl.pyi beside the extension is not found by mypy.
+            dest = ext_path.parent / "lvgl-stubs" / "__init__.pyi"
+            dest.parent.mkdir(exist_ok=True)
             dest.write_bytes(pyi_src.read_bytes())
 
     def build_extensions(self):

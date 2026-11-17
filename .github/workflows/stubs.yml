@@ -1,0 +1,35 @@
+# The type stub as a user gets it: laid out the way the wheel installs it, mypy reads it,
+# a sample a user would write must pass and one with a planted error must fail. Runs when
+# the stub, its checks or this file changes. A few seconds, with no compiling.
+name: Stubs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'generated/lvgl.pyi'
+      - 'tools/check_stubs.py'
+      - 'tools/stubs/**'
+      - '.github/workflows/stubs.yml'
+  pull_request:
+    paths:
+      - 'generated/lvgl.pyi'
+      - 'tools/check_stubs.py'
+      - 'tools/stubs/**'
+      - '.github/workflows/stubs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stubs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - run: python -m pip install mypy
+      - run: python tools/check_stubs.py
