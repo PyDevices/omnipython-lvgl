@@ -13,11 +13,10 @@ same API.
 
 ## CPython
 
-The wheel is `omnipython-lvgl` on TestPyPI. `--extra-index-url` lets pip fetch
-setuptools and other dependencies from PyPI.
+The wheel is `omnipython-lvgl` on PyPI.
 
 ```bash
-python -m pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ omnipython-lvgl
+python -m pip install omnipython-lvgl
 ```
 
 Check it:
@@ -42,25 +41,24 @@ The binding has run on a Raspberry Pi 4 and a Pi 3 B+. A Pi 5 runs the same
 tried it yet. If you do, [open an issue](https://github.com/PyDevices/omnipython-lvgl/issues)
 and say what worked.
 
-Pin a version with `omnipython-lvgl==9.5.52`. For an Android build, ask pip for
+Pin a version with `omnipython-lvgl==9.6.1.dev1`. For an Android build, ask pip for
 the platform:
 
 ```bash
-pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ \
-  --only-binary=:all: --platform android_21_arm64_v8a omnipython-lvgl
+pip install --only-binary=:all: --platform android_21_arm64_v8a omnipython-lvgl
 ```
 
 In Pyodide, install with micropip:
 
 ```python
 import micropip
-await micropip.install("omnipython-lvgl", index_urls="https://test.pypi.org/simple/")
+await micropip.install("omnipython-lvgl")
 ```
 
 On Windows Python from WSL, use `pip.exe` and `python.exe` the same way:
 
 ```bash
-pip.exe install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ omnipython-lvgl
+pip.exe install omnipython-lvgl
 python.exe -c "import lvgl as lv; lv.init(); lv.deinit(); print('ok')"
 ```
 

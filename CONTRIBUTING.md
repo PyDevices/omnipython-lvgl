@@ -225,7 +225,8 @@ upload the wheels. A push to `main` never starts a release.
 Leave `version` empty for the next final. Give `9.6.1.devN` or `9.6.1rcN` for
 a pre-release: it is the next patch, so a pre-release of `9.6.1` is allowed
 while `9.6.1` is unreleased. A pre-release is marked as such on GitHub and its
-wheels go to TestPyPI only, never to production PyPI. Each one must sort above
+wheels go to PyPI like a final's, where pip installs them only when asked with
+`--pre` or the exact version. Each one must sort above
 the last: `dev0`, `dev1`, `rc1`, then the final.
 
 ```bash
