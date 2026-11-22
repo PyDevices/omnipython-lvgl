@@ -467,8 +467,12 @@ extern void mp_lv_deinit_gc(void);
  * E.g. __attribute__((aligned(4)))*/
 #define LV_ATTRIBUTE_MEM_ALIGN
 
-/*Attribute to mark large constant arrays for example font's bitmaps*/
+/*Attribute to mark large constant arrays for example font's bitmaps.
+ *A build can place them in a section of its own with
+ *-DLV_ATTRIBUTE_LARGE_CONST='__attribute__((section(".name")))'.*/
+#ifndef LV_ATTRIBUTE_LARGE_CONST
 #define LV_ATTRIBUTE_LARGE_CONST
+#endif
 
 /*Compiler prefix for a big array declaration in RAM*/
 #define LV_ATTRIBUTE_LARGE_RAM_ARRAY
